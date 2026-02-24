@@ -1,5 +1,8 @@
 <script lang="ts">
     import FaustNode from './FaustNode.svelte';
+    import type { FaustAudioWorkletNode } from '@grame/faustwasm/dist/esm/index.js';
+
+    let { output = null }: { output?: FaustAudioWorkletNode | AudioNode | null } = $props();
 
     let faustNode: FaustNode | null = null;
 
@@ -21,6 +24,7 @@
 <FaustNode 
     name="saw_selector"
     bind:this={faustNode}
+    output={output}
 />
 
 <div style="margin-top: 1rem;">

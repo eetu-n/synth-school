@@ -2,7 +2,7 @@
     import { FaustAudioWorkletNode, FaustMonoDspGenerator, FaustWasmInstantiator } from '@grame/faustwasm/dist/esm/index.js';
     import { getAudioContext } from './audioContextManager.ts';
 
-    let { name, output = null, worklet = $bindable(), started = $bindable(false), error = $bindable<string | null>(null) }: {
+    let { name, output = null, worklet = $bindable(), started = $bindable(false), error = $bindable(null) }: {
         name: string,
         output?: FaustAudioWorkletNode | AudioNode | null,
         worklet?: FaustAudioWorkletNode | null,
@@ -10,7 +10,16 @@
         error?: string | null
     } = $props();
 
-    let audioContext: AudioContext | null;
+    let audioContext = $state<AudioContext | null>(null);
+
+    let targetOutput = $derived(output || (audioContext ? audioContext.destination : null));
+
+    $effect(() => {
+        if (worklet && targetOutput) {
+            worklet.disconnect();
+            worklet.connect(targetOutput);
+        }
+    });
 
     const devDspImporters = import.meta.glob('/src/lib/dsp/*.dsp', { query: '?url' });
     const prodJsonImporters = import.meta.glob('/src/lib/dsp/generated/*/dsp.json');
@@ -44,10 +53,6 @@
         if (audioContext.state !== 'running') {
             error = `AudioContext not running. State: ${audioContext.state}`;
             return;
-        }
-
-        if (!output) {
-            output = audioContext.destination;
         }
 
         let factory;
@@ -101,7 +106,6 @@
             
             if (createdNode) {
                 worklet = createdNode;
-                worklet.connect(output);
             } else {
                 throw new Error("Failed to create Faust audio node.");
             }
