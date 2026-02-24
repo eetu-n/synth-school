@@ -11,6 +11,4 @@ saw2 = antisaw * 0.5;
 
 s = checkbox("Aliasing");
 
-mute = checkbox("Mute");
-
-process = saw2, saw1 : select2(s) * mute <: _, _;
+process = saw2, saw1 : select2(s) <: _, _;
