@@ -24,6 +24,7 @@
 		"vite-plugin-wasm": "^3.5.0"
 	},
 	"dependencies": {
-		"@grame/faustwasm": "^0.15.4"
+		"@grame/faustwasm": "^0.15.4",
+		"vite-plugin-static-copy": "^3.2.0"
 	}
 }
