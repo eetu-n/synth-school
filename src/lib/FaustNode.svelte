@@ -1,20 +1,14 @@
 <script lang="ts">
     import { FaustMonoDspGenerator, FaustWasmInstantiator, type FaustAudioWorkletNode } from '@grame/faustwasm/dist/esm/index.js';
-    import { getAudioContext } from './audio';
+    import { getAudioContext } from './audioContextManager.ts';
 
-    interface Props {
-        name: string;
-        node: FaustAudioWorkletNode | null;
-    }
-    /**
-     * The base name of the DSP file (e.g., "saw_selector").
-     * The created Faust audio node instance, bound to the parent.
-     */
-    let { name, node } = $props<Props>();
+    let { name, worklet = $bindable(), started = $bindable(false), error = $bindable<string | null>(null) }: {
+        name: string,
+        worklet?: FaustAudioWorkletNode | null,
+        started?: boolean,
+        error?: string | null
+    } = $props();
 
-    let started = $state(false);
-    let loading = $state(false);
-    let error = $state<string | null>(null);
     let audioContext: AudioContext | null;
 
     const devDspImporters = import.meta.glob('/src/lib/dsp/*.dsp', { query: '?url' });
@@ -23,25 +17,33 @@
 
     $effect(() => {
         return () => {
-            if (node) node.destroy();
+            if (worklet) worklet.destroy();
         };
     });
 
-    export async function start() {
-        if (started || loading) return;
-        
-        loading = true;
-        error = null;
-        audioContext = getAudioContext();
+    export function setParamValue(param: string, value: number) {
+        if (worklet) {
+            worklet.setParamValue(param, value);
+        }
+    }
 
-        if (!audioContext) {
-            error = "AudioContext could not be created.";
-            loading = false;
+    export async function start() {
+        if (started) return;
+
+        error = null;
+
+        try {
+            audioContext = await getAudioContext();
+            console.log('Got audio context', audioContext);
+        } catch (e: any) {
+            console.error('Failed to get audio context', e);
+            error = `Failed to get audio context: ${e.message}`;
             return;
         }
 
-        if (audioContext.state === 'suspended') {
-            await audioContext.resume();
+        if (audioContext.state !== 'running') {
+            error = `AudioContext not running. State: ${audioContext.state}`;
+            return;
         }
 
         let factory;
@@ -49,6 +51,7 @@
 
         try {
             if (import.meta.env.DEV) {
+                console.log(`DEV: Loading DSP for ${name}...`);
                 const dspPath = `/src/lib/dsp/${name}.dsp`;
                 const importer = devDspImporters[dspPath];
                 if (!importer) throw new Error(`[DEV] DSP file not found for name: ${name}. Looked for ${dspPath}`);
@@ -57,11 +60,11 @@
                 console.log(`DEV: Compiling ${dspUrl}...`);
                 
                 const { compile } = await import('./compile-faust.ts');
-                const { dspModule, dspMeta } = await compile(dspUrl);
+                const { wasm, meta } = await compile(dspUrl);
 
-                const wasmBlob = new Blob([dspModule], { type: 'application/wasm' });
+                const wasmBlob = new Blob([wasm as any], { type: 'application/wasm' });
                 const wasmBlobUrl = URL.createObjectURL(wasmBlob);
-                const jsonBlob = new Blob([JSON.stringify(dspMeta)], { type: 'application/json' });
+                const jsonBlob = new Blob([JSON.stringify(meta)], { type: 'application/json' });
                 const jsonBlobUrl = URL.createObjectURL(jsonBlob);
                 
                 factory = await FaustWasmInstantiator.loadDSPFactory(wasmBlobUrl, jsonBlobUrl);
@@ -93,8 +96,9 @@
             const createdNode = await generator.createNode(audioContext, name, factory);
             
             if (createdNode) {
-                node = createdNode;
-                node.connect(audioContext.destination);
+                worklet = createdNode;
+                worklet.connect(audioContext.destination);
+                console.log(worklet);
             } else {
                 throw new Error("Failed to create Faust audio node.");
             }
@@ -103,10 +107,9 @@
             console.error(`Error loading Faust node for ${name}:`, e);
             error = e.message;
         } finally {
-            loading = false;
-            if (node) started = true;
+            if (worklet) started = true;
         }
     }
-</script>
 
-<slot loading={loading} started={started} error={error} start={start} />
+    start();
+</script>
