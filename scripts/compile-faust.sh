@@ -22,7 +22,7 @@ for f in src/lib/dsp/*.dsp; do
   
   echo "Compiling $f -> $OUT_DIR"
   
-  bun "$FAUST2WASM_SCRIPT" "$f" "$OUT_DIR"
+  bun "$FAUST2WASM_SCRIPT" "$f" "$OUT_DIR" -no-template
 done
 
 echo "Faust DSP compilation finished successfully."
