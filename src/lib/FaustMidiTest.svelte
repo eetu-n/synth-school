@@ -1,37 +1,38 @@
 <script lang="ts">
-    import FaustNode from './FaustNode.svelte';
+    import { FaustNode } from './FaustNode.ts';
     import type { FaustAudioWorkletNode } from '@grame/faustwasm/dist/esm/index.js';
 
     let { output = null }: { output?: FaustAudioWorkletNode | AudioNode | null } = $props();
 
-    let faustNode: FaustNode | null = null;
+    let faustNode = new FaustNode("midi_test");
     
     let freq = $state(0);
 
     $effect(() => {
+        faustNode.setOutput(output);
+    });
+
+    $effect(() => {
+        faustNode.start();
+        
         let frame: number;
         
         const loop = () => {
-            if (faustNode) {
-                // The parameter is named 'key' in midi_test.dsp
-                const val = faustNode.getParamValue('freq');
-                if (val !== freq) {
-                    freq = val;
-                }
+            // The parameter is named 'key' in midi_test.dsp
+            const val = faustNode.getParamValue('freq');
+            if (val !== freq) {
+                freq = val;
             }
             frame = requestAnimationFrame(loop);
         };
         
         frame = requestAnimationFrame(loop);
         
-        return () => cancelAnimationFrame(frame);
+        return () => {
+            cancelAnimationFrame(frame);
+            faustNode.destroy();
+        };
     });
 </script>
 
 <p>Current MIDI Key: {freq}</p>
-
-<FaustNode 
-    name="midi_test"
-    bind:this={faustNode}
-    output={output}
-/>

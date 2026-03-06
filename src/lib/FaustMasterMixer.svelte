@@ -1,39 +1,33 @@
 <script lang="ts">
-    import FaustNode from './FaustNode.svelte';
+    import { FaustNode } from './FaustNode.ts';
     import type { FaustAudioWorkletNode } from '@grame/faustwasm/dist/esm/index.js';
 
     let { worklet = $bindable() }: { worklet?: FaustAudioWorkletNode | null } = $props();
 
-    let faustNode: FaustNode | null = null;
+    let faustNode = new FaustNode("master_mixer");
 
     let gain = $state(0.9);
     let mute = $state(false);
 
     function handleMuteChange() {
-        if (faustNode) {
-            faustNode.setParamValue("Mute", mute ? 1 : 0);
-        }
+        faustNode.setParamValue("Mute", mute ? 1 : 0);
     }
 
     function handleGainChange() {
-        if (faustNode) {
-            faustNode.setParamValue("Gain", gain);
-        }
+        faustNode.setParamValue("Gain", gain);
     }
 
+    $effect(() => {
+        handleMuteChange();
+    });
 
     $effect(() => {
-        if (faustNode) {
-            handleMuteChange();
-        }
+        faustNode.start().then(() => {
+            worklet = faustNode.worklet;
+        });
+        return () => faustNode.destroy();
     });
 </script>
-
-<FaustNode 
-    name="master_mixer"
-    bind:this={faustNode}
-    bind:worklet={worklet}
-/>
 
 <div style="margin-top: 1rem;">
     <label style="margin-left: 1rem;">

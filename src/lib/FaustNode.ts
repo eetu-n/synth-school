@@ -1,65 +1,68 @@
-<script lang="ts">
-    import { FaustAudioWorkletNode, FaustMonoDspGenerator, FaustPolyDspGenerator, FaustWasmInstantiator } from '@grame/faustwasm/dist/esm/index.js';
-    import { getAudioContext } from './audioContextManager.ts';
+import { FaustAudioWorkletNode, FaustMonoDspGenerator, FaustPolyDspGenerator, FaustWasmInstantiator } from '@grame/faustwasm/dist/esm/index.js';
+import { getAudioContext } from './audioContextManager.ts';
 
-    let { name, output = null, worklet = $bindable(), started = $bindable(false), error = $bindable(null) }: {
-        name: string,
-        output?: FaustAudioWorkletNode | AudioNode | null,
-        worklet?: FaustAudioWorkletNode | null,
-        started?: boolean,
-        error?: string | null
-    } = $props();
+const devDspImporters = import.meta.glob('/src/lib/dsp/*.dsp', { query: '?url' });
+const prodJsonImporters = import.meta.glob('/src/lib/dsp/generated/*/dsp.json');
+const prodWasmImporters = import.meta.glob('/src/lib/dsp/generated/*/dsp.wasm', { query: '?url' });
+const prodMixerImporters = import.meta.glob('/src/lib/dsp/generated/*/mixer-module.wasm', { query: '?url' });
 
-    let audioContext = $state<AudioContext | null>(null);
+export class FaustNode {
+    name: string;
+    worklet: FaustAudioWorkletNode | null = null;
+    audioContext: AudioContext | null = null;
+    started: boolean = false;
+    error: string | null = null;
+    private targetOutput: AudioNode | FaustAudioWorkletNode | null = null;
+    
+    constructor(name: string) {
+        this.name = name;
+    }
 
-    let targetOutput = $derived(output || (audioContext ? audioContext.destination : null));
+    setOutput(output: AudioNode | FaustAudioWorkletNode | null) {
+        this.targetOutput = output;
+        this.updateConnection();
+    }
 
-    $effect(() => {
-        if (worklet && targetOutput) {
-            worklet.disconnect();
-            worklet.connect(targetOutput);
-        }
-    });
-
-    const devDspImporters = import.meta.glob('/src/lib/dsp/*.dsp', { query: '?url' });
-    const prodJsonImporters = import.meta.glob('/src/lib/dsp/generated/*/dsp.json');
-    const prodWasmImporters = import.meta.glob('/src/lib/dsp/generated/*/dsp.wasm', { query: '?url' });
-    const prodMixerImporters = import.meta.glob('/src/lib/dsp/generated/*/mixer-module.wasm', { query: '?url' });
-
-    $effect(() => {
-        return () => {
-            if (worklet) worklet.destroy();
-        };
-    });
-
-    export function setParamValue(param: string, value: number) {
-        if (worklet) {
-            worklet.setParamValue("/" + name + "/" + param, value);
+    private updateConnection() {
+        if (!this.worklet) return;
+        
+        try {
+            this.worklet.disconnect();
+        } catch(e) {}
+        
+        const dest = this.targetOutput || (this.audioContext ? this.audioContext.destination : null);
+        if (dest) {
+            this.worklet.connect(dest);
         }
     }
 
-    export function getParamValue(param: string): number {
-        if (worklet) {
-            return worklet.getParamValue("/" + name + "/" + param);
+    setParamValue(param: string, value: number) {
+        if (this.worklet) {
+            this.worklet.setParamValue("/" + this.name + "/" + param, value);
+        }
+    }
+
+    getParamValue(param: string): number {
+        if (this.worklet) {
+            return this.worklet.getParamValue("/" + this.name + "/" + param);
         }
         return 0;
     }
 
-    export async function start() {
-        if (started) return;
-
-        error = null;
+    async start(): Promise<void> {
+        if (this.started) return;
+        this.error = null;
 
         try {
-            audioContext = await getAudioContext();
+            this.audioContext = await getAudioContext();
         } catch (e: any) {
             console.error('Failed to get audio context', e);
-            error = `Failed to get audio context: ${e.message}`;
+            this.error = `Failed to get audio context: ${e.message}`;
             return;
         }
 
-        if (audioContext.state !== 'running') {
-            error = `AudioContext not running. State: ${audioContext.state}`;
+        if (this.audioContext.state !== 'running') {
+            this.error = `AudioContext not running. State: ${this.audioContext.state}`;
             return;
         }
 
@@ -68,10 +71,10 @@
 
         try {
             if (import.meta.env.DEV) {
-                console.log(`DEV: Loading DSP for ${name}...`);
-                const dspPath = `/src/lib/dsp/${name}.dsp`;
+                console.log(`DEV: Loading DSP for ${this.name}...`);
+                const dspPath = `/src/lib/dsp/${this.name}.dsp`;
                 const importer = devDspImporters[dspPath];
-                if (!importer) throw new Error(`[DEV] DSP file not found for name: ${name}. Looked for ${dspPath}`);
+                if (!importer) throw new Error(`[DEV] DSP file not found for name: ${this.name}. Looked for ${dspPath}`);
 
                 const dspUrl = (await importer() as any).default;
                 console.log(`DEV: Compiling ${dspUrl}...`);
@@ -92,26 +95,26 @@
                 if (isPoly) {
                     const generator = new FaustPolyDspGenerator();
                     const mixerModule = await WebAssembly.compile(mixerBuffer! as any);
-                    createdNode = await generator.createNode(audioContext, nvoices, name, factory, mixerModule);
+                    createdNode = await generator.createNode(this.audioContext, nvoices, this.name, factory, mixerModule);
                 } else {
                     const generator = new FaustMonoDspGenerator();
-                    createdNode = await generator.createNode(audioContext, name, factory);
+                    createdNode = await generator.createNode(this.audioContext, this.name, factory);
                 }
 
             } else {
-                const jsonPath = `/src/lib/dsp/generated/${name}/dsp.json`;
-                const wasmPath = `/src/lib/dsp/generated/${name}/dsp.wasm`;
-                const mixerPath = `/src/lib/dsp/generated/${name}/mixer-module.wasm`;
+                const jsonPath = `/src/lib/dsp/generated/${this.name}/dsp.json`;
+                const wasmPath = `/src/lib/dsp/generated/${this.name}/dsp.wasm`;
+                const mixerPath = `/src/lib/dsp/generated/${this.name}/mixer-module.wasm`;
                 
                 const jsonImporter = prodJsonImporters[jsonPath];
                 const wasmImporter = prodWasmImporters[wasmPath];
                 const mixerImporter = prodMixerImporters[mixerPath];
 
                 if (!jsonImporter || !wasmImporter) {
-                    throw new Error(`[PROD] Production assets not found for name: ${name}.`);
+                    throw new Error(`[PROD] Production assets not found for name: ${this.name}.`);
                 }
 
-                console.log(`PROD: Loading pre-compiled DSP for ${name}...`);
+                console.log(`PROD: Loading pre-compiled DSP for ${this.name}...`);
                 const prodJson = (await jsonImporter() as any).default;
                 const prodWasmUrl = (await wasmImporter() as any).default;
                 
@@ -129,23 +132,24 @@
                     const nvoicesMatch = optionsMetadata?.options?.match(/\[nvoices:\s*(\d+)\]/);
                     const nvoices = nvoicesMatch ? parseInt(nvoicesMatch[1], 10) : 1;
 
-                    createdNode = await generator.createNode(audioContext, nvoices, name, factory, mixerModule);
+                    createdNode = await generator.createNode(this.audioContext, nvoices, this.name, factory, mixerModule);
                 } else {
                     const generator = new FaustMonoDspGenerator();
-                    createdNode = await generator.createNode(audioContext, name, factory);
+                    createdNode = await generator.createNode(this.audioContext, this.name, factory);
                 }
             }
             
             if (createdNode) {
-                worklet = createdNode as FaustAudioWorkletNode;
+                this.worklet = createdNode as FaustAudioWorkletNode;
+                this.updateConnection();
                 
                 // Hook up the Web MIDI API to the Faust Node
                 if (navigator.requestMIDIAccess) {
                     navigator.requestMIDIAccess().then(midiAccess => {
                         for (const input of midiAccess.inputs.values()) {
                             input.onmidimessage = (e) => {
-                                if (worklet && e.data) {
-                                    worklet.midiMessage(e.data);
+                                if (this.worklet && e.data) {
+                                    this.worklet.midiMessage(e.data);
                                 }
                             };
                         }
@@ -157,12 +161,17 @@
             }
 
         } catch (e: any) {
-            console.error(`Error loading Faust node for ${name}:`, e);
-            error = e.message;
+            console.error(`Error loading Faust node for ${this.name}:`, e);
+            this.error = e.message;
         } finally {
-            if (worklet) started = true;
+            if (this.worklet) this.started = true;
         }
     }
 
-    start();
-</script>
+    destroy() {
+        if (this.worklet) {
+            this.worklet.destroy();
+            this.worklet = null;
+        }
+    }
+}

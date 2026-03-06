@@ -1,31 +1,30 @@
 <script lang="ts">
-    import FaustNode from './FaustNode.svelte';
+    import { FaustNode } from './FaustNode.ts';
     import type { FaustAudioWorkletNode } from '@grame/faustwasm/dist/esm/index.js';
 
     let { output = null }: { output?: FaustAudioWorkletNode | AudioNode | null } = $props();
 
-    let faustNode: FaustNode | null = null;
+    let faustNode = new FaustNode("saw_selector");
 
     let aliasing = $state(false);
 
     function handleAliasingChange() {
-        if (faustNode) {
-            faustNode.setParamValue("Aliasing", aliasing ? 1 : 0);
-        }
+        faustNode.setParamValue("Aliasing", aliasing ? 1 : 0);
     }
 
     $effect(() => {
-        if (faustNode) {
-            handleAliasingChange();
-        }
+        faustNode.setOutput(output);
+    });
+
+    $effect(() => {
+        handleAliasingChange();
+    });
+
+    $effect(() => {
+        faustNode.start();
+        return () => faustNode.destroy();
     });
 </script>
-
-<FaustNode 
-    name="saw_selector"
-    bind:this={faustNode}
-    output={output}
-/>
 
 <div style="margin-top: 1rem;">
     <label>
