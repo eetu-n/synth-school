@@ -2,7 +2,8 @@ import {
     instantiateFaustModuleFromFile, 
     LibFaust, 
     FaustCompiler, 
-    FaustMonoDspGenerator 
+    FaustMonoDspGenerator,
+    FaustPolyDspGenerator
 } from "@grame/faustwasm";
 
 const compilerUrl = "/libfaust-wasm/libfaust-wasm.js"
@@ -22,27 +23,48 @@ export async function compile(dspUrl: string) {
     }
     const dspCode = await response.text();
 
+    const nvoicesMatch = dspCode.match(/\[nvoices:\s*(\d+)\]/);
+    const isPoly = !!nvoicesMatch;
+    const nvoices = isPoly ? parseInt(nvoicesMatch![1], 10) : 0;
+
     const faustModule = await instantiateFaustModuleFromFile(compilerUrl);
     const libFaust = new LibFaust(faustModule);
     const compiler = new FaustCompiler(libFaust);
 
-    const generator = new FaustMonoDspGenerator();
-    
-    await generator.compile(compiler, dspName, dspCode, "-O3");
-    
-    const factory = generator.factory;
+    let factory;
+    let generator;
+
+    if (isPoly) {
+        generator = new FaustPolyDspGenerator();
+        // Compile polyphonic module. effectCode parameter is omitted, so no effect
+        await generator.compile(compiler, dspName, dspCode, "-O3");
+        factory = generator.voiceFactory; 
+    } else {
+        generator = new FaustMonoDspGenerator();
+        await generator.compile(compiler, dspName, dspCode, "-O3");
+        factory = generator.factory;
+    }
+
     if (!factory) {
         throw new Error("Faust compilation failed. Please check the DSP code for syntax errors.");
     }
 
     // 4. Extract the WASM buffer and metadata JSON
-    // 'factory.code' is a Uint8Array containing the compiled WebAssembly binary
-    // 'factory.json' is a JSON string containing the DSP metadata (controls, inputs/outputs, etc.)
     const wasmBuffer = factory.code;
     const metaJson = JSON.parse(factory.json);
     
+    // For polyphonic nodes, we also need to pass back the mixer module 
+    // to instantiate the full poly node correctly
+    let mixerBuffer = undefined;
+    if (isPoly) {
+        mixerBuffer = (generator as FaustPolyDspGenerator).mixerBuffer;
+    }
+
     return { 
         wasm: wasmBuffer, 
-        meta: metaJson 
+        meta: metaJson,
+        isPoly,
+        nvoices,
+        mixerBuffer
     };
 }
