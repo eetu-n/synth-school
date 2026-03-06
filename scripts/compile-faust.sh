@@ -1,4 +1,4 @@
-#!/bin/env sh
+#!/usr/bin/env sh
 set -e
 
 FAUST2WASM_SCRIPT="./node_modules/@grame/faustwasm/scripts/faust2wasm.js"
@@ -20,9 +20,15 @@ for f in src/lib/dsp/*.dsp; do
   NAME=$(basename "$f" .dsp)
   OUT_DIR="$BASE_OUT_DIR/$NAME"
   
-  echo "Compiling $f -> $OUT_DIR"
+  # Check if this is best way to check for poly
+  POLY_FLAG=""
+  if grep -q "\[nvoices:" "$f"; then
+      POLY_FLAG="-poly"
+  fi
   
-  bun "$FAUST2WASM_SCRIPT" "$f" "$OUT_DIR" -no-template
+  echo "Compiling $f -> $OUT_DIR $POLY_FLAG"
+  
+  bun "$FAUST2WASM_SCRIPT" "$f" "$OUT_DIR" $POLY_FLAG -no-template
 done
 
 echo "Faust DSP compilation finished successfully."
