@@ -1,6 +1,7 @@
 <script lang="ts">
     import { FaustNode } from '$lib/audioFramework/FaustNode';
     import type { FaustAudioWorkletNode } from '@grame/faustwasm/dist/esm/index.js';
+    import Toggle from '$lib/uiComponents/Toggle.svelte';
 
     let { output = null }: { output?: FaustAudioWorkletNode | AudioNode | null } = $props();
 
@@ -27,8 +28,8 @@
 </script>
 
 <div style="margin-top: 1rem;">
-    <label>
-        <input type="checkbox" onchange={handleAliasingChange} bind:checked={aliasing} />
-        Aliasing
-    </label>
+    A
+    <Toggle onchange={handleAliasingChange} bind:checked={aliasing}>
+    </Toggle>
+    B
 </div>
