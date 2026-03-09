@@ -3,14 +3,14 @@
     import type { FaustAudioWorkletNode } from '@grame/faustwasm/dist/esm/index.js';
     import Toggle from '$lib/uiComponents/Toggle.svelte';
 
-    let { output = null }: { output?: FaustAudioWorkletNode | AudioNode | null } = $props();
+    let { output = null, isRightAliasing = true }: { output?: FaustAudioWorkletNode | AudioNode | null, isRightAliasing?: boolean } = $props();
 
     let faustNode = new FaustNode("saw_selector");
 
-    let aliasing = $state(false);
+    let isRightSelected = $state(false);
 
     function handleAliasingChange() {
-        faustNode.setParamValue("Aliasing", aliasing ? 1 : 0);
+        faustNode.setParamValue("Aliasing", Number(!isRightAliasing) ^ Number(isRightSelected));
     }
 
     $effect(() => {
@@ -29,6 +29,6 @@
 
 <div style="margin-top: 1rem;">
     A
-    <Toggle onchange={handleAliasingChange} bind:checked={aliasing} />
+    <Toggle onchange={handleAliasingChange} bind:checked={isRightSelected} />
     B
 </div>
