@@ -1,7 +1,7 @@
 <!-- Module to start / stop the audio engine with a button -->
 
 <script lang="ts">
-	import { startAudioContext, closeAudioContext, getAudioContext } from './audioContextManager';
+	import { startAudioContext, closeAudioContext, getAudioContext } from '$lib/audioFramework/audioContextManager';
 
 	let started = $state(false);
 	let loading = $state(false);

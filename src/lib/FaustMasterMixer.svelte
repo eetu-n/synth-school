@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { FaustNode } from './FaustNode.ts';
+    import { FaustNode } from '$lib/audioFramework/FaustNode';
     import type { FaustAudioWorkletNode } from '@grame/faustwasm/dist/esm/index.js';
-    import HSlider from './HSlider.svelte';
+    import HSlider from '$lib/HSlider.svelte';
 
     let { worklet = $bindable() }: { worklet?: FaustAudioWorkletNode | null } = $props();
 

@@ -4,7 +4,7 @@ import {
     FaustPolyDspGenerator, 
     FaustWasmInstantiator
 } from '@grame/faustwasm/dist/esm/index.js';
-import { getAudioContext } from './audioContextManager.ts';
+import { getAudioContext } from '$lib/audioFramework/audioContextManager';
 
 const devDspImporters = import.meta.glob('/src/lib/dsp/*.dsp', { query: '?url' });
 const prodJsonImporters = import.meta.glob('/src/lib/dsp/generated/*/dsp.json');

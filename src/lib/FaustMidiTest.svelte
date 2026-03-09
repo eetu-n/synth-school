@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { FaustNode } from './FaustNode.ts';
+    import { FaustNode } from '$lib/audioFramework/FaustNode';
     import type { FaustAudioWorkletNode } from '@grame/faustwasm/dist/esm/index.js';
 
     let { output = null }: { output?: FaustAudioWorkletNode | AudioNode | null } = $props();
