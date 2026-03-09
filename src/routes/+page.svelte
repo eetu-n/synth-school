@@ -3,4 +3,4 @@
 	import { audioState } from '$lib/audioFramework/audioState.svelte';
 </script>
 
-<FaustSawSelector output={audioState.masterWorklet} />
+<a href="/aliasing">Aliasing Quiz</a>
