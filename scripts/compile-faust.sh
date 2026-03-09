@@ -19,6 +19,12 @@ echo "Starting Faust DSP compilation..."
 for f in src/lib/dsp/*.dsp; do
   NAME=$(basename "$f" .dsp)
   OUT_DIR="$BASE_OUT_DIR/$NAME"
+
+  # Skip files that don't have a process defined (likely library files)
+  if ! grep -q "process" "$f"; then
+      echo "Skipping $f (no 'process' defined, assuming library)"
+      continue
+  fi
   
   # Check if this is best way to check for poly
   POLY_FLAG=""

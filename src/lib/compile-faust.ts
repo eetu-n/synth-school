@@ -7,6 +7,7 @@ import {
 } from "@grame/faustwasm";
 
 const compilerUrl = "/libfaust-wasm/libfaust-wasm.js"
+const devDspImporters = import.meta.glob('/src/lib/dsp/*.dsp', { query: '?url' });
 
 /**
  * Fetches and compiles a Faust DSP file from a URL into WebAssembly and metadata JSON.
@@ -30,6 +31,24 @@ export async function compile(dspUrl: string) {
     const faustModule = await instantiateFaustModuleFromFile(compilerUrl);
     const libFaust = new LibFaust(faustModule);
     const compiler = new FaustCompiler(libFaust);
+
+    // Pre-load all auxiliary .dsp files into the virtual file system
+    const fs = compiler.fs();
+    for (const path in devDspImporters) {
+        const filename = path.split('/').pop();
+        if (filename && filename !== `${dspName}.dsp`) {
+            try {
+                const url = (await devDspImporters[path]() as any).default;
+                const res = await fetch(url);
+                if (res.ok) {
+                    const content = await res.text();
+                    fs.writeFile(filename, content);
+                }
+            } catch (err) {
+                console.error(`Failed to load auxiliary DSP file ${filename} into virtual FS:`, err);
+            }
+        }
+    }
 
     let factory;
     let generator;
