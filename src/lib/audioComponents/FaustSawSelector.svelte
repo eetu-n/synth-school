@@ -9,8 +9,16 @@
 
     let isRightSelected = $state(false);
 
+    let gate: boolean = $state(false)
+
     function handleAliasingChange() {
         faustNode.setParamValue("Aliasing", Number(!isRightAliasing) ^ Number(isRightSelected));
+    }
+
+    function handleGate(input: boolean) {
+        gate = input;
+        console.log("Gate status is now:", gate? 1 : 0);
+        faustNode.setParamValue("Gate", gate? 1 : 0);
     }
 
     $effect(() => {
@@ -20,6 +28,10 @@
     $effect(() => {
         handleAliasingChange();
     });
+
+    $effect(() => {
+        handleGate(gate);
+    })
 
     $effect(() => {
         faustNode.start();
@@ -32,3 +44,11 @@
     <Toggle onchange={handleAliasingChange} bind:checked={isRightSelected} />
     B
 </div>
+
+<button 
+  onpointerdown={() => handleGate(true)} 
+  onpointerup={() => handleGate(false)}
+  onpointerleave={() => handleGate(false)} 
+>
+  Gate
+</button>
