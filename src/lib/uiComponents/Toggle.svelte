@@ -1,10 +1,8 @@
 <script lang="ts">
-    import type { Snippet } from 'svelte';
     import type { HTMLInputAttributes } from 'svelte/elements';
 
     interface Props extends HTMLInputAttributes {
         checked?: boolean;
-        children?: Snippet;
     }
 
     let { checked = $bindable(false), children, ...rest }: Props = $props();
@@ -93,7 +91,4 @@
         />
         <span class="slider round"></span>
     </div>
-    {#if children}
-        {@render children()}
-    {/if}
 </label>

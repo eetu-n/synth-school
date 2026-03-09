@@ -29,7 +29,6 @@
 
 <div style="margin-top: 1rem;">
     A
-    <Toggle onchange={handleAliasingChange} bind:checked={aliasing}>
-    </Toggle>
+    <Toggle onchange={handleAliasingChange} bind:checked={aliasing} />
     B
 </div>
