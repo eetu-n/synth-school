@@ -1,6 +1,7 @@
 <script lang="ts">
     import { FaustNode } from './FaustNode.ts';
     import type { FaustAudioWorkletNode } from '@grame/faustwasm/dist/esm/index.js';
+    import VSlider from './VSlider.svelte';
 
     let { worklet = $bindable() }: { worklet?: FaustAudioWorkletNode | null } = $props();
 
@@ -35,7 +36,7 @@
         Mute
     </label>
     <label>
-        <input type="range" class="vslider" oninput={handleGainChange} min="0" max="1" step="0.01" bind:value={gain} />
+        <VSlider oninput={handleGainChange} bind:value={gain} />
         Gain
     </label>
 </div>
