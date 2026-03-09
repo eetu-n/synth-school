@@ -35,7 +35,7 @@
         Mute
     </label>
     <label>
-        <input type="range" style="writing-mode:vertical-lr; direction: rtl; appearance: slider-vertical;" oninput={handleGainChange} min="0" max="1" step="0.01" bind:value={gain} />
+        <input type="range" class="vslider" oninput={handleGainChange} min="0" max="1" step="0.01" bind:value={gain} />
         Gain
     </label>
 </div>
