@@ -1,13 +1,13 @@
 import("stdfaust.lib");
+m = library("midi.dsp");
+declare options "[midi:on][nvoices:12]";
 
-freq = 500;
+alisaw = ( os.lf_sawpos(m.freq) * 2 ) - 1;
 
-alisaw = ( os.lf_sawpos(freq) * 2 ) - 1;
+antisaw = os.sawN(3, m.freq);
 
-antisaw = os.sawN(3, freq);
-
-saw1 = alisaw * 0.5;
-saw2 = antisaw * 0.5;
+saw1 = alisaw * m.envelope;
+saw2 = antisaw * m.envelope;
 
 s = checkbox("Aliasing");
 
