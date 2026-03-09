@@ -6,8 +6,8 @@ antisaw = os.sawN(3, 440);
 
 gate = button("Gate") : si.smoo;
 
-saw1 = alisaw * gate;
-saw2 = antisaw * gate;
+saw1 = alisaw * gate * 0.3;
+saw2 = antisaw * gate * 0.3;
 
 s = checkbox("Aliasing");
 
