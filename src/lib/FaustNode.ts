@@ -1,4 +1,9 @@
-import { FaustAudioWorkletNode, FaustMonoDspGenerator, FaustPolyDspGenerator, FaustWasmInstantiator } from '@grame/faustwasm/dist/esm/index.js';
+import { 
+    FaustAudioWorkletNode, 
+    FaustMonoDspGenerator, 
+    FaustPolyDspGenerator, 
+    FaustWasmInstantiator
+} from '@grame/faustwasm/dist/esm/index.js';
 import { getAudioContext } from './audioContextManager.ts';
 
 const devDspImporters = import.meta.glob('/src/lib/dsp/*.dsp', { query: '?url' });
@@ -13,7 +18,7 @@ export class FaustNode {
     started: boolean = false;
     error: string | null = null;
     private targetOutput: AudioNode | FaustAudioWorkletNode | null = null;
-    
+
     constructor(name: string) {
         this.name = name;
     }
@@ -25,11 +30,11 @@ export class FaustNode {
 
     private updateConnection() {
         if (!this.worklet) return;
-        
+
         try {
             this.worklet.disconnect();
-        } catch(e) {}
-        
+        } catch (e) { }
+
         const dest = this.targetOutput || (this.audioContext ? this.audioContext.destination : null);
         if (dest) {
             this.worklet.connect(dest);
@@ -78,7 +83,7 @@ export class FaustNode {
 
                 const dspUrl = (await importer() as any).default;
                 console.log(`DEV: Compiling ${dspUrl}...`);
-                
+
                 const { compile } = await import('./compile-faust.ts');
                 const { wasm, meta, isPoly, nvoices, mixerBuffer } = await compile(dspUrl);
 
@@ -86,7 +91,7 @@ export class FaustNode {
                 const wasmBlobUrl = URL.createObjectURL(wasmBlob);
                 const jsonBlob = new Blob([JSON.stringify(meta)], { type: 'application/json' });
                 const jsonBlobUrl = URL.createObjectURL(jsonBlob);
-                
+
                 factory = await FaustWasmInstantiator.loadDSPFactory(wasmBlobUrl, jsonBlobUrl);
 
                 URL.revokeObjectURL(wasmBlobUrl);
@@ -105,7 +110,7 @@ export class FaustNode {
                 const jsonPath = `/src/lib/dsp/generated/${this.name}/dsp.json`;
                 const wasmPath = `/src/lib/dsp/generated/${this.name}/dsp.wasm`;
                 const mixerPath = `/src/lib/dsp/generated/${this.name}/mixer-module.wasm`;
-                
+
                 const jsonImporter = prodJsonImporters[jsonPath];
                 const wasmImporter = prodWasmImporters[wasmPath];
                 const mixerImporter = prodMixerImporters[mixerPath];
@@ -117,7 +122,7 @@ export class FaustNode {
                 console.log(`PROD: Loading pre-compiled DSP for ${this.name}...`);
                 const prodJson = (await jsonImporter() as any).default;
                 const prodWasmUrl = (await wasmImporter() as any).default;
-                
+
                 const json_blob = new Blob([JSON.stringify(prodJson)], { type: 'application/json' });
                 const json_url = URL.createObjectURL(json_blob);
                 factory = await FaustWasmInstantiator.loadDSPFactory(prodWasmUrl, json_url);
@@ -127,7 +132,7 @@ export class FaustNode {
                     const generator = new FaustPolyDspGenerator();
                     const mixerUrl = (await mixerImporter() as any).default;
                     const mixerModule = await FaustWasmInstantiator.loadDSPMixer(mixerUrl);
-                    
+
                     const optionsMetadata = prodJson.meta?.find((m: any) => m.options);
                     const nvoicesMatch = optionsMetadata?.options?.match(/\[nvoices:\s*(\d+)\]/);
                     const nvoices = nvoicesMatch ? parseInt(nvoicesMatch[1], 10) : 1;
@@ -138,11 +143,11 @@ export class FaustNode {
                     createdNode = await generator.createNode(this.audioContext, this.name, factory);
                 }
             }
-            
+
             if (createdNode) {
                 this.worklet = createdNode as FaustAudioWorkletNode;
                 this.updateConnection();
-                
+
                 // Hook up the Web MIDI API to the Faust Node
                 if (navigator.requestMIDIAccess) {
                     navigator.requestMIDIAccess().then(midiAccess => {
@@ -155,7 +160,7 @@ export class FaustNode {
                         }
                     }).catch(err => console.error("Failed to get MIDI access:", err));
                 }
-                
+
             } else {
                 throw new Error("Failed to create Faust audio node.");
             }
