@@ -4,6 +4,9 @@ import wasm from 'vite-plugin-wasm';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig({
+	build: {
+		minify: false
+	},
 	plugins: [sveltekit(), wasm(),
 		viteStaticCopy({
 			targets: [

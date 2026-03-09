@@ -7,8 +7,8 @@ import {
 import { getAudioContext } from '$lib/audioFramework/audioContextManager';
 
 const devDspImporters = import.meta.glob('/src/lib/dsp/*.dsp', { query: '?url' });
-const prodJsonImporters = import.meta.glob('/src/lib/dsp/generated/*/dsp.json');
-const prodWasmImporters = import.meta.glob('/src/lib/dsp/generated/*/dsp.wasm', { query: '?url' });
+const prodJsonImporters = import.meta.glob('/src/lib/dsp/generated/*/dsp-meta.json');
+const prodWasmImporters = import.meta.glob('/src/lib/dsp/generated/*/dsp-module.wasm', { query: '?url' });
 const prodMixerImporters = import.meta.glob('/src/lib/dsp/generated/*/mixer-module.wasm', { query: '?url' });
 
 export class FaustNode {
@@ -107,8 +107,8 @@ export class FaustNode {
                 }
 
             } else {
-                const jsonPath = `/src/lib/dsp/generated/${this.name}/dsp.json`;
-                const wasmPath = `/src/lib/dsp/generated/${this.name}/dsp.wasm`;
+                const jsonPath = `/src/lib/dsp/generated/${this.name}/dsp-meta.json`;
+                const wasmPath = `/src/lib/dsp/generated/${this.name}/dsp-module.wasm`;
                 const mixerPath = `/src/lib/dsp/generated/${this.name}/mixer-module.wasm`;
 
                 const jsonImporter = prodJsonImporters[jsonPath];
