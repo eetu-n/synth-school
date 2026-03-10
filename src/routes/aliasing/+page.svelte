@@ -1,6 +1,7 @@
 <script lang="ts">
     import FaustSawSelector from '$lib/audioComponents/FaustSawSelector.svelte';
     import { audioState } from '$lib/audioFramework/audioState.svelte';
+    import Scope from '$lib/visComponents/Scope.svelte';
 
     var rightIsAliasing = $state(Math.random() < 0.5);
 
@@ -43,4 +44,6 @@
     {:else}
         Wrong!
     {/if}
+
+    <Scope/>
 </div>

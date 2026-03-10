@@ -1,3 +1,5 @@
+import { audioState } from './audioState.svelte';
+
 let audioContext: AudioContext | null = null;
 
 let resolveAudioContext: (value: AudioContext) => void;
@@ -19,6 +21,7 @@ export function startAudioContext(): AudioContext {
 
 	if (!audioContext || audioContext.state === 'closed') {
 		audioContext = new AudioContext();
+		audioState.context = audioContext;
 		audioContext.addEventListener('statechange', () => {
 			if (audioContext?.state === 'running') {
 				resolveAudioContext(audioContext);
@@ -39,6 +42,7 @@ export function closeAudioContext() {
 		.close()
 		.then(() => {
 			audioContext = null;
+			audioState.context = null;
 			// Reset promise for the next start
 			audioContextPromise = new Promise<AudioContext>((resolve, reject) => {
 				resolveAudioContext = resolve;
