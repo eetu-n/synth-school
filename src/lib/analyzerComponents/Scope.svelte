@@ -99,11 +99,28 @@
         analyser.getByteTimeDomainData(dataArray);
 
         // Fill solid color
-        context.fillStyle = "rgb(220 220 220)";
+        context.fillStyle = "rgb(15, 23, 42)";
         context.fillRect(0, 0, width, height);
-        // Begin the path
+
+        // Draw grid
         context.lineWidth = 1;
-        context.strokeStyle = "rgb(0 0 0)";
+        context.strokeStyle = "rgba(255, 255, 255, 0.1)";
+        context.beginPath();
+        for (let i = 1; i < 4; i++) {
+            context.moveTo(0, (height / 4) * i);
+            context.lineTo(width, (height / 4) * i);
+        }
+        for (let i = 1; i < 8; i++) {
+            context.moveTo((width / 8) * i, 0);
+            context.lineTo((width / 8) * i, height);
+        }
+        context.stroke();
+
+        // Begin the path
+        context.lineWidth = 2;
+        context.strokeStyle = "rgb(34, 211, 238)";
+        context.shadowBlur = 8;
+        context.shadowColor = "rgb(34, 211, 238)";
         context.beginPath();
 
         const triggerIndex = findTriggerPointWithAutocorellation(dataArray);
@@ -132,6 +149,7 @@
         // Finish the line
         context.lineTo(width, height / 2);
         context.stroke();
+        context.shadowBlur = 0;
     }
 
     $effect(() => {
@@ -156,6 +174,6 @@
     });
 </script>
 
-<canvas bind:this={canvas} width="400" height="200" style="border: 1px solid black;">
+<canvas bind:this={canvas} width="400" height="200" style="border-radius: 8px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); border: 1px solid #334155;">
 
 </canvas>
