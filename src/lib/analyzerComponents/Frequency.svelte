@@ -24,10 +24,10 @@
         let x = 0;
 
         for (let i = 0; i < dataArray.length; i++) {
-            barHeight = dataArray[i] / 2;
+            barHeight = (dataArray[i] / 255) * (height * 0.9);
 
-            context.fillStyle = `rgb(${barHeight + 100} 50 50)`;
-            context.fillRect(x, height - barHeight / 2, barWidth, barHeight);
+            context.fillStyle = `rgb(256 50 50)`;
+            context.fillRect(x, height - barHeight, barWidth, barHeight);
 
             x += barWidth + 1;
         }
@@ -38,7 +38,7 @@
     $effect(() => {
         if (audioState.context) {
             analyser = audioState.context.createAnalyser();
-            analyser.fftSize = 2048;
+            analyser.fftSize = 4096;
             dataArray = new Uint8Array(analyser.frequencyBinCount);
             audioState.masterWorklet?.connect(analyser);
 
