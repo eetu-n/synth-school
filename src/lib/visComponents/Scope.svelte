@@ -10,23 +10,114 @@
     let dataArray: Uint8Array<ArrayBuffer> | null = null;
     let drawVisual: number;
 
+    function findTriggerPoint(data: Uint8Array): number {
+        let triggerIndex = 0;
+        let armed = false;
+        const triggerThreshold = 128;
+        const hysteresisLevel = 70;
+
+        for (let i = 0; i < data.length; i++) {
+            if (!armed && data[i] < hysteresisLevel) {
+                armed = true;
+            } else if (armed && data[i] >= triggerThreshold) {
+                triggerIndex = i;
+                break;
+            }
+        }
+        return triggerIndex;
+    }
+
+    function findTriggerPointWithAutocorellation(data: Uint8Array): number {
+        // Find the mean to remove DC offset
+        let sum = 0;
+        for (let i = 0; i < data.length; i++) {
+            sum += data[i];
+        }
+        const mean = sum / data.length;
+
+        let bestOffset = -1;
+        let maxCorrelation = 0;
+        let foundMinus = false;
+        const halfSize = Math.floor(data.length / 2);
+
+        for (let offset = 0; offset < halfSize; offset++) {
+            let correlation = 0;
+
+            for (let i = 0; i < halfSize; i++) {
+                const a = data[i] - mean;
+                const b = data[i + offset] - mean;
+                correlation += a * b;
+            }
+
+            if (correlation < 0) {
+                foundMinus = true;
+            }
+
+            if (foundMinus && correlation > maxCorrelation) {
+                maxCorrelation = correlation;
+                bestOffset = offset;
+            }
+        }
+
+        const period = bestOffset === -1 ? 0 : bestOffset;
+        
+        if (period === 0) {
+            return 0;
+        }
+
+        // Find min and max in the first period to determine the midpoint
+        let min = 255;
+        let max = 0;
+        for (let i = 0; i < period; i++) {
+            if (data[i] < min) min = data[i];
+            if (data[i] > max) max = data[i];
+        }
+
+        const mid = (min + max) / 2;
+        let triggerIndex = 0;
+        let maxSlope = -1;
+
+        // Find the positive-going crossing of the midpoint with the steepest slope
+        for (let i = 0; i < period; i++) {
+            const current = data[i];
+            const next = data[i + 1];
+            if (current <= mid && next > mid) {
+                const slope = next - current;
+                if (slope > maxSlope) {
+                    maxSlope = slope;
+                    triggerIndex = i;
+                }
+            }
+        }
+
+        return triggerIndex;
+    }
+
     function draw(){
         if (!canvas || !analyser || !dataArray || !context || width == 0 || height == 0) return;
         drawVisual = requestAnimationFrame(draw);
         analyser.getByteTimeDomainData(dataArray);
 
         // Fill solid color
-        context.fillStyle = "rgb(200 200 200)";
+        context.fillStyle = "rgb(220 220 220)";
         context.fillRect(0, 0, width, height);
         // Begin the path
-        context.lineWidth = 2;
+        context.lineWidth = 1;
         context.strokeStyle = "rgb(0 0 0)";
         context.beginPath();
-        // Draw each point in the waveform
-        const sliceWidth = width / dataArray.length;
+
+        const triggerIndex = findTriggerPointWithAutocorellation(dataArray);
+
+        const drawLength = dataArray.length / 2;
+        const sliceWidth = width / drawLength;
         let x = 0;
-        for (let i = 0; i < dataArray.length; i++) {
-          const v = dataArray[i] / 128.0;
+        
+        for (let i = 0; i < drawLength; i++) {
+          const sampleIndex = triggerIndex + i;
+          // Stop if we run out of samples in the buffer
+          if (sampleIndex >= dataArray.length) break;
+
+          const v = dataArray[sampleIndex] / 128.0;
           const y = v * (height / 2);
 
           if (i === 0) {
