@@ -4,11 +4,10 @@ alisaw = ( os.lf_sawpos(440) * 2 ) - 1;
 
 antisaw = os.sawN(3, 440);
 
-gate = button("Gate") : si.smoo;
+aliGate = button("gate1") : si.smoo;
+antiGate = button("gate2") : si.smoo;
 
-saw1 = alisaw * gate * 0.3;
-saw2 = antisaw * gate * 0.3;
+saw1 = alisaw * aliGate * 0.3;
+saw2 = antisaw * antiGate * 0.3;
 
-s = checkbox("Aliasing");
-
-process = saw2, saw1 : select2(s) <: _, _;
+process = saw2 + saw1 <: _, _;
