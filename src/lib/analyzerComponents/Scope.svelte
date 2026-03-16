@@ -1,5 +1,6 @@
 <script lang="ts">
     import { audioState } from '$lib/audioFramework/audioState.svelte';
+    import { analyzerStyles } from './analyzerStyles';
 
     let canvas = $state<HTMLCanvasElement | null>(null);
     let context = $derived(canvas?.getContext('2d') ?? null);
@@ -99,12 +100,12 @@
         analyser.getByteTimeDomainData(dataArray);
 
         // Fill solid color
-        context.fillStyle = "rgb(15, 23, 42)";
+        context.fillStyle = analyzerStyles.colors.background;
         context.fillRect(0, 0, width, height);
 
         // Draw grid
         context.lineWidth = 1;
-        context.strokeStyle = "rgba(255, 255, 255, 0.1)";
+        context.strokeStyle = analyzerStyles.colors.grid;
         context.beginPath();
         for (let i = 1; i < 4; i++) {
             context.moveTo(0, (height / 4) * i);
@@ -118,9 +119,9 @@
 
         // Begin the path
         context.lineWidth = 2;
-        context.strokeStyle = "rgb(34, 211, 238)";
+        context.strokeStyle = analyzerStyles.colors.signal;
         context.shadowBlur = 8;
-        context.shadowColor = "rgb(34, 211, 238)";
+        context.shadowColor = analyzerStyles.colors.signal;
         context.beginPath();
 
         const triggerIndex = findTriggerPointWithAutocorellation(dataArray);
@@ -174,6 +175,6 @@
     });
 </script>
 
-<canvas bind:this={canvas} width="400" height="200" style="border-radius: 8px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); border: 1px solid #334155;">
+<canvas bind:this={canvas} width=400 height=200 style={analyzerStyles.canvasStyle}>
 
 </canvas>

@@ -1,6 +1,7 @@
 
 <script lang="ts">
     import { audioState } from '$lib/audioFramework/audioState.svelte';
+    import { analyzerStyles } from './analyzerStyles';
 
     let canvas = $state<HTMLCanvasElement | null>(null);
     let context = $derived(canvas?.getContext('2d') ?? null);
@@ -9,8 +10,6 @@
 
     let analyser: AnalyserNode | null = null;
     let dataArray: Uint8Array<ArrayBuffer> | null = null;
-    let barWidth = 0;
-    let barHeight = 0;
     let drawVisual: number;
 
     function draw(){
@@ -18,12 +17,12 @@
         drawVisual = requestAnimationFrame(draw);
         analyser.getByteFrequencyData(dataArray);
 
-        context.fillStyle = "rgb(15, 23, 42)";
+        context.fillStyle = analyzerStyles.colors.background;
         context.fillRect(0, 0, width, height);
 
         // Draw grid
         context.lineWidth = 1;
-        context.strokeStyle = "rgba(255, 255, 255, 0.1)";
+        context.strokeStyle = analyzerStyles.colors.grid;
         context.beginPath();
         for (let i = 1; i < 4; i++) {
             context.moveTo(0, (height / 4) * i);
@@ -35,18 +34,32 @@
         }
         context.stroke();
 
-        let x = 0;
-
-        context.fillStyle = "rgb(34, 211, 238)";
+        context.fillStyle = analyzerStyles.colors.signal;
         context.shadowBlur = 4;
-        context.shadowColor = "rgb(34, 211, 238)";
+        context.shadowColor = analyzerStyles.colors.signal;
 
-        for (let i = 0; i < dataArray.length; i++) {
-            barHeight = (dataArray[i] / 255) * (height * 0.9);
+        const sliceWidth = width / dataArray.length;
 
-            context.fillRect(x, height - barHeight, barWidth, barHeight);
-
-            x += barWidth + 1;
+        if (sliceWidth < 1) {
+            for (let px = 0; px < width; px++) {
+                let max = 0;
+                const start = Math.floor(px / sliceWidth);
+                const end = Math.floor((px + 1) / sliceWidth);
+                for (let i = start; i < end && i < dataArray.length; i++) {
+                    if (dataArray[i] > max) max = dataArray[i];
+                }
+                const barHeight = (max / 255) * (height * 0.9);
+                context.fillRect(px, height - barHeight, 1, barHeight);
+            }
+        } else {
+            let x = 0;
+            const gap = sliceWidth > 2 ? 1 : 0;
+            const drawWidth = sliceWidth - gap;
+            for (let i = 0; i < dataArray.length; i++) {
+                const barHeight = (dataArray[i] / 255) * (height * 0.9);
+                context.fillRect(x, height - barHeight, drawWidth, barHeight);
+                x += sliceWidth;
+            }
         }
 
         context.shadowBlur = 0;
@@ -57,11 +70,9 @@
     $effect(() => {
         if (audioState.context) {
             analyser = audioState.context.createAnalyser();
-            analyser.fftSize = 1024;
+            analyser.fftSize = 2 ** 15;
             dataArray = new Uint8Array(analyser.frequencyBinCount);
             audioState.masterWorklet?.connect(analyser);
-
-            barWidth = width / dataArray.length * 2.5;
 
             if (context) context.clearRect(0, 0, width, height);
             draw();
@@ -78,6 +89,6 @@
     });
 </script>
 
-<canvas bind:this={canvas} width="400" height="200" style="border-radius: 8px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); border: 1px solid #334155;">
+<canvas bind:this={canvas} width=800 height=200 style={analyzerStyles.canvasStyle}>
 
 </canvas>
