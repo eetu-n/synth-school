@@ -1,1 +1,1 @@
-<a href="/aliasing">Aliasing Quiz</a>
+<a href="/lessons/aliasing">Aliasing Quiz</a>
