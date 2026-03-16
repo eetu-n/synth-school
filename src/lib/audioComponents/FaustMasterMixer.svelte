@@ -30,7 +30,7 @@
     });
 </script>
 
-<div style="margin-top: 1rem;">
+<div>
     <label style="margin-left: 1rem;">
         <input type="checkbox" onchange={handleMuteChange} bind:checked={mute} />
         Mute

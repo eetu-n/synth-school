@@ -30,7 +30,6 @@
     }
 
     .page-content {
-        max-width: 1200px;
         margin: 0 auto;
         vertical-align: top;
     }
