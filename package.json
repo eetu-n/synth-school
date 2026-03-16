@@ -26,6 +26,7 @@
 		"vite-plugin-wasm": "^3.5.0"
 	},
 	"dependencies": {
-		"@grame/faustwasm": "^0.15.4"
+		"@grame/faustwasm": "^0.15.4",
+		"@humanspeak/svelte-markdown": "^1.0.4"
 	}
 }
