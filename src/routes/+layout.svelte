@@ -1,4 +1,6 @@
 <script lang="ts">
+    import "$lib/app.css"
+
     import favicon from "$lib/assets/favicon.svg";
 
     import AudioContextManager from "$lib/audioFramework/AudioContextManager.svelte";

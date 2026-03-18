@@ -3,6 +3,7 @@
     import { audioState } from '$lib/audioFramework/audioState.svelte';
     import Frequency from '$lib/analyzerComponents/Frequency.svelte';
     import Scope from '$lib/analyzerComponents/Scope.svelte';
+    import VSplitDiv from '$lib/uiComponents/VSplitDiv.svelte';
 
     var rightIsAliasing = $state(Math.random() < 0.5);
 
@@ -18,24 +19,14 @@
 
 </script>
 
-<style>
-    .centered {
-        margin-top: 1rem; 
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        gap: 1rem;
-    }
-</style>
 
-<div class=centered>
-    <h2>Which option has more aliasing?</h2>
-    <FaustSawSelector output={audioState.masterWorklet} isRightAliasing={rightIsAliasing} />
-    <div>
-        <button onclick={() => setSelected('A')}>A</button>
-        <button onclick={() => setSelected('B')}>B</button>
-    </div>
+<VSplitDiv leftSide={leftSide} rightSide={rightSide} />
+
+{#snippet leftSide()}
+    <h1>Aliasing</h1>
+    <p>
+        Which of these two oscillators has more aliasing?
+    </p>
     {#if !selected }
         Choose one
     {:else if selected === 'A' && !rightIsAliasing}
@@ -45,7 +36,18 @@
     {:else}
         Wrong!
     {/if}
+    <div>
+        <button onclick={() => setSelected('A')}>A</button>
+        <button onclick={() => setSelected('B')}>B</button>
+    </div>
+{/snippet}
 
-    <Scope/>
-    <Frequency/>
-</div>
+{#snippet rightSide()}
+    <div class=centered>
+        <h2>Which option has more aliasing?</h2>
+        <FaustSawSelector output={audioState.masterWorklet} isRightAliasing={rightIsAliasing} />
+
+        <Scope/>
+        <Frequency/>
+    </div>
+{/snippet}

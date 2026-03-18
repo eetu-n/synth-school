@@ -1,5 +1,7 @@
 <script lang="ts">
-    let { children } = $props();
+    import type { Snippet } from 'svelte';
+
+    let { leftSide, rightSide }: { leftSide: Snippet, rightSide: Snippet } = $props();
 
     let leftWidth = $state(30);
     let isDragging = $state(false);
@@ -15,10 +17,8 @@
     function onDrag(e: MouseEvent) {
         if (!isDragging) return;
         
-        // Use clientX relative to the window width for percentage
         const newWidth = (e.clientX / window.innerWidth) * 100;
         
-        // Clamp the width between 10% and 90%
         if (newWidth > 10 && newWidth < 90) {
             leftWidth = newWidth;
         }
@@ -29,7 +29,7 @@
 
 <div class="allContent" class:dragging={isDragging}>
   <div class="lessonContent" style="width: {leftWidth}%">
-    This part tells you how aliasing works
+      {@render leftSide()}
   </div>
   
   <div 
@@ -41,7 +41,7 @@
   ></div>
   
   <div class="workspace" style="width: {100 - leftWidth}%">
-      {@render children()}
+      {@render rightSide()}
   </div>
 </div>
 
