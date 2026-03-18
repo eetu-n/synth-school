@@ -44,7 +44,6 @@
 
 {#snippet rightSide()}
     <div class=centered>
-        <h2>Which option has more aliasing?</h2>
         <FaustSawSelector output={audioState.masterWorklet} isRightAliasing={rightIsAliasing} />
 
         <Scope/>
