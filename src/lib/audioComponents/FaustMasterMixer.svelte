@@ -41,7 +41,7 @@
     <button
         class="mute-button"
         onclick={() => (mute = !mute)}
-        style="background: none; border: none; font-size: 1.2rem; cursor: pointer; margin-left: 1rem; padding: 0; width: 1.5em; height: 1.5em; display: grid; justify-items: center; align-items: center;"
+        style="background: none; border: none; font-size: 1.2rem; cursor: pointer; margin-left: 1rem; padding: 0;"
     >
         {#if mute}
             {@html mutedIcon}
@@ -57,10 +57,17 @@
 </div>
 
 <style>
+    .mute-button{
+        width: 1.5em; 
+        height: 1.5em;
+        
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-start;
+    }
     .mute-button :global(svg) {
-        width: 1em;
+        width: auto;
         height: 1em;
-        vertical-align: middle;
-        fill: currentColor;
+        display: block;
     }
 </style>
