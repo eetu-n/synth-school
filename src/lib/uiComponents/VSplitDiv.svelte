@@ -62,15 +62,12 @@
         </div>
 
         <div class="tab-content">
-            {#if activeTab === 'left'}
-                <div class="lessonContent">
-                    {@render leftSide()}
-                </div>
-            {:else}
-                <div class="workspace">
-                    {@render rightSide()}
-                </div>
-            {/if}
+            <div class="lessonContent" hidden={activeTab !== 'left'}>
+                {@render leftSide()}
+            </div>
+            <div class="workspace" hidden={activeTab !== 'right'}>
+                {@render rightSide()}
+            </div>
         </div>
     </div>
 {/if}
