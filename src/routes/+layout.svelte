@@ -1,14 +1,13 @@
 <script lang="ts">
     import "$lib/app.css"
-
     import favicon from "$lib/assets/favicon.svg";
-
     import AudioContextManager from "$lib/audioFramework/AudioContextManager.svelte";
     import FaustMasterMixer from "$lib/audioComponents/FaustMasterMixer.svelte";
     import { audioState } from "$lib/audioFramework/audioState.svelte";
 
-	import openIcon from '$lib/assets/angle-down-solid-full.svg?raw';
     import closeIcon from '$lib/assets/angle-up-solid-full.svg?raw';
+
+    const headerHeight = 4;
 
     let { children } = $props();
     let headerExpanded = $state(true);
@@ -25,16 +24,20 @@
             <FaustMasterMixer bind:worklet={audioState.masterWorklet} />
         </div>
     </div>
-    <button class="toggle-header-button" onclick={() => headerExpanded = !headerExpanded}>
-        {#if headerExpanded}
-            {@html closeIcon}
-        {:else}
-            {@html openIcon}
-        {/if}
-    </button>
 </header>
 
-<div class="page-content" class:header-collapsed={!headerExpanded}>
+<button 
+    class="toggle-header-button" 
+    class:is-collapsed={!headerExpanded}
+    onclick={() => headerExpanded = !headerExpanded}
+    aria-label="Toggle Header"
+>
+    <div class="icon-wrapper" class:flipped={!headerExpanded}>
+        {@html closeIcon}
+    </div>
+</button>
+
+<div class="page-content">
     {@render children()}
 </div>
 
@@ -45,18 +48,19 @@
     }
 
     .site-header {
-        position: relative; /* For absolute positioning of the button */
+        position: relative;
         background-color: #f3f4f6;
         border-bottom: 1px solid #e5e7eb;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         z-index: 100;
-        height: 72px; /* Expanded height */
-        transition: height 0.1s ease-out;
+        height: 4em; 
+        transition: height 0.3s ease-in-out; /* Smoother transition */
         overflow: hidden;
     }
     
     .site-header.collapsed {
-        height: 20px; /* Collapsed height */
+        height: 0;
+        border-bottom: none;
     }
 
     .header-content-wrapper {
@@ -69,17 +73,42 @@
         gap: 1.5rem;
     }
 
-    .toggle-header-button{
+    .toggle-header-button {
         position: absolute;
-        bottom: 0;
-        right: 1.5rem;
-        background: #e5e7eb;
-        border: 1px solid #ccc;
-        border-bottom: none;
-        border-top-left-radius: 6px;
-        border-top-right-radius: 6px;
+        top: 4.9em; 
+        right: 0.5rem;
+        transform: translateY(0);
+        background: #f3f4f6;
+        border: 1px solid #e5e7eb;
+        border-top: none; /* Looks like a tab hanging down */
+        border-bottom-left-radius: 6px;
+        border-bottom-right-radius: 6px;
         cursor: pointer;
-        line-height: 1;
-        padding: 2px 8px;
+        padding: 4px 12px;
+        z-index: 101;
+        transition: top 0.3s ease-in-out;
+    }
+
+    /* Move the button up when the header disappears */
+    .toggle-header-button.is-collapsed {
+        top: 0;
+    }
+
+    .icon-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.3s ease;
+    }
+
+    /* Vertically flip the icon */
+    .icon-wrapper.flipped {
+        transform: rotate(180deg);
+    }
+
+    /* Clean up SVG sizing if necessary */
+    .icon-wrapper :global(svg) {
+        width: 14px;
+        height: 14px;
     }
 </style>
