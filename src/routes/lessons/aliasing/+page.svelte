@@ -43,10 +43,16 @@
 {/snippet}
 
 {#snippet rightSide()}
-    <div class=centered>
-        <FaustSawSelector output={audioState.masterWorklet} isRightAliasing={rightIsAliasing} />
+    {#if audioState.context != null}
+        <div class=centered>
+            <FaustSawSelector output={audioState.masterWorklet} isRightAliasing={rightIsAliasing} />
 
-        <Scope/>
-        <Frequency/>
-    </div>
+            <Scope/>
+            <Frequency/>
+        </div>
+    {:else}
+        <p class=centered>
+            Start audio engine from the top left 
+        </p>
+    {/if}
 {/snippet}
