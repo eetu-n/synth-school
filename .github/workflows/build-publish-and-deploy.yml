@@ -12,7 +12,7 @@ env:
 jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
-    
+
     # Required permissions to push to GitHub Container Registry
     permissions:
       contents: read
@@ -45,11 +45,43 @@ jobs:
         run: |
           # Convert repository name to lowercase for the image tag as required by Docker/Podman
           IMAGE_ID=$(echo ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} | tr '[A-Z]' '[a-z]')
-          
+
           # Tag the image built by the bun build script
           podman tag synth-school:latest $IMAGE_ID:latest
           podman tag synth-school:latest $IMAGE_ID:${{ github.sha }}
-          
+
           # Push both tags to GHCR
           podman push $IMAGE_ID:latest
           podman push $IMAGE_ID:${{ github.sha }}
+
+  deploy:
+    needs: build-and-push-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Copy Quadlet
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "deploy/synth-school.container"
+          target: "~/.config/containers/systemd/"
+      
+      - name: Pull Newest Image
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            podman pull ghcr.io/eetu-n/synth-school:latest
+
+      - name: Refresh Systemd
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            systemctl --user daemon-reload
+            systemctl --user restart synth-school.service

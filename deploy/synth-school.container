@@ -1,0 +1,9 @@
+[Unit]
+Description=Synth School Container
+
+[Container]
+Image=ghcr.io/eetu-n/synth-school:latest
+PublishPort=3000:3000
+
+[Install]
+WantedBy=default.target
