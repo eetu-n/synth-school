@@ -1,12 +1,12 @@
-export default class RoutedAudioNode {
-    audioNode: AudioNode;
+export default class RoutedAudioNode<T extends AudioNode = AudioNode> {
+    audioNode: T;
     name: string;
     context: AudioContext;
 
-    outputs = Array<RoutedAudioNode>();
-    inputs = Array<RoutedAudioNode>();
+    outputs = Array<RoutedAudioNode<any>>();
+    inputs = Array<RoutedAudioNode<any>>();
 
-    constructor(name: string, context: AudioContext, audioNode: AudioNode, inputs = [], outputs = []) {
+    constructor(name: string, context: AudioContext, audioNode: T, inputs: RoutedAudioNode<any>[] = [], outputs: RoutedAudioNode<any>[] = []) {
         this.name = name;
 
         this.outputs = outputs;
@@ -15,13 +15,13 @@ export default class RoutedAudioNode {
         this.audioNode = audioNode;
     }
 
-    connect(destinationNode: RoutedAudioNode) {
+    connect(destinationNode: RoutedAudioNode<any>) {
         this.audioNode.connect(destinationNode.audioNode);
         this.outputs.push(destinationNode);
         destinationNode.inputs.push(this);
     };
 
-    disconnect(destinationNode: RoutedAudioNode) {
+    disconnect(destinationNode: RoutedAudioNode<any>) {
         destinationNode.audioNode.disconnect(this.audioNode);
         destinationNode.inputs = destinationNode.inputs.filter(input => input !== this);
         this.outputs = this.outputs.filter(output => output !== destinationNode);
