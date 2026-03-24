@@ -20,19 +20,22 @@ export class FaustNode extends RoutedAudioNode{
         super(name, context, workletNode, inputs, outputs);
     }
 
-    async create(name: string, context: AudioContext, inputs = [], outputs = []) {
+    static async create(name: string, context: AudioContext, inputs = [], outputs = []) {
         let worklet = await FaustNode.createWorkletNode(name, context);
+        if (!worklet) {
+            return null;
+        }
         return new FaustNode(name, context, worklet, inputs, outputs);
     }
 
     setParamValue(param: string, value: number) {
-        if (this.audioNode) {
+        if (this.audioNode && this.audioNode instanceof FaustAudioWorkletNode) {
             this.audioNode.setParamValue("/" + this.name + "/" + param, value);
         }
     }
 
     getParamValue(param: string): number {
-        if (this.audioNode) {
+        if (this.audioNode && this.audioNode instanceof FaustAudioWorkletNode) {
             return this.audioNode.getParamValue("/" + this.name + "/" + param);
         }
         return 0;
@@ -40,7 +43,7 @@ export class FaustNode extends RoutedAudioNode{
 
     static async createWorkletNode(name: string, context: AudioContext): Promise<FaustAudioWorkletNode | null > {
         if (context.state !== 'running') {
-            console.error("AudioContext not running. State: ${this.context.state}");
+            console.error(`AudioContext not running. State: ${context.state}`);
             return null;
         }
 
@@ -49,10 +52,10 @@ export class FaustNode extends RoutedAudioNode{
 
         try {
             if (import.meta.env.DEV) {
-                console.log(`DEV: Loading DSP for ${this.name}...`);
-                const dspPath = `/src/lib/dsp/${this.name}.dsp`;
+                console.log(`DEV: Loading DSP for ${name}...`);
+                const dspPath = `/src/lib/dsp/${name}.dsp`;
                 const importer = devDspImporters[dspPath];
-                if (!importer) throw new Error(`[DEV] DSP file not found for name: ${this.name}. Looked for ${dspPath}`);
+                if (!importer) throw new Error(`[DEV] DSP file not found for name: ${name}. Looked for ${dspPath}`);
 
                 const dspUrl = (await importer() as any).default;
                 console.log(`DEV: Compiling ${dspUrl}...`);
@@ -73,26 +76,26 @@ export class FaustNode extends RoutedAudioNode{
                 if (isPoly) {
                     const generator = new FaustPolyDspGenerator();
                     const mixerModule = await WebAssembly.compile(mixerBuffer! as any);
-                    createdNode = await generator.createNode(context, nvoices, this.name, factory, mixerModule);
+                    createdNode = await generator.createNode(context, nvoices, name, factory, mixerModule);
                 } else {
                     const generator = new FaustMonoDspGenerator();
-                    createdNode = await generator.createNode(context, this.name, factory);
+                    createdNode = await generator.createNode(context, name, factory);
                 }
 
             } else {
-                const jsonPath = `/src/lib/dsp/generated/${this.name}/dsp-meta.json`;
-                const wasmPath = `/src/lib/dsp/generated/${this.name}/dsp-module.wasm`;
-                const mixerPath = `/src/lib/dsp/generated/${this.name}/mixer-module.wasm`;
+                const jsonPath = `/src/lib/dsp/generated/${name}/dsp-meta.json`;
+                const wasmPath = `/src/lib/dsp/generated/${name}/dsp-module.wasm`;
+                const mixerPath = `/src/lib/dsp/generated/${name}/mixer-module.wasm`;
 
                 const jsonImporter = prodJsonImporters[jsonPath];
                 const wasmImporter = prodWasmImporters[wasmPath];
                 const mixerImporter = prodMixerImporters[mixerPath];
 
                 if (!jsonImporter || !wasmImporter) {
-                    throw new Error(`[PROD] Production assets not found for name: ${this.name}.`);
+                    throw new Error(`[PROD] Production assets not found for name: ${name}.`);
                 }
 
-                console.log(`PROD: Loading pre-compiled DSP for ${this.name}...`);
+                console.log(`PROD: Loading pre-compiled DSP for ${name}...`);
                 const prodJson = (await jsonImporter() as any).default;
                 const prodWasmUrl = (await wasmImporter() as any).default;
 
@@ -110,10 +113,10 @@ export class FaustNode extends RoutedAudioNode{
                     const nvoicesMatch = optionsMetadata?.options?.match(/\[nvoices:\s*(\d+)\]/);
                     const nvoices = nvoicesMatch ? parseInt(nvoicesMatch[1], 10) : 1;
 
-                    createdNode = await generator.createNode(context, nvoices, this.name, factory, mixerModule);
+                    createdNode = await generator.createNode(context, nvoices, name, factory, mixerModule);
                 } else {
                     const generator = new FaustMonoDspGenerator();
-                    createdNode = await generator.createNode(context, this.name, factory);
+                    createdNode = await generator.createNode(context, name, factory);
                 }
             }
 
@@ -138,6 +141,7 @@ export class FaustNode extends RoutedAudioNode{
 
         } catch (e: any) {
             console.error(`Error loading Faust node for ${name}:`, e);
+            return null;
         }
     }
 }
