@@ -17,15 +17,16 @@
     let mute = $state(false);
 
     function handleGainChange() {
+        if (!faustNode) return;
+
         faustNode.setParamValue("Gain", gain);
-        if (gain == 0) {
-            mute = true;
-        } else {
-            mute = false;
-        }
+
+        mute = gain === 0
     }
 
     $effect(() => {
+        if (!faustNode) return;
+
         faustNode.setParamValue("Mute", mute ? 1 : 0);
     });
 
