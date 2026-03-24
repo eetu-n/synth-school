@@ -21,7 +21,7 @@
     <div class="header-content-wrapper">
         <div class="header-content">
             <AudioContextManager />
-            <FaustMasterMixer bind:worklet={audioState.masterWorklet} />
+            <FaustMasterMixer bind:audioNode={audioState.masterNode} />
         </div>
     </div>
 </header>
