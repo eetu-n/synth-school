@@ -28,6 +28,16 @@
             leftWidth = newWidth;
         }
     }
+
+    function handleKeydown(e: KeyboardEvent) {
+        if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            leftWidth = Math.max(10, leftWidth - 1);
+        } else if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            leftWidth = Math.min(90, leftWidth + 1);
+        }
+    }
 </script>
 
 <svelte:window bind:innerWidth={innerWidth} onmousemove={onDrag} onmouseup={stopDragging} />
@@ -38,9 +48,11 @@
           {@render leftSide()}
       </div>
       
-      <div 
+      <!-- svelte-ignore a11y_no_noninteractive_element_interactions, a11y_no_noninteractive_tabindex -->
+      <div
           class="resizer" 
-          onmousedown={startDragging} 
+          onmousedown={startDragging}
+          onkeydown={handleKeydown} 
           role="separator" 
           tabindex="0"
           aria-label="Resize panels"
