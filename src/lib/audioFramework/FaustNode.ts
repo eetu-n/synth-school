@@ -4,71 +4,44 @@ import {
     FaustPolyDspGenerator, 
     FaustWasmInstantiator
 } from '@grame/faustwasm/dist/esm/index.js';
-import { getAudioContext } from '$lib/audioFramework/audioContextManager';
+import RoutedAudioNode from './RoutedAudioNode.ts';
 
 const devDspImporters = import.meta.glob('/src/lib/dsp/*.dsp', { query: '?url' });
 const prodJsonImporters = import.meta.glob('/src/lib/dsp/generated/*/dsp-meta.json');
 const prodWasmImporters = import.meta.glob('/src/lib/dsp/generated/*/dsp-module.wasm', { query: '?url' });
 const prodMixerImporters = import.meta.glob('/src/lib/dsp/generated/*/mixer-module.wasm', { query: '?url' });
 
-export class FaustNode {
-    name: string;
-    worklet: FaustAudioWorkletNode | null = null;
-    audioContext: AudioContext | null = null;
+export class FaustNode extends RoutedAudioNode{
     started: boolean = false;
     error: string | null = null;
     private targetOutput: AudioNode | FaustAudioWorkletNode | null = null;
 
-    constructor(name: string) {
-        this.name = name;
+    private constructor(name: string, context: AudioContext, workletNode: FaustAudioWorkletNode, inputs = [], outputs = []) {
+        super(name, context, workletNode, inputs, outputs);
     }
 
-    setOutput(output: AudioNode | FaustAudioWorkletNode | null) {
-        this.targetOutput = output;
-        this.updateConnection();
-    }
-
-    private updateConnection() {
-        if (!this.worklet) return;
-
-        try {
-            this.worklet.disconnect();
-        } catch (e) { }
-
-        const dest = this.targetOutput || (this.audioContext ? this.audioContext.destination : null);
-        if (dest) {
-            this.worklet.connect(dest);
-        }
+    async create(name: string, context: AudioContext, inputs = [], outputs = []) {
+        let worklet = await FaustNode.createWorkletNode(name, context);
+        return new FaustNode(name, context, worklet, inputs, outputs);
     }
 
     setParamValue(param: string, value: number) {
-        if (this.worklet) {
-            this.worklet.setParamValue("/" + this.name + "/" + param, value);
+        if (this.audioNode) {
+            this.audioNode.setParamValue("/" + this.name + "/" + param, value);
         }
     }
 
     getParamValue(param: string): number {
-        if (this.worklet) {
-            return this.worklet.getParamValue("/" + this.name + "/" + param);
+        if (this.audioNode) {
+            return this.audioNode.getParamValue("/" + this.name + "/" + param);
         }
         return 0;
     }
 
-    async start(): Promise<void> {
-        if (this.started) return;
-        this.error = null;
-
-        try {
-            this.audioContext = await getAudioContext();
-        } catch (e: any) {
-            console.error('Failed to get audio context', e);
-            this.error = `Failed to get audio context: ${e.message}`;
-            return;
-        }
-
-        if (this.audioContext.state !== 'running') {
-            this.error = `AudioContext not running. State: ${this.audioContext.state}`;
-            return;
+    static async createWorkletNode(name: string, context: AudioContext): Promise<FaustAudioWorkletNode | null > {
+        if (context.state !== 'running') {
+            console.error("AudioContext not running. State: ${this.context.state}");
+            return null;
         }
 
         let factory;
@@ -100,10 +73,10 @@ export class FaustNode {
                 if (isPoly) {
                     const generator = new FaustPolyDspGenerator();
                     const mixerModule = await WebAssembly.compile(mixerBuffer! as any);
-                    createdNode = await generator.createNode(this.audioContext, nvoices, this.name, factory, mixerModule);
+                    createdNode = await generator.createNode(context, nvoices, this.name, factory, mixerModule);
                 } else {
                     const generator = new FaustMonoDspGenerator();
-                    createdNode = await generator.createNode(this.audioContext, this.name, factory);
+                    createdNode = await generator.createNode(context, this.name, factory);
                 }
 
             } else {
@@ -137,46 +110,34 @@ export class FaustNode {
                     const nvoicesMatch = optionsMetadata?.options?.match(/\[nvoices:\s*(\d+)\]/);
                     const nvoices = nvoicesMatch ? parseInt(nvoicesMatch[1], 10) : 1;
 
-                    createdNode = await generator.createNode(this.audioContext, nvoices, this.name, factory, mixerModule);
+                    createdNode = await generator.createNode(context, nvoices, this.name, factory, mixerModule);
                 } else {
                     const generator = new FaustMonoDspGenerator();
-                    createdNode = await generator.createNode(this.audioContext, this.name, factory);
+                    createdNode = await generator.createNode(context, this.name, factory);
                 }
             }
 
             if (createdNode) {
-                this.worklet = createdNode as FaustAudioWorkletNode;
-                this.updateConnection();
-
+                return createdNode as FaustAudioWorkletNode;
                 // Hook up the Web MIDI API to the Faust Node
-                if (navigator.requestMIDIAccess) {
-                    navigator.requestMIDIAccess().then(midiAccess => {
-                        for (const input of midiAccess.inputs.values()) {
-                            input.onmidimessage = (e) => {
-                                if (this.worklet && e.data) {
-                                    this.worklet.midiMessage(e.data);
-                                }
-                            };
-                        }
-                    }).catch(err => console.error("Failed to get MIDI access:", err));
-                }
+                //if (navigator.requestMIDIAccess) {
+                //    navigator.requestMIDIAccess().then(midiAccess => {
+                //        for (const input of midiAccess.inputs.values()) {
+                //            input.onmidimessage = (e) => {
+                //                if (createdNode && e.data) {
+                //                    createdNode.midiMessage(e.data);
+                //                }
+                //            };
+                //        }
+                //    }).catch(err => console.error("Failed to get MIDI access:", err));
+                //}
 
             } else {
                 throw new Error("Failed to create Faust audio node.");
             }
 
         } catch (e: any) {
-            console.error(`Error loading Faust node for ${this.name}:`, e);
-            this.error = e.message;
-        } finally {
-            if (this.worklet) this.started = true;
-        }
-    }
-
-    destroy() {
-        if (this.worklet) {
-            this.worklet.destroy();
-            this.worklet = null;
+            console.error(`Error loading Faust node for ${name}:`, e);
         }
     }
 }
