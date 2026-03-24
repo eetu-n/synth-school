@@ -45,7 +45,7 @@
 {#snippet rightSide()}
     {#if audioState.context != null}
         <div class=centered>
-            <FaustSawSelector output={audioState.masterWorklet} isRightAliasing={rightIsAliasing} />
+            <FaustSawSelector output={audioState.masterNode} isRightAliasing={rightIsAliasing} />
 
             <Scope/>
             <Frequency/>

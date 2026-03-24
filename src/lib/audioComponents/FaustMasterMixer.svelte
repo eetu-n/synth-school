@@ -1,39 +1,47 @@
 <script lang="ts">
     import { FaustNode } from "$lib/audioFramework/FaustNode";
-    import type { FaustAudioWorkletNode } from "@grame/faustwasm/dist/esm/index.js";
+    import { getAudioContext } from "$lib/audioFramework/audioContextManager";
     import HSlider from "$lib/uiComponents/HSlider.svelte";
 
     import mutedIcon from "$lib/assets/volume-xmark-solid-full.svg?raw";
     import volumeLowIcon from "$lib/assets/volume-low-solid-full.svg?raw";
     import volumeMidIcon from "$lib/assets/volume-solid-full.svg?raw";
     import volumeHighIcon from "$lib/assets/volume-high-solid-full.svg?raw";
+    import type RoutedAudioNode from "$lib/audioFramework/RoutedAudioNode";
 
-    let { worklet = $bindable() }: { worklet?: FaustAudioWorkletNode | null } =
+    let { audioNode = $bindable() }: { audioNode?: RoutedAudioNode | null } =
         $props();
 
-    let faustNode = new FaustNode("master_mixer");
+    let faustNode = await FaustNode.create(
+        "master_mixer",
+        await getAudioContext(),
+    );
+
+    if (faustNode) {
+        audioNode = faustNode;
+    }
 
     let gain = $state(0.9);
     let mute = $state(false);
 
     function handleGainChange() {
+        if (!faustNode) return;
+
         faustNode.setParamValue("Gain", gain);
-        if (gain == 0) {
-            mute = true;
-        } else {
-            mute = false;
-        }
+
+        mute = gain === 0
     }
 
     $effect(() => {
+        if (!faustNode) return;
+
         faustNode.setParamValue("Mute", mute ? 1 : 0);
     });
 
     $effect(() => {
-        faustNode.start().then(() => {
-            worklet = faustNode.worklet;
-        });
-        return () => faustNode.destroy();
+        return () => {
+            faustNode?.destroy();
+        };
     });
 </script>
 
@@ -57,10 +65,10 @@
 </div>
 
 <style>
-    .mute-button{
-        width: 1.5em; 
+    .mute-button {
+        width: 1.5em;
         height: 1.5em;
-        
+
         display: inline-flex;
         align-items: center;
         justify-content: flex-start;

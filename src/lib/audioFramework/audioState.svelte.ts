@@ -1,6 +1,6 @@
-import type { FaustAudioWorkletNode } from '@grame/faustwasm/dist/esm/index.js';
+import type RoutedAudioNode from './RoutedAudioNode';
 
 export const audioState = $state({
     context: null as AudioContext | null,
-    masterWorklet: null as FaustAudioWorkletNode | null
+    masterNode: null as RoutedAudioNode | null
 });

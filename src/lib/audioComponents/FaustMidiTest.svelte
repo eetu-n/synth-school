@@ -1,38 +1,22 @@
 <script lang="ts">
+    import { audioState } from '$lib/audioFramework/audioState.svelte';
     import { FaustNode } from '$lib/audioFramework/FaustNode';
-    import type { FaustAudioWorkletNode } from '@grame/faustwasm/dist/esm/index.js';
+    import type RoutedAudioNode from '$lib/audioFramework/RoutedAudioNode';
 
-    let { output = null }: { output?: FaustAudioWorkletNode | AudioNode | null } = $props();
+    let { output = null }: { output?: RoutedAudioNode | null } = $props();
 
-    let faustNode = new FaustNode("midi_test");
+    let faustNode = await FaustNode.create("midi_test", audioState.context as AudioContext );
     
     let freq = $state(0);
 
     $effect(() => {
-        faustNode.setOutput(output);
+        if (!faustNode || !output) return;
+        faustNode.connect(output);
     });
 
     $effect(() => {
-        faustNode.start();
-        
-        let frame: number;
-        
-        const loop = () => {
-            // The parameter is named 'key' in midi_test.dsp
-            const val = faustNode.getParamValue('freq');
-            if (val !== freq) {
-                freq = val;
-            }
-            frame = requestAnimationFrame(loop);
-        };
-        
-        frame = requestAnimationFrame(loop);
-        
         return () => {
-            cancelAnimationFrame(frame);
-            faustNode.destroy();
+            faustNode?.destroy();
         };
     });
 </script>
-
-<p>Current MIDI Key: {freq}</p>

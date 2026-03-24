@@ -30,6 +30,9 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Run check
+        run: bun check
+
       - name: Build SvelteKit app and Container
         # This runs scripts/compile-faust.sh, vite build, and podman build
         run: bun run build

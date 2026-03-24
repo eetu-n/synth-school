@@ -1,6 +1,7 @@
 
 <script lang="ts">
     import { audioState } from '$lib/audioFramework/audioState.svelte';
+    import RoutedAudioNode from '$lib/audioFramework/RoutedAudioNode';
     import { analyzerStyles } from './analyzerStyles';
 
     let canvas = $state<HTMLCanvasElement | null>(null);
@@ -8,14 +9,14 @@
     let width: number = $derived(canvas?.width ?? 0);
     let height: number = $derived(canvas?.height ?? 0);
 
-    let analyser: AnalyserNode | null = null;
+    let analyser: RoutedAudioNode<AnalyserNode> | null = null;
     let dataArray: Uint8Array<ArrayBuffer> | null = null;
     let drawVisual: number;
 
     function draw(){
         if (!canvas || !analyser || !dataArray || !context || width == 0 || height == 0) return;
         drawVisual = requestAnimationFrame(draw);
-        analyser.getByteFrequencyData(dataArray);
+        analyser.audioNode.getByteFrequencyData(dataArray);
 
         context.fillStyle = analyzerStyles.colors.background;
         context.fillRect(0, 0, width, height);
@@ -69,10 +70,14 @@
 
     $effect(() => {
         if (audioState.context) {
-            analyser = audioState.context.createAnalyser();
-            analyser.fftSize = 2 ** 15;
-            dataArray = new Uint8Array(analyser.frequencyBinCount);
-            audioState.masterWorklet?.connect(analyser);
+            analyser = new RoutedAudioNode(
+                "frequency_analyzer",
+                audioState.context,
+                audioState.context.createAnalyser()
+            )
+            analyser.audioNode.fftSize = 2 ** 15;
+            dataArray = new Uint8Array(analyser.audioNode.frequencyBinCount);
+            audioState.masterNode?.connect(analyser);
 
             if (context) context.clearRect(0, 0, width, height);
             draw();
@@ -83,7 +88,7 @@
         return () => {
             cancelAnimationFrame(drawVisual);
             if (analyser) {
-                audioState.masterWorklet?.disconnect(analyser);
+                audioState.masterNode?.disconnect(analyser);
             }
         };
     });

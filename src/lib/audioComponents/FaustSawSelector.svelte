@@ -1,56 +1,70 @@
 <script lang="ts">
-    import { FaustNode } from '$lib/audioFramework/FaustNode';
-    import type { FaustAudioWorkletNode } from '@grame/faustwasm/dist/esm/index.js';
+  import { FaustNode } from "$lib/audioFramework/FaustNode";
+  import type RoutedAudioNode from "$lib/audioFramework/RoutedAudioNode";
+  import { getAudioContext } from "$lib/audioFramework/audioContextManager";
 
-    let { output = null, isRightAliasing = true }: { output?: FaustAudioWorkletNode | AudioNode | null, isRightAliasing?: boolean } = $props();
+  let {
+    output = null,
+    isRightAliasing = true,
+  }: { output?: RoutedAudioNode | null; isRightAliasing?: boolean } = $props();
 
-    let faustNode = new FaustNode("saw_selector");
+  let faustNode = await FaustNode.create(
+    "saw_selector",
+    await getAudioContext(),
+  );
 
-    let gateA: boolean = $state(false)
-    let gateB: boolean = $state(false)
+  let gateA: boolean = $state(false);
+  let gateB: boolean = $state(false);
 
-    function handleGateA(input: boolean) {
-        gateA = input;
-        faustNode.setParamValue(isRightAliasing ? "gate2" : "gate1", gateA? 1 : 0);
+  function handleGateA(input: boolean) {
+    if (!faustNode) return;
+
+    gateA = input;
+
+    faustNode.setParamValue(isRightAliasing ? "gate2" : "gate1", gateA ? 1 : 0);
+  }
+
+  function handleGateB(input: boolean) {
+    if (!faustNode) return;
+
+    gateB = input;
+    faustNode.setParamValue(isRightAliasing ? "gate1" : "gate2", gateB ? 1 : 0);
+  }
+
+  $effect(() => {
+    if (!faustNode || !output) {
+      return;
     }
+    faustNode.connect(output);
+  });
 
-    function handleGateB(input: boolean) {
-        gateB = input;
-        faustNode.setParamValue(isRightAliasing ? "gate1" : "gate2", gateB? 1 : 0);
-    }
+  $effect(() => {
+    handleGateA(gateA);
+  });
 
-    $effect(() => {
-        faustNode.setOutput(output);
-    });
+  $effect(() => {
+    handleGateB(gateB);
+  });
 
-    $effect(() => {
-        handleGateA(gateA);
-    })
-
-    $effect(() => {
-        handleGateB(gateB);
-    })
-
-    $effect(() => {
-        faustNode.start();
-        return () => faustNode.destroy();
-    });
+  $effect(() => {
+    return () => faustNode?.destroy();
+  });
 </script>
 
 <div>
-<button 
-  onpointerdown={() => handleGateA(true)} 
-  onpointerup={() => handleGateA(false)}
-  onpointerleave={() => handleGateA(false)} 
->
-  Test A
-</button>
+  <button
+    onpointerdown={() => handleGateA(true)}
+    onpointerup={() => handleGateA(false)}
+    onpointerleave={() => handleGateA(false)}
+  >
+    Test A
+  </button>
 
-<button 
-  onpointerdown={() => handleGateB(true)} 
-  onpointerup={() => handleGateB(false)}
-  onpointerleave={() => handleGateB(false)} 
->
-  Test B
-</button>
+  <button
+    onpointerdown={() => handleGateB(true)}
+    onpointerup={() => handleGateB(false)}
+    onpointerleave={() => handleGateB(false)}
+  >
+    Test B
+  </button>
 </div>
