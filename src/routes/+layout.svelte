@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { browser } from '$app/environment';
     import "$lib/app.css"
     import favicon from "$lib/assets/favicon.svg";
     import AudioContextManager from "$lib/audioFramework/AudioContextManager.svelte";
@@ -20,8 +21,10 @@
 <header class="site-header" class:collapsed={!headerExpanded}>
     <div class="header-content-wrapper">
         <div class="header-content">
-            <AudioContextManager />
-            <FaustMasterMixer bind:audioNode={audioState.masterNode} />
+            {#if browser}
+                <AudioContextManager />
+                <FaustMasterMixer bind:audioNode={audioState.masterNode} />
+            {/if}
         </div>
     </div>
 </header>
