@@ -4,6 +4,8 @@
     import RoutedAudioNode from '$lib/audioFramework/RoutedAudioNode';
     import { analyzerStyles } from './analyzerStyles';
 
+    let { inputNode }: { inputNode?: RoutedAudioNode<any> } = $props();
+
     let canvas = $state<HTMLCanvasElement | null>(null);
     let context = $derived(canvas?.getContext('2d') ?? null);
     let width: number = $derived(canvas?.width ?? 0);
@@ -16,7 +18,7 @@
     function draw(){
         if (!canvas || !analyser || !dataArray || !context || width == 0 || height == 0) return;
         drawVisual = requestAnimationFrame(draw);
-        analyser.audioNode.getByteFrequencyData(dataArray);
+        analyser.audioNode?.getByteFrequencyData(dataArray);
 
         context.fillStyle = analyzerStyles.colors.background;
         context.fillRect(0, 0, width, height);
@@ -69,15 +71,17 @@
     }
 
     $effect(() => {
-        if (audioState.context) {
+        if (audioState.context && inputNode) {
             analyser = new RoutedAudioNode(
                 "frequency_analyzer",
                 audioState.context,
                 audioState.context.createAnalyser()
             )
-            analyser.audioNode.fftSize = 2 ** 15;
-            dataArray = new Uint8Array(analyser.audioNode.frequencyBinCount);
-            audioState.masterNode?.connect(analyser);
+            if (analyser.audioNode){
+                analyser.audioNode.fftSize = 2 ** 15;
+                dataArray = new Uint8Array(analyser.audioNode.frequencyBinCount);
+                inputNode.connect(analyser);
+            };
 
             if (context) context.clearRect(0, 0, width, height);
             draw();
@@ -87,8 +91,8 @@
 
         return () => {
             cancelAnimationFrame(drawVisual);
-            if (analyser) {
-                audioState.masterNode?.disconnect(analyser);
+            if (analyser && inputNode) {
+                inputNode.disconnect(analyser);
             }
         };
     });
