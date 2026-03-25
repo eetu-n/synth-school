@@ -3,8 +3,8 @@ export default class RoutedAudioNode<T extends AudioNode = AudioNode> {
     name: string;
     context: AudioContext;
 
-    outputs = Array<RoutedAudioNode<any>>();
-    inputs = Array<RoutedAudioNode<any>>();
+    private outputs = Array<RoutedAudioNode<any>>();
+    private inputs = Array<RoutedAudioNode<any>>();
 
     constructor(name: string, context: AudioContext, audioNode: T, inputs: RoutedAudioNode<any>[] = [], outputs: RoutedAudioNode<any>[] = []) {
         this.name = name;
@@ -13,28 +13,65 @@ export default class RoutedAudioNode<T extends AudioNode = AudioNode> {
         this.inputs = inputs;
         this.context = context;
         this.audioNode = audioNode;
-    }
-
-    connect(destinationNode: RoutedAudioNode<any>) {
-        this.audioNode.connect(destinationNode.audioNode);
-        this.outputs.push(destinationNode);
-        destinationNode.inputs.push(this);
     };
 
-    disconnect(destinationNode: RoutedAudioNode<any>) {
-        destinationNode.audioNode.disconnect(this.audioNode);
-        destinationNode.inputs = destinationNode.inputs.filter(input => input !== this);
-        this.outputs = this.outputs.filter(output => output !== destinationNode);
+    getInputs(): RoutedAudioNode<any>[] {
+        return this.inputs;
+    };
+
+    getOutputs(): RoutedAudioNode<any>[] {
+        return this.outputs;
+    };
+
+    addInput(inputNode: RoutedAudioNode<any>) {
+        this.inputs.push(inputNode);
+    };
+
+    addOutput(inputNode: RoutedAudioNode<any>) {
+        this.outputs.push(inputNode);
+    };
+
+    removeInput(inputNode: RoutedAudioNode<any>) {
+        this.inputs = this.inputs.filter(node => node !== inputNode);
+    };
+
+    removeOutput(outputNode: RoutedAudioNode<any>) {
+        this.outputs = this.outputs.filter(node => node !== outputNode);
+    };
+
+
+    // This is to facilitate RouterNode
+    connectFrom(inputNode: RoutedAudioNode<any>) {
+        inputNode.audioNode.connect(this.audioNode);
+    };
+
+    connect(outputNode: RoutedAudioNode<any>) {
+        outputNode.connectFrom(this);
+        this.addOutput(outputNode);
+        outputNode.addInput(this);
+    };
+
+    disconnectFrom(inputNode: RoutedAudioNode<any>) {
+        inputNode.audioNode.disconnect(this.audioNode);
+    };
+
+    disconnect(outputNode: RoutedAudioNode<any>) {
+        outputNode.disconnectFrom(this);
+        this.removeOutput(outputNode);
+        outputNode.removeInput(this);
     }
 
     disconnectAll() {
+        this.outputs.forEach(output => {
+            this.disconnect(output);
+        });
     }
 
     destroy() {
         for (const output of this.outputs) {
             this.disconnect(output);
         }
-        
+
         for (const input of this.inputs) {
             input.disconnect(this);
         }

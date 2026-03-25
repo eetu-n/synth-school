@@ -20,12 +20,12 @@
             visited.add(node);
             nodes.push(node);
             
-            for (const input of node.inputs) {
+            for (const input of node.getInputs()) {
                 if (!visited.has(input)) {
                     toVisit.push(input);
                 }
             }
-            for (const output of node.outputs) {
+            for (const output of node.getOutputs()) {
                 if (!visited.has(output)) {
                     toVisit.push(output);
                 }
@@ -40,7 +40,7 @@
         const sorted: RoutedAudioNode[] = [];
 
         for (const node of nodes) {
-            const degree = node.inputs.filter(n => nodes.includes(n)).length;
+            const degree = node.getInputs().filter(n => nodes.includes(n)).length;
             inDegree.set(node, degree);
             if (degree === 0) {
                 queue.push(node);
@@ -52,7 +52,7 @@
             const node = queue.shift()!;
             sorted.push(node);
 
-            for (const output of node.outputs) {
+            for (const output of node.getOutputs()) {
                 if (!nodes.includes(output)) continue;
                 const newInDegree = (inDegree.get(output) ?? 0) - 1;
                 inDegree.set(output, newInDegree);
@@ -84,7 +84,7 @@
         const depths = new Map<RoutedAudioNode, number>();
         for(const node of sortedNodes) {
             let maxParentDepth = -1;
-            for(const input of node.inputs) {
+            for(const input of node.getInputs()) {
                 if (!allNodes.includes(input)) continue;
                 maxParentDepth = Math.max(maxParentDepth, depths.get(input) ?? -1);
             }
