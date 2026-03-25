@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { FaustNode } from "$lib/audioFramework/FaustNode";
+    import FaustNode from "$lib/audioFramework/FaustNode";
     import { getAudioContext } from "$lib/audioFramework/audioContextManager";
     import HSlider from "$lib/uiComponents/HSlider.svelte";
 
@@ -7,40 +7,55 @@
     import volumeLowIcon from "$lib/assets/volume-low-solid-full.svg?raw";
     import volumeMidIcon from "$lib/assets/volume-solid-full.svg?raw";
     import volumeHighIcon from "$lib/assets/volume-high-solid-full.svg?raw";
-    import type RoutedAudioNode from "$lib/audioFramework/RoutedAudioNode";
+    import RoutedAudioNode from "$lib/audioFramework/RoutedAudioNode";
+    import RouterNode from "$lib/audioFramework/RouterNode";
 
-    let { audioNode = $bindable() }: { audioNode?: RoutedAudioNode | null } =
-        $props();
+    let {
+        masterNode = $bindable(),
+        preNode = $bindable(),
+        destinationNode = $bindable(),
+    }: {
+        masterNode: FaustNode;
+        preNode: RouterNode;
+        destinationNode: RoutedAudioNode<AudioDestinationNode>;
+    } = $props();
 
-    let faustNode = await FaustNode.create(
-        "master_mixer",
-        await getAudioContext(),
+    let context = await getAudioContext();
+
+    masterNode = (await FaustNode.create("master_mixer", context)) as FaustNode;
+
+    preNode = new RouterNode("pre_master_router", context);
+
+    destinationNode = new RoutedAudioNode(
+        "destination",
+        context,
+        context.destination,
     );
 
-    if (faustNode) {
-        audioNode = faustNode;
-    }
+    if (masterNode) preNode.connect(masterNode);
+
+    if (masterNode) masterNode.connect(destinationNode);
 
     let gain = $state(0.9);
     let mute = $state(false);
 
     function handleGainChange() {
-        if (!faustNode) return;
+        if (!masterNode) return;
 
-        faustNode.setParamValue("Gain", gain);
+        masterNode.setParamValue("Gain", gain);
 
-        mute = gain === 0
+        mute = gain === 0;
     }
 
     $effect(() => {
-        if (!faustNode) return;
+        if (!masterNode) return;
 
-        faustNode.setParamValue("Mute", mute ? 1 : 0);
+        masterNode.setParamValue("Mute", mute ? 1 : 0);
     });
 
     $effect(() => {
         return () => {
-            faustNode?.destroy();
+            masterNode?.destroy();
         };
     });
 </script>

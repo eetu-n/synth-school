@@ -5,8 +5,11 @@
     import AudioContextManager from "$lib/audioFramework/AudioContextManager.svelte";
     import FaustMasterMixer from "$lib/audioComponents/FaustMasterMixer.svelte";
     import { audioState } from "$lib/audioFramework/audioState.svelte";
+    import FaustNode from '$lib/audioFramework/FaustNode';
+    import RouterNode from '$lib/audioFramework/RouterNode';
 
     import closeIcon from '$lib/assets/angle-up-solid-full.svg?raw';
+    import RoutedAudioNode from '$lib/audioFramework/RoutedAudioNode';
 
     const headerHeight = 4;
 
@@ -23,7 +26,7 @@
         <div class="header-content">
             {#if browser}
                 <AudioContextManager />
-                <FaustMasterMixer bind:audioNode={audioState.masterNode} />
+                <FaustMasterMixer bind:masterNode={audioState.masterNode as FaustNode} bind:preNode={audioState.preMasterNode as RouterNode} bind:destinationNode={audioState.destinationNode as RoutedAudioNode<AudioDestinationNode>} />
             {/if}
         </div>
     </div>

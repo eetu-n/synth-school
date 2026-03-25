@@ -1,16 +1,14 @@
-export default class RoutedAudioNode<T extends AudioNode = AudioNode> {
-    audioNode: T;
+export default class RoutedAudioNode<T extends AudioNode | null = null> {
+    audioNode: T | null;
     name: string;
     context: AudioContext;
 
     private outputs = Array<RoutedAudioNode<any>>();
     private inputs = Array<RoutedAudioNode<any>>();
 
-    constructor(name: string, context: AudioContext, audioNode: T, inputs: RoutedAudioNode<any>[] = [], outputs: RoutedAudioNode<any>[] = []) {
+    constructor(name: string, context: AudioContext, audioNode: T | null = null) {
         this.name = name;
 
-        this.outputs = outputs;
-        this.inputs = inputs;
         this.context = context;
         this.audioNode = audioNode;
     };
@@ -42,7 +40,11 @@ export default class RoutedAudioNode<T extends AudioNode = AudioNode> {
 
     // This is to facilitate RouterNode
     connectFrom(inputNode: RoutedAudioNode<any>) {
+        if (!inputNode.audioNode) console.error("Attempting to connect input node " + inputNode.name + " to output node " + this.name + ", but input has no audioNode");
+        if (!this.audioNode) console.error("Attempting to connect input node " + inputNode.name + " to output node " + this.name + ", but output has no audioNode");
+        
         inputNode.audioNode.connect(this.audioNode);
+        console.log("Connected " + inputNode.name + " to " + this.name);
     };
 
     connect(outputNode: RoutedAudioNode<any>) {
@@ -52,7 +54,9 @@ export default class RoutedAudioNode<T extends AudioNode = AudioNode> {
     };
 
     disconnectFrom(inputNode: RoutedAudioNode<any>) {
-        inputNode.audioNode.disconnect(this.audioNode);
+        if (inputNode.audioNode && this.audioNode) {
+            inputNode.audioNode.disconnect(this.audioNode);
+        }
     };
 
     disconnect(outputNode: RoutedAudioNode<any>) {
@@ -76,6 +80,6 @@ export default class RoutedAudioNode<T extends AudioNode = AudioNode> {
             input.disconnect(this);
         }
 
-        this.audioNode.disconnect();
+        this.disconnectAll();
     }
 }

@@ -4,6 +4,9 @@
     import Frequency from '$lib/analyzerComponents/Frequency.svelte';
     import Scope from '$lib/analyzerComponents/Scope.svelte';
     import VSplitDiv from '$lib/uiComponents/VSplitDiv.svelte';
+    import RoutedAudioNode from '$lib/audioFramework/RoutedAudioNode';
+    import RouterNode from '$lib/audioFramework/RouterNode';
+    import RoutingGraph from '$lib/uiComponents/RoutingGraph.svelte';
 
     var rightIsAliasing = $state(Math.random() < 0.5);
 
@@ -43,13 +46,14 @@
 {/snippet}
 
 {#snippet rightSide()}
-    {#if audioState.context != null}
+    {#if audioState.context != null && audioState.masterNode != null}
         <div class=centered>
-            <FaustSawSelector output={audioState.masterNode} isRightAliasing={rightIsAliasing} />
+            <FaustSawSelector outputNode={audioState.preMasterNode as RouterNode} isRightAliasing={rightIsAliasing} />
 
-            <Scope/>
-            <Frequency/>
+            <Scope inputNode={audioState.preMasterNode as RoutedAudioNode}/>
+            <Frequency inputNode={audioState.preMasterNode as RoutedAudioNode}/>
         </div>
+        <RoutingGraph startNode={audioState.preMasterNode} />
     {:else}
         <p class=centered>
             Start audio engine from the top left 

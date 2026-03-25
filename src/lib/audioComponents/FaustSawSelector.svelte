@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { FaustNode } from "$lib/audioFramework/FaustNode";
+  import FaustNode from "$lib/audioFramework/FaustNode";
   import type RoutedAudioNode from "$lib/audioFramework/RoutedAudioNode";
   import { getAudioContext } from "$lib/audioFramework/audioContextManager";
 
   let {
-    output = null,
+    outputNode,
     isRightAliasing = true,
-  }: { output?: RoutedAudioNode | null; isRightAliasing?: boolean } = $props();
+  }: { outputNode: RoutedAudioNode; isRightAliasing?: boolean } = $props();
 
   let faustNode = await FaustNode.create(
     "saw_selector",
@@ -32,10 +32,10 @@
   }
 
   $effect(() => {
-    if (!faustNode || !output) {
+    if (!faustNode || !outputNode) {
       return;
     }
-    faustNode.connect(output);
+    faustNode.connect(outputNode);
   });
 
   $effect(() => {

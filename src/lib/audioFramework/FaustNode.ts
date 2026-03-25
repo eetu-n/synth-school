@@ -11,21 +11,20 @@ const prodJsonImporters = import.meta.glob('/src/lib/dsp/generated/*/dsp-meta.js
 const prodWasmImporters = import.meta.glob('/src/lib/dsp/generated/*/dsp-module.wasm', { query: '?url' });
 const prodMixerImporters = import.meta.glob('/src/lib/dsp/generated/*/mixer-module.wasm', { query: '?url' });
 
-export class FaustNode extends RoutedAudioNode{
-    started: boolean = false;
-    error: string | null = null;
-    private targetOutput: AudioNode | FaustAudioWorkletNode | null = null;
+export default class FaustNode extends RoutedAudioNode<FaustAudioWorkletNode> {
+	started: boolean = false;
+	error: string | null = null;
 
-    private constructor(name: string, context: AudioContext, workletNode: FaustAudioWorkletNode, inputs = [], outputs = []) {
-        super(name, context, workletNode, inputs, outputs);
-    }
+	private constructor(name: string, context: AudioContext, workletNode: FaustAudioWorkletNode) {
+		super(name, context, workletNode);
+	}
 
     static async create(name: string, context: AudioContext, inputs = [], outputs = []) {
         let worklet = await FaustNode.createWorkletNode(name, context);
         if (!worklet) {
             return null;
         }
-        return new FaustNode(name, context, worklet, inputs, outputs);
+        return new FaustNode(name, context, worklet);
     }
 
     setParamValue(param: string, value: number) {
