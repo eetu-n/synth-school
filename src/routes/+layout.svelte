@@ -19,6 +19,7 @@
 
 <svelte:head>
     <link rel="icon" href={favicon} />
+    <title>Synth School</title>
 </svelte:head>
 
 <div class="app-container">
