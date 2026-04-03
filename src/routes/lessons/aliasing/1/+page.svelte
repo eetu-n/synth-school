@@ -18,10 +18,12 @@
         Here's some words that will teach you later.
         <br>
         Change the Frequency:
-        <HSlider min={0} max={10} step={0.05} bind:value={frequency}>Frequency</HSlider>
+        <br>
+        <HSlider min={0} max={10} step={0.05} width="100%" bind:value={frequency}>Frequency</HSlider>
         <br>
         Change the Sample Rate:
-        <HSlider min={1} max={20} step={0.05} bind:value={sampleRate}>Sample Rate</HSlider>
+        <br>
+        <HSlider min={1} max={20} step={0.05} width="100%" bind:value={sampleRate}>Sample Rate</HSlider>
     </p>
     <p>
         Now you know everything about aliasing so take the quiz:
