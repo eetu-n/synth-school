@@ -15,15 +15,8 @@
     <h1>Sampling</h1>
     <p>
         Check out <a target="_blank" rel="noopener noreferrer" href="https://en.wikipedia.org/wiki/Sampling_(signal_processing)">sampling</a>. 
-        Here's some words that will teach you later.
+        There will be words here to teach you what all this is later.
         <br>
-        Change the Frequency:
-        <br>
-        <HSlider min={0} max={10} step={0.05} width="100%" bind:value={frequency}>Frequency</HSlider>
-        <br>
-        Change the Sample Rate:
-        <br>
-        <HSlider min={1} max={20} step={0.05} width="100%" bind:value={sampleRate}>Sample Rate</HSlider>
     </p>
     <p>
         Now you know everything about aliasing so take the quiz:
@@ -34,4 +27,11 @@
 
 {#snippet rightSide()}
     <AliasingChart frequency={frequency} sampleRate={sampleRate} />
+    Change the Frequency:
+    <br>
+    <HSlider min={0} max={10} step={0.05} width="100%" bind:value={frequency}>Frequency</HSlider>
+    <br>
+    Change the Sample Rate:
+    <br>
+    <HSlider min={1} max={20} step={0.05} width="100%" bind:value={sampleRate}>Sample Rate</HSlider>
 {/snippet}
