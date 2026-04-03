@@ -23,6 +23,10 @@
         Change the Sample Rate:
         <HSlider min={1} max={20} step={0.05} bind:value={sampleRate}>Sample Rate</HSlider>
     </p>
+    <p>
+        Now you know everything about aliasing so take the quiz:
+        <a href="/lessons/aliasing/2">Continue</a>
+    </p>
 
 {/snippet}
 
