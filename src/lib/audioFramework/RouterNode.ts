@@ -8,8 +8,9 @@ export default class RouterNode extends RoutedAudioNode{
     connect(outputNode: RoutedAudioNode<any>): void {
         console.log("Routing " + this.name + " to " + outputNode.name);
         this.addOutput(outputNode);
+        outputNode.addInput(this);
         this.getInputs().forEach(input => {
-            input.connect(outputNode);
+            outputNode.connectFrom(input);
         });
     };
 

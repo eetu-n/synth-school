@@ -1,24 +1,30 @@
 <script lang="ts">
+    import { SvelteFlow, Background, Controls, Position } from '@xyflow/svelte';
+    import '@xyflow/svelte/dist/style.css';
     import type RoutedAudioNode from '$lib/audioFramework/RoutedAudioNode';
-    import { onMount, afterUpdate } from 'svelte';
 
-    export let startNode: RoutedAudioNode | null = null;
+    const nodeDefaults = {
+        sourcePosition: Position.Right,
+        targetPosition: Position.Left,
+    };
 
-    let canvas: HTMLCanvasElement;
+    let { startNode }: { startNode: RoutedAudioNode | null } = $props();
 
-    function getNodes(startNode: RoutedAudioNode | null): RoutedAudioNode[] {
-        if (!startNode) return [];
+    let graphData = $state.raw<{ nodes: any[], edges: any[] }>({ nodes: [], edges: [] });
+
+    function getGraph(startNode: RoutedAudioNode | null) {
+        if (!startNode) return { nodes: [], edges: [] };
 
         const visited = new Set<RoutedAudioNode>();
         const toVisit = [startNode];
-        const nodes: RoutedAudioNode[] = [];
+        const rawNodes: RoutedAudioNode[] = [];
         
         while (toVisit.length > 0) {
             const node = toVisit.pop();
             if (!node || visited.has(node)) continue;
 
             visited.add(node);
-            nodes.push(node);
+            rawNodes.push(node);
             
             for (const input of node.getInputs()) {
                 if (!visited.has(input)) {
@@ -31,205 +37,81 @@
                 }
             }
         }
-        return nodes;
-    }
 
-    function getTopologicalSort(nodes: RoutedAudioNode[]) {
-        const inDegree = new Map<RoutedAudioNode, number>();
-        const queue: RoutedAudioNode[] = [];
-        const sorted: RoutedAudioNode[] = [];
+        const nodes: any[] = [];
+        const edges: any[] = [];
+        const nodeToId = new Map<RoutedAudioNode, string>();
 
-        for (const node of nodes) {
-            const degree = node.getInputs().filter(n => nodes.includes(n)).length;
-            inDegree.set(node, degree);
-            if (degree === 0) {
-                queue.push(node);
-            }
-        }
-
-
-        while (queue.length > 0) {
-            const node = queue.shift()!;
-            sorted.push(node);
-
-            for (const output of node.getOutputs()) {
-                if (!nodes.includes(output)) continue;
-                const newInDegree = (inDegree.get(output) ?? 0) - 1;
-                inDegree.set(output, newInDegree);
-                if (newInDegree === 0) {
+        const nodeDepths = new Map<RoutedAudioNode, number>();
+        let roots = rawNodes.filter(n => n.getInputs().length === 0);
+        if (roots.length === 0 && rawNodes.length > 0) roots = [rawNodes[0]];
+        
+        roots.forEach(n => nodeDepths.set(n, 0));
+        let queue = [...roots];
+        let iterations = 0;
+        while (queue.length > 0 && iterations < 1000) {
+            iterations++;
+            const current = queue.shift()!;
+            const currentDepth = nodeDepths.get(current)!;
+            for (const output of current.getOutputs()) {
+                if (!nodeDepths.has(output) || nodeDepths.get(output)! < currentDepth + 1) {
+                    nodeDepths.set(output, currentDepth + 1);
                     queue.push(output);
                 }
             }
         }
 
-        if (sorted.length !== nodes.length) {
-            console.error("Cycle detected in graph, or graph is not fully connected.");
-            return null; 
-        }
+        const depthCounts = new Map<number, number>();
 
-        return sorted;
+        rawNodes.forEach((node, index) => {
+            const id = `node-${index}`;
+            nodeToId.set(node, id);
+            
+            const depth = nodeDepths.get(node) ?? 0;
+            const yIndex = depthCounts.get(depth) ?? 0;
+            depthCounts.set(depth, yIndex + 1);
+
+            nodes.push({
+                id,
+                position: { x: depth * 250, y: yIndex * 100 },
+                data: { label: node.name },
+                ...nodeDefaults
+            });
+        });
+
+        nodes.forEach(n => {
+            const nodeObj = rawNodes[parseInt(n.id.split('-')[1])];
+            const depth = nodeDepths.get(nodeObj) ?? 0;
+            const totalInDepth = depthCounts.get(depth) ?? 1;
+            n.position.y -= (totalInDepth - 1) * 100 / 2;
+        });
+
+        rawNodes.forEach(node => {
+            const sourceId = nodeToId.get(node);
+            node.getOutputs().forEach(output => {
+                const targetId = nodeToId.get(output);
+                if (sourceId && targetId) {
+                    edges.push({
+                        id: `e-${sourceId}-${targetId}`,
+                        source: sourceId,
+                        target: targetId
+                    });
+                }
+            });
+        });
+
+        return { nodes, edges };
     }
 
-    function getNodePositions(startNode: RoutedAudioNode | null, canvasWidth: number, canvasHeight: number) {
-        if (!startNode) return new Map();
-
-        const allNodes = getNodes(startNode);
-        const sortedNodes = getTopologicalSort(allNodes);
-
-        if(!sortedNodes) {
-            // Fallback for cyclic graphs
-            return new Map();
-        }
-        
-        const depths = new Map<RoutedAudioNode, number>();
-        for(const node of sortedNodes) {
-            let maxParentDepth = -1;
-            for(const input of node.getInputs()) {
-                if (!allNodes.includes(input)) continue;
-                maxParentDepth = Math.max(maxParentDepth, depths.get(input) ?? -1);
-            }
-            depths.set(node, maxParentDepth + 1);
-        }
-
-
-        const positions = new Map<RoutedAudioNode, { x: number, y: number }>();
-        const nodesAtDepth = new Map<number, RoutedAudioNode[]>();
-
-        for(const node of sortedNodes) {
-            const depth = depths.get(node)!;
-            if(!nodesAtDepth.has(depth)) {
-                nodesAtDepth.set(depth, []);
-            }
-            nodesAtDepth.get(depth)!.push(node);
-        }
-        
-
-        const xOffset = 150;
-        const yOffset = 100;
-        for(const [depth, nodes] of nodesAtDepth.entries()) {
-            const totalHeight = (nodes.length - 1) * yOffset;
-            let startY = (canvasHeight - totalHeight) / 2;
-            for(let i=0; i<nodes.length; i++) {
-                const node = nodes[i];
-                positions.set(node, { x: 50 + depth * xOffset, y: startY + i * yOffset});
-            }
-        }
-
-        return positions;
-    }
-
-    function getIntersectionPoint(
-        rectCenter: { x: number; y: number },
-        otherPoint: { x: number; y: number },
-        rectSize: { width: number; height: number }
-    ) {
-        const w = rectSize.width;
-        const h = rectSize.height;
-        const dx = otherPoint.x - rectCenter.x;
-        const dy = otherPoint.y - rectCenter.y;
-
-        if (dx === 0 && dy === 0) {
-            return rectCenter;
-        }
-
-        // Check for vertical line
-        if (dx === 0) {
-            return { x: rectCenter.x, y: rectCenter.y + (Math.sign(dy) * h) / 2 };
-        }
-        // Check for horizontal line
-        if (dy === 0) {
-            return { x: rectCenter.x + (Math.sign(dx) * w) / 2, y: rectCenter.y };
-        }
-
-        const slope = dy / dx;
-        const rectAspect = h / w;
-
-        if (Math.abs(slope) < rectAspect) {
-            // Intersects with left or right side
-            const x = rectCenter.x + (Math.sign(dx) * w) / 2;
-            const y = rectCenter.y + slope * (x - rectCenter.x);
-            return { x, y };
-        } else {
-            // Intersects with top or bottom side
-            const y = rectCenter.y + (Math.sign(dy) * h) / 2;
-            const x = rectCenter.x + (y - rectCenter.y) / slope;
-            return { x, y };
-        }
-    }
-
-    function draw() {
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-            return;
-        }
-
-        const nodePositions = getNodePositions(startNode, canvas.width, canvas.height);
-        const nodes = Array.from(nodePositions.keys());
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.font = '16px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-
-        const nodeRectSize = { width: 100, height: 50 };
-
-        // Draw connections
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = 2;
-        for (const node of nodes) {
-            const startPos = nodePositions.get(node);
-            if (!startPos) continue;
-
-            for (const output of node.outputs) {
-                const endPos = nodePositions.get(output);
-                if (!endPos) continue;
-
-                const lineStart = getIntersectionPoint(startPos, endPos, nodeRectSize);
-                const lineEnd = getIntersectionPoint(endPos, startPos, nodeRectSize);
-
-                ctx.beginPath();
-                ctx.moveTo(lineStart.x, lineStart.y);
-                ctx.lineTo(lineEnd.x, lineEnd.y);
-                ctx.stroke();
-
-                // Draw arrowhead
-                const angle = Math.atan2(endPos.y - startPos.y, endPos.x - startPos.x);
-                ctx.save();
-                ctx.translate(lineEnd.x, lineEnd.y);
-                ctx.rotate(angle);
-                ctx.beginPath();
-                ctx.moveTo(-10, -5);
-                ctx.lineTo(0, 0);
-                ctx.lineTo(-10, 5);
-                ctx.stroke();
-                ctx.restore();
-            }
-        }
-        // Draw nodes
-        for (const node of nodes) {
-            const pos = nodePositions.get(node);
-            if (!pos) continue;
-
-            ctx.fillStyle = 'lightblue';
-            ctx.fillRect(
-                pos.x - nodeRectSize.width / 2,
-                pos.y - nodeRectSize.height / 2,
-                nodeRectSize.width,
-                nodeRectSize.height
-            );
-            ctx.fillStyle = 'black';
-            ctx.fillText(node.name, pos.x, pos.y);
-        }
-    }
-
-    onMount(() => {
-        draw();
-    });
-
-    afterUpdate(() => {
-        draw();
+    $effect(() => {
+        graphData = getGraph(startNode);
     });
 </script>
 
-<canvas bind:this={canvas} width="800" height="600" style="border: 1px solid black;"></canvas>
+<div style="height: 500px; width: 100%;">
+    {#key graphData}
+    <SvelteFlow nodes={graphData.nodes} edges={graphData.edges} fitView proOptions={{ hideAttribution: true }}>
+        <Background />
+    </SvelteFlow>
+    {/key}
+</div>
