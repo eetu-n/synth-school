@@ -108,7 +108,7 @@
     });
 </script>
 
-<div style="height: 500px; width: 100%;">
+<div style="height: 450px; width: 100%;">
     {#key graphData}
     <SvelteFlow nodes={graphData.nodes} edges={graphData.edges} fitView proOptions={{ hideAttribution: true }}>
         <Background />

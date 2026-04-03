@@ -21,39 +21,53 @@
     <link rel="icon" href={favicon} />
 </svelte:head>
 
-<header class="site-header" class:collapsed={!headerExpanded}>
-    <div class="header-content-wrapper">
-        <div class="header-content">
-            {#if browser}
-                <AudioContextManager />
-                <FaustMasterMixer bind:masterNode={audioState.masterNode as FaustNode} bind:preNode={audioState.preMasterNode as RouterNode} bind:destinationNode={audioState.destinationNode as RoutedAudioNode<AudioDestinationNode>} />
-            {/if}
+<div class="app-container">
+    <header class="site-header" class:collapsed={!headerExpanded}>
+        <div class="header-content-wrapper">
+            <div class="header-content">
+                {#if browser}
+                    <AudioContextManager />
+                    <FaustMasterMixer bind:masterNode={audioState.masterNode as FaustNode} bind:preNode={audioState.preMasterNode as RouterNode} bind:destinationNode={audioState.destinationNode as RoutedAudioNode<AudioDestinationNode>} />
+                {/if}
+            </div>
         </div>
-    </div>
-</header>
+    </header>
 
-<button 
-    class="toggle-header-button" 
-    class:is-collapsed={!headerExpanded}
-    onclick={() => headerExpanded = !headerExpanded}
-    aria-label="Toggle Header"
->
-    <div class="icon-wrapper" class:flipped={!headerExpanded}>
-        {@html closeIcon}
-    </div>
-</button>
+    <button 
+        class="toggle-header-button" 
+        class:is-collapsed={!headerExpanded}
+        onclick={() => headerExpanded = !headerExpanded}
+        aria-label="Toggle Header"
+    >
+        <div class="icon-wrapper" class:flipped={!headerExpanded}>
+            {@html closeIcon}
+        </div>
+    </button>
 
-<div class="page-content">
-    {@render children()}
+    <div class="page-content">
+        {@render children()}
+    </div>
 </div>
 
 <style>
-    :global(body) {
+    :global(html, body) {
         margin: 0;
         padding: 0;
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+    }
+
+    .app-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        width: 100vw;
+        position: relative;
     }
 
     .site-header {
+        flex-shrink: 0;
         position: relative;
         background-color: #f3f4f6;
         border-bottom: 1px solid #e5e7eb;
@@ -116,5 +130,13 @@
     .icon-wrapper :global(svg) {
         width: 14px;
         height: 14px;
+    }
+
+    .page-content {
+        flex-grow: 1;
+        overflow-y: auto;
+        position: relative;
+        display: flex;
+        flex-direction: column;
     }
 </style>
