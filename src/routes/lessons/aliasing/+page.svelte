@@ -7,10 +7,12 @@
     import RoutedAudioNode from '$lib/audioFramework/RoutedAudioNode';
     import RouterNode from '$lib/audioFramework/RouterNode';
     import RoutingGraph from '$lib/uiComponents/RoutingGraph.svelte';
+    import Toggle from '$lib/uiComponents/Toggle.svelte';
 
     var rightIsAliasing = $state(Math.random() < 0.5);
 
     var selected: "A" | "B" | null = $state(null);
+    var showRoutingGraph = $state(false);
 
     function setSelected(newSelected: "A" | "B") {
         selected = newSelected;
@@ -46,6 +48,12 @@
 {/snippet}
 
 {#snippet rightSide()}
+    <div style="display: flex; justify-content: flex-end; padding: 1rem 2rem;">
+        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem; color: #666;">
+            <span>Routing Graph</span>
+            <Toggle bind:checked={showRoutingGraph} />
+        </label>
+    </div>
     {#if audioState.context != null && audioState.masterNode != null}
         <div class=centered>
             <FaustSawSelector outputNode={audioState.preMasterNode as RouterNode} isRightAliasing={rightIsAliasing} />
@@ -53,7 +61,9 @@
             <Scope inputNode={audioState.preMasterNode as RoutedAudioNode}/>
             <Frequency inputNode={audioState.preMasterNode as RoutedAudioNode}/>
         </div>
-        <RoutingGraph startNode={audioState.preMasterNode} />
+        {#if showRoutingGraph}
+            <RoutingGraph startNode={audioState.preMasterNode} />
+        {/if}
     {:else}
         <p class=centered>
             Start audio engine from the top left 
