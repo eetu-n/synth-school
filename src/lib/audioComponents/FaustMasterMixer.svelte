@@ -15,29 +15,40 @@
         preNode = $bindable(),
         destinationNode = $bindable(),
     }: {
-        masterNode: FaustNode;
-        preNode: RouterNode;
-        destinationNode: RoutedAudioNode<AudioDestinationNode>;
+        masterNode: FaustNode | null;
+        preNode: RouterNode | null;
+        destinationNode: RoutedAudioNode<AudioDestinationNode> | null;
     } = $props();
-
-    let context = await getAudioContext();
-
-    masterNode = (await FaustNode.create("master_mixer", context)) as FaustNode;
-
-    preNode = new RouterNode("pre_master_router", context);
-
-    destinationNode = new RoutedAudioNode(
-        "destination",
-        context,
-        context.destination,
-    );
-
-    if (masterNode) preNode.connect(masterNode);
-
-    if (masterNode) masterNode.connect(destinationNode);
 
     let gain = $state(0.9);
     let mute = $state(false);
+
+    $effect(() => {
+        let active = true;
+        (async () => {
+            let context = await getAudioContext();
+            if (!active) return;
+
+            masterNode = (await FaustNode.create("master_mixer", context)) as FaustNode;
+            preNode = new RouterNode("pre_master_router", context);
+            destinationNode = new RoutedAudioNode(
+                "destination",
+                context,
+                context.destination,
+            );
+
+            if (masterNode && preNode) preNode.connect(masterNode);
+            if (masterNode && destinationNode) masterNode.connect(destinationNode);
+
+            masterNode.setParamValue("Gain", gain);
+            masterNode.setParamValue("Mute", mute ? 1 : 0);
+        })();
+
+        return () => {
+            active = false;
+            masterNode?.destroy();
+        };
+    });
 
     function handleGainChange() {
         if (!masterNode) return;
@@ -51,12 +62,6 @@
         if (!masterNode) return;
 
         masterNode.setParamValue("Mute", mute ? 1 : 0);
-    });
-
-    $effect(() => {
-        return () => {
-            masterNode?.destroy();
-        };
     });
 </script>
 
