@@ -21,6 +21,9 @@
         <br/>
         In practice, if the sample rate is high enough, we can perfectly reconstruct the original signal.
         You can see this intuitively on the chart on the other pane; you can still easily see the shape of the original signal even if you toggle its visibility.
+        <br/>
+        <br/>
+        Note: the example signals here are all simple sine waves, but this applies to more complex signals as well.
     </p>
 
     <LessonNavigation next="/lessons/aliasing/2" />
