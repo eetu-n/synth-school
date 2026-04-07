@@ -3,9 +3,10 @@
 
     interface Props extends HTMLInputAttributes {
         checked?: boolean;
+        colored?: boolean;
     }
 
-    let { checked = $bindable(false), children, ...rest }: Props = $props();
+    let { checked = $bindable(false), colored = false, children, ...rest }: Props = $props();
 </script>
 
 <style>
@@ -61,9 +62,17 @@
       background-color: #ccc;
     }
 
+    input:checked + .slider.colored {
+      background-color: #2196F3;
+    }
+
     input:focus-visible + .slider {
       outline: 2px solid #ccc;
       outline-offset: 2px;
+    }
+
+    input:focus-visible + .slider.colored {
+      outline-color: #2196F3;
     }
 
     input:checked + .slider:before {
@@ -89,6 +98,9 @@
             bind:checked={checked}
             {...rest}
         />
-        <span class="slider round"></span>
+        <span class="slider round" class:colored></span>
     </div>
+    {#if children}
+        {@render children()}
+    {/if}
 </label>
