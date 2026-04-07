@@ -27,9 +27,10 @@
     showAliased?: boolean;
     showSamples?: boolean;
     showValues?: boolean;
+    showLabels?: boolean;
   }
 
-  let { frequency = 11, sampleRate = 10, showOriginal = true, showAliased = true, showSamples = true, showValues = true}: Props = $props();
+  let { frequency = 11, sampleRate = 10, showOriginal = true, showAliased = true, showSamples = true, showValues = true, showLabels = true}: Props = $props();
 
   let aliasedFreq = $derived(getAliasedFrequency(frequency, sampleRate));
 
@@ -97,9 +98,14 @@
     return {datasets: datasets};
   });
   
-  const options = {
+  let options = $derived({
     responsive: true,
     animation: false as const,
+    plugins: {
+        legend: {
+            display: showLabels
+        }
+    },
     scales: {
         x: {
             title: { display: false, text: 'Time (s)' },
@@ -113,7 +119,7 @@
             max: 1.2
         }
     }
-  };
+  });
 </script>
 
 <div class="chart-container">
