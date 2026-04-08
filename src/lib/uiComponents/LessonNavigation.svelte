@@ -1,6 +1,6 @@
 <script lang="ts">
-  import leftIcon from '$lib/assets/left.svg';
-  import rightIcon from '$lib/assets/right.svg';
+  import leftIcon from '$lib/assets/angles-left.svg';
+  import rightIcon from '$lib/assets/angles-right.svg';
 
   interface Props {
     prev?: string;

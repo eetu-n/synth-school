@@ -3,10 +3,10 @@
     import { getAudioContext } from "$lib/audioFramework/audioContextManager";
     import HSlider from "$lib/uiComponents/HSlider.svelte";
 
-    import mutedIcon from "$lib/assets/volume-xmark-solid-full.svg?raw";
-    import volumeLowIcon from "$lib/assets/volume-low-solid-full.svg?raw";
-    import volumeMidIcon from "$lib/assets/volume-solid-full.svg?raw";
-    import volumeHighIcon from "$lib/assets/volume-high-solid-full.svg?raw";
+    import mutedIcon from "$lib/assets/volume-mute.svg?raw";
+    import volumeLowIcon from "$lib/assets/volume-low.svg?raw";
+    import volumeMidIcon from "$lib/assets/volume-mid.svg?raw";
+    import volumeHighIcon from "$lib/assets/volume-high.svg?raw";
     import RoutedAudioNode from "$lib/audioFramework/RoutedAudioNode";
     import RouterNode from "$lib/audioFramework/RouterNode";
 

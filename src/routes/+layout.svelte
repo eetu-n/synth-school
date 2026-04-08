@@ -8,7 +8,7 @@
     import FaustNode from '$lib/audioFramework/FaustNode';
     import RouterNode from '$lib/audioFramework/RouterNode';
 
-    import closeIcon from '$lib/assets/angle-up-solid-full.svg?raw';
+    import closeIcon from '$lib/assets/angle-up.svg?raw';
     import RoutedAudioNode from '$lib/audioFramework/RoutedAudioNode';
 
     const headerHeight = 4;
