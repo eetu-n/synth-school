@@ -28,8 +28,10 @@
 	"dependencies": {
 		"@grame/faustwasm": "^0.15.4",
 		"@humanspeak/svelte-markdown": "^1.0.4",
+		"@tailwindcss/vite": "^4.2.2",
 		"@xyflow/svelte": "^1.5.2",
 		"chart.js": "^4.5.1",
-		"svelte-chartjs": "^4.0.1"
+		"svelte-chartjs": "^4.0.1",
+		"tailwindcss": "^4.2.2"
 	}
 }
