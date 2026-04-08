@@ -100,14 +100,14 @@
 
     .resizer {
         width: 8px;
-        background-color: #999;
+        background-color: var(--surface-color);
         cursor: col-resize;
         z-index: 10;
         transition: background-color 0.2s ease;
     }
 
     .resizer:hover, .resizer:active {
-        background-color: #555;
+        background-color: var(--primary-color);
     }
     
     /* MOBILE/TAB STYLES */
@@ -126,17 +126,18 @@
     .tab-buttons button {
         flex: 1;
         padding: 0.8rem 1rem;
-        background-color: #e5e7eb;
+        background-color: var(--surface-color);
         border: none;
         border-bottom: 2px solid transparent;
+        color: var(--primary-text-color);
         font-size: 1rem;
         cursor: pointer;
         transition: background-color 0.2s, border-color 0.2s;
     }
 
     .tab-buttons button.active {
-        background-color: #fff;
-        border-bottom-color: #3b82f6;
+        background-color: var(--background-color);
+        border-bottom-color: var(--primary-color);
     }
 
     .tab-content {
@@ -151,10 +152,10 @@
         box-sizing: border-box;
     }
     .lessonContent {
-        background-color: #ccc;
+        background-color: var(--background-color);
     }
 
     .workspace {
-        background-color: #f3f4f6;
+        background-color: var(--surface-color);
     }
 </style>

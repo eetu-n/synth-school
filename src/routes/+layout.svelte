@@ -70,8 +70,8 @@
     .site-header {
         flex-shrink: 0;
         position: relative;
-        background-color: #f3f4f6;
-        border-bottom: 1px solid #e5e7eb;
+        background-color: var(--surface-color);
+        border-bottom: 1px solid var(--border-color);
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         z-index: 100;
         height: 4em; 
@@ -99,8 +99,8 @@
         top: 4.9em; 
         right: 0.5rem;
         transform: translateY(0);
-        background: #f3f4f6;
-        border: 1px solid #e5e7eb;
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
         border-top: none; /* Looks like a tab hanging down */
         border-bottom-left-radius: 6px;
         border-bottom-right-radius: 6px;

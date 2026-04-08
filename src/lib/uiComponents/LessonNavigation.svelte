@@ -35,7 +35,7 @@
     align-items: center;
     margin-top: 2rem;
     padding-top: 1rem;
-    border-top: 1px solid #eee;
+    border-top: 1px solid var(--border-color);
   }
 
   .nav-button {
@@ -50,7 +50,7 @@
   }
 
   .nav-button:hover {
-    background-color: #f0f0f0;
+    background-color: var(--surface-color);
   }
 
   .nav-button img {
