@@ -2,19 +2,23 @@
 
 @layer base {
   :root {
-    --color-background-val: #ffffff;
-    --color-text-primary-val: #121212;
-    --color-text-secondary-val: #4a4a4a;
-    --color-primary-val: #248aff;
-    --color-primary-variant-val: #448bdd;
-    --color-secondary-val: #03DAC6;
-    --color-surface-val: #f5f5f5;
-    --color-border-val: #e0e0e0;
-    --color-slider-track-val: #cccccc;
-    --color-flow-background-val: #f0f0f0;
+    /* Light Mode - Emerald & Zinc Palette */
+    --color-background-val: #fafafa; /* Zinc 50 */
+    --color-text-primary-val: #09090b; /* Zinc 950 */
+    --color-text-secondary-val: #52525b; /* Zinc 600 */
+    --color-primary-val: #059669; /* Emerald 600 */
+    --color-primary-variant-val: #047857; /* Emerald 700 */
+    --color-secondary-val: #0891b2; /* Cyan 600 */
+    --color-surface-val: #f4f4f5; /* Zinc 100 */
+    --color-border-val: #e4e4e7; /* Zinc 200 */
+    --color-slider-track-val: #d4d4d8; /* Zinc 300 */
+    --color-flow-background-val: #fafafa;
     --color-node-background-val: #ffffff;
-    --color-node-border-val: var(--color-primary-val);
+    --color-node-border-val: #e4e4e7;
+    --color-signal-actual-val: #dc2626; /* Red 600 */
+    --color-signal-aliased-val: #2563eb; /* Blue 600 */
 
+    /* Legacy variables for components */
     --background-color: var(--color-background-val);
     --primary-text-color: var(--color-text-primary-val);
     --secondary-text-color: var(--color-text-secondary-val);
@@ -27,58 +31,71 @@
     --flow-background-color: var(--color-flow-background-val);
     --node-background-color: var(--color-node-background-val);
     --node-border-color: var(--color-node-border-val);
+    --signal-actual-color: var(--color-signal-actual-val);
+    --signal-aliased-color: var(--color-signal-aliased-val);
     
     transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   :root.dark {
-    --color-background-val: #121212;
-    --color-text-primary-val: #E0E0E0;
-    --color-text-secondary-val: #A0A0A0;
-    --color-primary-val: #43baff;
-    --color-primary-variant-val: #438bdd;
-    --color-surface-val: #1E1E1E;
-    --color-border-val: #2C2C2C;
-    --color-slider-track-val: #535353;
-    --color-flow-background-val: #2a2a2a;
-    --color-node-background-val: #3c3c3c;
+    /* Dark Mode - Deep Zinc Palette */
+    --color-background-val: #09090b; /* Zinc 950 */
+    --color-text-primary-val: #f4f4f5; /* Zinc 100 */
+    --color-text-secondary-val: #a1a1aa; /* Zinc 400 */
+    --color-primary-val: #10b981; /* Emerald 500 */
+    --color-primary-variant-val: #059669; /* Emerald 600 */
+    --color-surface-val: #18181b; /* Zinc 900 */
+    --color-border-val: #27272a; /* Zinc 800 */
+    --color-slider-track-val: #3f3f46; /* Zinc 700 */
+    --color-flow-background-val: #09090b;
+    --color-node-background-val: #18181b;
+    --color-node-border-val: #27272a;
+    --color-signal-actual-val: #f87171; /* Red 400 */
+    --color-signal-aliased-val: #60a5fa; /* Blue 400 */
   }
 
   body {
     background-color: var(--color-background-val);
     color: var(--color-text-primary-val);
-    transition: background-color 0.3s ease, color 0.3s ease;
+    font-feature-settings: "cv02", "cv03", "cv04", "ss01";
   }
 
   button {
     background-color: var(--color-primary-val);
-    color: var(--color-background-val);
+    color: #ffffff;
     border: none;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 1.25rem;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 1rem;
-    transition: background-color 0.2s ease-in-out;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+    text-transform: uppercase;
+    transition: all 0.15s ease-in-out;
   }
-  button:hover {
+  button:hover:not(:disabled) {
     background-color: var(--color-primary-variant-val);
+    filter: brightness(1.1);
   }
-  button:active {
-    background-color: var(--color-primary-variant-val);
+  button:active:not(:disabled) {
+    transform: scale(0.98);
   }
   button:disabled {
-    background-color: var(--color-text-secondary-val);
+    background-color: var(--color-slider-track-val);
+    color: var(--color-text-secondary-val);
     cursor: not-allowed;
+    opacity: 0.5;
   }
 
   a {
-    color: var(--color-secondary-val);
-    transition: color 0.2s ease-in-out;
+    color: var(--color-primary-val);
+    transition: color 0.15s ease-in-out;
     text-decoration: none;
+    font-weight: 500;
+    border-bottom: 1px solid transparent;
   }
   a:hover {
-    color: var(--color-primary-val);
-    text-decoration: underline;
+    border-bottom-color: var(--color-primary-val);
   }
 }
 
@@ -95,29 +112,8 @@
   --color-flow-background: var(--color-flow-background-val);
   --color-node-background: var(--color-node-background-val);
   --color-node-border: var(--color-node-border-val);
-}
-
-@layer components {
-  .btn {
-    background-color: var(--color-primary-val);
-    color: var(--color-background-val);
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background-color 0.2s ease-in-out;
-  }
-  .btn:hover {
-    background-color: var(--color-primary-variant-val);
-  }
-  .btn:active {
-    background-color: var(--color-primary-variant-val);
-  }
-  .btn:disabled {
-    background-color: var(--color-text-secondary-val);
-    cursor: not-allowed;
-  }
+  --color-signal-actual: var(--color-signal-actual-val);
+  --color-signal-aliased: var(--color-signal-aliased-val);
 }
 
 /* Slider Styles */
@@ -128,37 +124,37 @@ input[type="range"] {
     cursor: pointer;
 }
 
-/* Track */
 input[type="range"]::-webkit-slider-runnable-track {
     background: var(--color-slider-track-val);
-    height: 0.25rem;
-    border-radius: 0.25rem;
+    height: 4px;
+    border-radius: 2px;
 }
 
 input[type="range"]::-moz-range-track {
     background: var(--color-slider-track-val);
-    height: 0.25rem;
-    border-radius: 0.25rem;
+    height: 4px;
+    border-radius: 2px;
 }
 
-/* Thumb */
 input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    margin-top: -0.375rem;
+    margin-top: -6px;
     background-color: var(--color-primary-val);
-    height: 1rem;
-    width: 1rem;
-    border-radius: 50%;
-    border: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 9999px;
+    border: 2px solid var(--color-background-val);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
 input[type="range"]::-moz-range-thumb {
     background-color: var(--color-primary-val);
-    height: 1rem;
-    width: 1rem;
-    border-radius: 50%;
-    border: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 9999px;
+    border: 2px solid var(--color-background-val);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
 /* Routing Graph Styles (xyflow) */
@@ -170,10 +166,15 @@ input[type="range"]::-moz-range-thumb {
     background-color: var(--color-node-background-val);
     color: var(--color-text-primary-val);
     border: 1px solid var(--color-node-border-val);
+    border-radius: 4px;
+    font-size: 12px;
+    padding: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .svelte-flow__edge-path {
     stroke: var(--color-primary-val);
+    stroke-width: 2;
 }
 
 svg {

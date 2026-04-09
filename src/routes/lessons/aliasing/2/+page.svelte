@@ -27,11 +27,9 @@
 {/snippet}
 
 {#snippet rightSide()}
-    <AliasingChart frequency={7.5} sampleRate={10} showAliased={!showOriginal} showSamples={true} showOriginal={showOriginal} showLabels={false}/>
+    <AliasingChart frequency={7.5} sampleRate={10} showAliased={!showOriginal} showSamples={true} showOriginal={showOriginal} showLabels={false} showAxisLabels={false}/>
 
-    Signal A 
-    <Toggle bind:checked={showOriginal} colored={false}/>
-    Signal B
+    Signal A <Toggle bind:checked={showOriginal} colored={false}/> Signal B
     <br />
     <br />
 {/snippet}
