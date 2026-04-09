@@ -12,18 +12,9 @@
     let { value = $bindable(0), min = 0, max = 1, step = 0.01, width = 200, ...rest }: Props = $props();
 </script>
 
-<style>
-    .hslider {
-        writing-mode: horizontal-lr;
-        direction: ltr;
-        appearance: slider-horizontal;
-        vertical-align: middle;
-    }
-</style>
-
 <input 
     type="range" 
-    class="hslider" 
+    class="[appearance:slider-horizontal] align-middle" 
     {min}
     {max}
     {step}

@@ -53,6 +53,7 @@
 
 <div>
   <button
+    class="btn"
     onpointerdown={() => handleGateA(true)}
     onpointerup={() => handleGateA(false)}
     onpointerleave={() => handleGateA(false)}
@@ -61,6 +62,7 @@
   </button>
 
   <button
+    class="btn"
     onpointerdown={() => handleGateB(true)}
     onpointerup={() => handleGateB(false)}
     onpointerleave={() => handleGateB(false)}

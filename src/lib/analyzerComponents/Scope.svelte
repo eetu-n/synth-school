@@ -184,6 +184,6 @@
     });
 </script>
 
-<canvas bind:this={canvas} width=400 height=200 style={analyzerStyles.canvasStyle}>
+<canvas bind:this={canvas} width=400 height=200 class="rounded-lg shadow-lg border border-slate-700">
 
 </canvas>

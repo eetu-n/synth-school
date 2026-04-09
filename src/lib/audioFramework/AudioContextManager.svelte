@@ -60,5 +60,5 @@
 </button>
 
 {#if error}
-	<p style="color: red;">{error}</p>
+	<p class="text-red-500">{error}</p>
 {/if}

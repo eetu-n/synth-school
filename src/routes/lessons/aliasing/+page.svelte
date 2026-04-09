@@ -48,14 +48,14 @@
 {/snippet}
 
 {#snippet rightSide()}
-    <div style="display: flex; justify-content: flex-end; padding: 1rem 2rem;">
-        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem; color: #666;">
+    <div class="flex justify-end py-4 px-8">
+        <label class="flex items-center gap-2 cursor-pointer text-sm text-text-secondary">
             <span>Routing Graph</span>
             <Toggle bind:checked={showRoutingGraph} />
         </label>
     </div>
     {#if audioState.context != null && audioState.masterNode != null}
-        <div class=centered>
+        <div class="mt-4 flex flex-col justify-center items-center gap-4">
             <FaustSawSelector outputNode={audioState.preMasterNode as RouterNode} isRightAliasing={rightIsAliasing} />
 
             <Scope inputNode={audioState.preMasterNode as RoutedAudioNode}/>
@@ -65,7 +65,7 @@
             <RoutingGraph startNode={audioState.preMasterNode} />
         {/if}
     {:else}
-        <p class=centered>
+        <p class="mt-4 flex flex-col justify-center items-center gap-4">
             Start audio engine from the top left 
         </p>
     {/if}

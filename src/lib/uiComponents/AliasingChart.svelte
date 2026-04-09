@@ -154,16 +154,8 @@
   });
 </script>
 
-<div class="chart-container" bind:this={chartContainer}>
+<div class="w-full max-w-2xl my-4 mx-auto" bind:this={chartContainer}>
   {#if browser}
     <Line data={chartData} {options} />
   {/if}
 </div>
-
-<style>
-  .chart-container {
-    width: 100%;
-    max-width: 600px;
-    margin: 1rem auto;
-  }
-</style>

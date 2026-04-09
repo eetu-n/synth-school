@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #121212;
+  --color-text-primary: #E0E0E0;
+  --color-text-secondary: #A0A0A0;
+  --color-primary: #43baff;
+  --color-primary-variant: #3700B3;
+  --color-secondary: #03DAC6;
+  --color-surface: #1E1E1E;
+  --color-border: #2C2C2C;
+  --color-slider-track: #535353;
+  --color-flow-background: #2a2a2a;
+  --color-node-background: #3c3c3c;
+  --color-node-border: var(--color-primary);
+}
+
+@layer base {
+  :root {
+    /* Map original variable names if needed for legacy or external libraries */
+    --background-color: var(--color-background);
+    --primary-text-color: var(--color-text-primary);
+    --secondary-text-color: var(--color-text-secondary);
+    --primary-color: var(--color-primary);
+    --primary-variant-color: var(--color-primary-variant);
+    --secondary-color: var(--color-secondary);
+    --surface-color: var(--color-surface);
+    --border-color: var(--color-border);
+    --slider-track-color: var(--color-slider-track);
+    --flow-background-color: var(--color-flow-background);
+    --node-background-color: var(--color-node-background);
+    --node-border-color: var(--color-node-border);
+  }
+
+  a {
+    @apply text-secondary transition-colors duration-200 ease-in-out;
+  }
+  a:hover {
+    @apply text-primary underline;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply bg-primary text-background border-none py-2 px-4 rounded cursor-pointer text-base transition-colors duration-200 ease-in-out;
+  }
+  .btn:hover {
+    @apply bg-primary-variant;
+  }
+  .btn:active {
+    @apply bg-primary-variant;
+  }
+  .btn:disabled {
+    @apply bg-text-secondary cursor-not-allowed;
+  }
+}
+
+/* Slider Styles - keeping these as CSS as they are complex to do with Tailwind only */
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+/* Track */
+input[type="range"]::-webkit-slider-runnable-track {
+    background: var(--color-slider-track);
+    height: 0.25rem;
+    border-radius: 0.25rem;
+}
+
+input[type="range"]::-moz-range-track {
+    background: var(--color-slider-track);
+    height: 0.25rem;
+    border-radius: 0.25rem;
+}
+
+/* Thumb */
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    margin-top: -0.375rem;
+    background-color: var(--color-primary);
+    height: 1rem;
+    width: 1rem;
+    border-radius: 50%;
+    border: none;
+}
+
+input[type="range"]::-moz-range-thumb {
+    background-color: var(--color-primary);
+    height: 1rem;
+    width: 1rem;
+    border-radius: 50%;
+    border: none;
+}
+
+/* Routing Graph Styles (xyflow) */
+.svelte-flow__background {
+    background-color: var(--color-flow-background);
+}
+
+.svelte-flow__node {
+    background-color: var(--color-node-background);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-node-border);
+}
+
+.svelte-flow__edge-path {
+    stroke: var(--color-primary);
+}
+
+svg {
+    fill: currentColor;
+}

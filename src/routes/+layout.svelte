@@ -1,6 +1,6 @@
 <script lang="ts">
     import { browser } from '$app/environment';
-    import "$lib/app.css"
+    import "../app.css"
     import favicon from "$lib/assets/favicon.svg";
     import AudioContextManager from "$lib/audioFramework/AudioContextManager.svelte";
     import FaustMasterMixer from "$lib/audioComponents/FaustMasterMixer.svelte";
@@ -22,10 +22,15 @@
     <title>Synth School</title>
 </svelte:head>
 
-<div class="app-container">
-    <header class="site-header" class:collapsed={!headerExpanded}>
-        <div class="header-content-wrapper">
-            <div class="header-content">
+<div class="flex flex-col h-screen w-screen relative">
+    <header 
+        class="flex-shrink-0 relative bg-surface border-b border-border shadow-md z-10 transition-all duration-300 ease-in-out overflow-hidden"
+        class:h-16={headerExpanded}
+        class:h-0={!headerExpanded}
+        class:border-b-0={!headerExpanded}
+    >
+        <div class="py-4 px-6">
+            <div class="flex items-center gap-6">
                 {#if browser}
                     <AudioContextManager />
                     <FaustMasterMixer bind:masterNode={audioState.masterNode as FaustNode} bind:preNode={audioState.preMasterNode as RouterNode} bind:destinationNode={audioState.destinationNode as RoutedAudioNode<AudioDestinationNode>} />
@@ -35,109 +40,23 @@
     </header>
 
     <button 
-        class="toggle-header-button" 
-        class:is-collapsed={!headerExpanded}
+        class="absolute right-2 bg-surface border border-border border-t-0 rounded-bl-md rounded-br-md cursor-pointer py-1 px-3 z-[101] transition-all duration-300 ease-in-out"
+        class:top-[4.9em]={headerExpanded}
+        class:top-0={!headerExpanded}
         onclick={() => headerExpanded = !headerExpanded}
         aria-label="Toggle Header"
     >
-        <div class="icon-wrapper" class:flipped={!headerExpanded}>
-            {@html closeIcon}
+        <div 
+            class="flex items-center justify-center transition-transform duration-300 ease"
+            class:rotate-180={!headerExpanded}
+        >
+            <div class="w-3.5 h-3.5">
+                {@html closeIcon}
+            </div>
         </div>
     </button>
 
-    <div class="page-content">
+    <div class="flex-grow overflow-y-auto relative flex flex-col">
         {@render children()}
     </div>
 </div>
-
-<style>
-    :global(html, body) {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        width: 100%;
-        overflow: hidden;
-    }
-
-    .app-container {
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-        width: 100vw;
-        position: relative;
-    }
-
-    .site-header {
-        flex-shrink: 0;
-        position: relative;
-        background-color: var(--surface-color);
-        border-bottom: 1px solid var(--border-color);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        z-index: 100;
-        height: 4em; 
-        transition: height 0.3s ease-in-out; /* Smoother transition */
-        overflow: hidden;
-    }
-    
-    .site-header.collapsed {
-        height: 0;
-        border-bottom: none;
-    }
-
-    .header-content-wrapper {
-        padding: 1rem 1.5rem;
-    }
-
-    .header-content {
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-    }
-
-    .toggle-header-button {
-        position: absolute;
-        top: 4.9em; 
-        right: 0.5rem;
-        transform: translateY(0);
-        background: var(--surface-color);
-        border: 1px solid var(--border-color);
-        border-top: none; /* Looks like a tab hanging down */
-        border-bottom-left-radius: 6px;
-        border-bottom-right-radius: 6px;
-        cursor: pointer;
-        padding: 4px 12px;
-        z-index: 101;
-        transition: top 0.3s ease-in-out;
-    }
-
-    /* Move the button up when the header disappears */
-    .toggle-header-button.is-collapsed {
-        top: 0;
-    }
-
-    .icon-wrapper {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: transform 0.3s ease;
-    }
-
-    /* Vertically flip the icon */
-    .icon-wrapper.flipped {
-        transform: rotate(180deg);
-    }
-
-    /* Clean up SVG sizing if necessary */
-    .icon-wrapper :global(svg) {
-        width: 14px;
-        height: 14px;
-    }
-
-    .page-content {
-        flex-grow: 1;
-        overflow-y: auto;
-        position: relative;
-        display: flex;
-        flex-direction: column;
-    }
-</style>

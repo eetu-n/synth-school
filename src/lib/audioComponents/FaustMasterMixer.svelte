@@ -65,37 +65,23 @@
     });
 </script>
 
-<div style="display: flex; align-items: center;">
+<div class="flex items-center">
     <button
-        class="mute-button"
+        class="bg-transparent border-none text-xl cursor-pointer ml-4 p-0 w-[1.5em] h-[1.5em] inline-flex items-center justify-start"
         onclick={() => (mute = !mute)}
-        style="background: none; border: none; font-size: 1.2rem; cursor: pointer; margin-left: 1rem; padding: 0;"
     >
-        {#if mute}
-            {@html mutedIcon}
-        {:else if gain < 0.2}
-            {@html volumeLowIcon}
-        {:else if gain > 0.8}
-            {@html volumeHighIcon}
-        {:else}
-            {@html volumeMidIcon}
-        {/if}
+        <span class="w-auto h-[1em] block">
+            {#if mute}
+                {@html mutedIcon}
+            {:else if gain < 0.2}
+                {@html volumeLowIcon}
+            {:else if gain > 0.8}
+                {@html volumeHighIcon}
+            {:else}
+                {@html volumeMidIcon}
+            {/if}
+        </span>
     </button>
     <HSlider oninput={handleGainChange} bind:value={gain} />
 </div>
 
-<style>
-    .mute-button {
-        width: 1.5em;
-        height: 1.5em;
-
-        display: inline-flex;
-        align-items: center;
-        justify-content: flex-start;
-    }
-    .mute-button :global(svg) {
-        width: auto;
-        height: 1em;
-        display: block;
-    }
-</style>
