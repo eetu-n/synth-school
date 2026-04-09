@@ -93,6 +93,22 @@
     text-decoration: underline;
   }
 
+  h1 {
+    @apply text-3xl font-bold text-text-primary mb-6;
+  }
+
+  h2 {
+    @apply text-2xl font-semibold text-text-primary mb-4;
+  }
+
+  h3 {
+    @apply text-xl font-semibold text-text-primary mb-3;
+  }
+
+  p {
+    @apply mb-4 leading-relaxed;
+  }
+
   /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 8px;
