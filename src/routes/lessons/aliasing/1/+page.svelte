@@ -17,7 +17,7 @@
     <p>
         If we want to represent a continuous signal (such as sound) in a computer, one way to do it is <a href="https://en.wikipedia.org/wiki/Sampling_(signal_processing)">sampling</a>.
         This is the process of measuring the value (air pressure for sound) at specific times, often at a regular interval.
-        This interval is called the <i>sampling freuency</i> or <i>sample rate</i>.
+        This interval is called the <i>sampling frequency</i> or <i>sample rate</i>.
         <br/>
         In practice, if the sample rate is high enough, we can perfectly reconstruct the original signal.
         You can see this intuitively on the chart on the other pane; you can still easily see the shape of the original signal even if you toggle its visibility.

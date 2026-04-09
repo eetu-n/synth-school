@@ -8,6 +8,7 @@
     import RouterNode from '$lib/audioFramework/RouterNode';
     import RoutingGraph from '$lib/uiComponents/RoutingGraph.svelte';
     import Toggle from '$lib/uiComponents/Toggle.svelte';
+    import LessonNavigation from "$lib/uiComponents/LessonNavigation.svelte";
 
     var rightIsAliasing = $state(Math.random() < 0.5);
 
@@ -41,10 +42,12 @@
     {:else}
         Wrong!
     {/if}
-    <div>
-        <button onclick={() => setSelected('A')}>A</button>
-        <button onclick={() => setSelected('B')}>B</button>
+    <div class="mt-4">
+        <button class="btn" onclick={() => setSelected('A')}>A</button>
+        <button class="btn" onclick={() => setSelected('B')}>B</button>
     </div>
+
+    <LessonNavigation />
 {/snippet}
 
 {#snippet rightSide()}

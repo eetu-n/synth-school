@@ -19,11 +19,11 @@
         <br/>
         For instance, both signal A and B on the other pane line up with the sampled points, but clearly Signal A is more natural to assume, if given only the samples.
         <br/>
-        In fact, it is mathematically impossible to construct a signal past a certain freuquency threshold because of this reason.
+        In fact, it is mathematically impossible to construct a signal past a certain frequency threshold because of this reason.
         This threshold frequency is known as the <i>Nyquist frequency</i>, and its value is the sample rate divided by 2.
     </p>
 
-    <LessonNavigation prev="/lessons/aliasing/1" />
+    <LessonNavigation prev="/lessons/aliasing/1" next="/lessons/aliasing/3" />
 {/snippet}
 
 {#snippet rightSide()}
