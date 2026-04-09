@@ -10,7 +10,7 @@
   let { prev, next }: Props = $props();
 </script>
 
-<div class="p-6 border-t border-border/50 flex justify-between items-center mt-auto -mx-5 -mb-5 bg-surface/50">
+<div class="flex justify-between items-center py-4">
   {#if prev}
     <a href={prev} class="p-2 text-text-primary hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors" aria-label="Previous Lesson">
       <span class="w-6 h-6 block">{@html leftIcon}</span>

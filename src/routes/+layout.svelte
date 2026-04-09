@@ -49,9 +49,9 @@
         class:h-0={!headerExpanded}
         class:border-b-0={!headerExpanded}
     >
-        <div class="py-4 px-6 h-full">
-            <div class="flex items-center justify-between gap-6 h-full">
-                <div class="flex items-center gap-6">
+        <div class="py-4 px-2 sm:px-6 h-full">
+            <div class="flex items-center justify-between gap-2 sm:gap-6 h-full">
+                <div class="flex items-center gap-2 sm:gap-6">
                     {#if browser}
                         <AudioContextManager />
                         <FaustMasterMixer bind:masterNode={audioState.masterNode as FaustNode} bind:preNode={audioState.preMasterNode as RouterNode} bind:destinationNode={audioState.destinationNode as RoutedAudioNode<AudioDestinationNode>} />

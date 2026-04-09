@@ -1,24 +1,20 @@
 <script lang="ts">
-    import AliasingChart from "$lib/uiComponents/AliasingChart.svelte";
-    import HSlider from "$lib/uiComponents/HSlider.svelte";
-    import VSplitDiv from "$lib/uiComponents/VSplitDiv.svelte";
-    import Toggle from "$lib/uiComponents/Toggle.svelte";
-    import LessonNavigation from "$lib/uiComponents/LessonNavigation.svelte";
+import AliasingChart from "$lib/uiComponents/AliasingChart.svelte";
+import HSlider from "$lib/uiComponents/HSlider.svelte";
+import VSplitDiv from "$lib/uiComponents/VSplitDiv.svelte";
+import Toggle from "$lib/uiComponents/Toggle.svelte";
 
-    let frequency: number = $state(2);
-    let sampleRate: number = $state(10);
-    let showOriginal: boolean = $state(true);
+let frequency: number = $state(2);
+let sampleRate: number = $state(10);
+let showOriginal: boolean = $state(true);
 </script>
 
-<VSplitDiv {leftSide} {rightSide} />
+<VSplitDiv {leftSide} {rightSide} prev="/lessons/aliasing/2" />
 
 {#snippet leftSide()}
-    <h1>Sampling</h1>
-    <p></p>
-
-    <LessonNavigation prev="/lessons/aliasing/2" />
+<h1>Aliasing</h1>
+<p></p>
 {/snippet}
-
 {#snippet rightSide()}
     <AliasingChart
         {frequency}

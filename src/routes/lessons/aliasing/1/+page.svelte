@@ -3,14 +3,13 @@
     import HSlider from "$lib/uiComponents/HSlider.svelte";
     import VSplitDiv from "$lib/uiComponents/VSplitDiv.svelte";
     import Toggle from "$lib/uiComponents/Toggle.svelte";
-    import LessonNavigation from "$lib/uiComponents/LessonNavigation.svelte";
 
     let frequency: number = $state(2);
     let sampleRate: number = $state(10);
     let showOriginal: boolean = $state(true);
 </script>
 
-<VSplitDiv {leftSide} {rightSide} />
+<VSplitDiv {leftSide} {rightSide} next="/lessons/aliasing/2" />
 
 {#snippet leftSide()}
     <h1>Sampling</h1>
@@ -25,8 +24,6 @@
         <br/>
         Note: the example signals here are all simple sine waves, but this applies to more complex signals as well.
     </p>
-
-    <LessonNavigation next="/lessons/aliasing/2" />
 {/snippet}
 
 {#snippet rightSide()}

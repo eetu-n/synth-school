@@ -1,7 +1,13 @@
 <script lang="ts">
     import type { Snippet } from 'svelte';
+    import LessonNavigation from './LessonNavigation.svelte';
 
-    let { leftSide, rightSide }: { leftSide: Snippet, rightSide: Snippet } = $props();
+    let { leftSide, rightSide, prev, next }: { 
+        leftSide: Snippet, 
+        rightSide: Snippet,
+        prev?: string,
+        next?: string
+    } = $props();
 
     let leftWidth = $state(30);
     let isDragging = $state(false);
@@ -46,7 +52,14 @@
     <div class="flex h-screen w-full overflow-hidden" class:select-none={isDragging} class:cursor-col-resize={isDragging}>
       <div class="overflow-y-auto p-5 bg-background flex flex-col" style="width: {leftWidth}%">
           <div class="flex flex-col min-h-full">
-            {@render leftSide()}
+            <div class="flex-grow">
+                {@render leftSide()}
+            </div>
+            {#if prev || next}
+                <div class="mt-8">
+                    <LessonNavigation {prev} {next} />
+                </div>
+            {/if}
           </div>
       </div>
       
@@ -67,7 +80,7 @@
       </div>
     </div>
 {:else}
-    <div class="flex flex-col h-screen w-full">
+    <div class="flex flex-col h-screen w-full overflow-hidden">
         <div class="flex flex-shrink-0">
             <button 
                 onclick={() => activeTab = 'left'} 
@@ -89,17 +102,23 @@
             </button>
         </div>
 
-        <div class="flex-grow overflow-y-auto">
-            <div class="overflow-y-auto p-5 bg-background flex flex-col" hidden={activeTab !== 'left'}>
+        <div class="flex-grow flex flex-col overflow-hidden">
+            <div class="flex-1 overflow-y-auto p-5 bg-background flex flex-col" class:hidden={activeTab !== 'left'}>
                 <div class="flex flex-col min-h-full">
                     {@render leftSide()}
                 </div>
             </div>
-            <div class="overflow-y-auto p-5 bg-surface flex flex-col" hidden={activeTab !== 'right'}>
+            <div class="flex-1 overflow-y-auto p-5 bg-surface flex flex-col" class:hidden={activeTab !== 'right'}>
                 <div class="flex flex-col min-h-full">
                     {@render rightSide()}
                 </div>
             </div>
         </div>
+
+        {#if prev || next}
+            <div class="flex-shrink-0 bg-surface border-t border-border/50 px-5 pb-2">
+                <LessonNavigation {prev} {next} />
+            </div>
+        {/if}
     </div>
 {/if}
