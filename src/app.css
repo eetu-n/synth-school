@@ -1,61 +1,126 @@
 @import "tailwindcss";
 
-@theme {
-  --color-background: #121212;
-  --color-text-primary: #E0E0E0;
-  --color-text-secondary: #A0A0A0;
-  --color-primary: #43baff;
-  --color-primary-variant: #3700B3;
-  --color-secondary: #03DAC6;
-  --color-surface: #1E1E1E;
-  --color-border: #2C2C2C;
-  --color-slider-track: #535353;
-  --color-flow-background: #2a2a2a;
-  --color-node-background: #3c3c3c;
-  --color-node-border: var(--color-primary);
-}
-
 @layer base {
   :root {
-    /* Map original variable names if needed for legacy or external libraries */
-    --background-color: var(--color-background);
-    --primary-text-color: var(--color-text-primary);
-    --secondary-text-color: var(--color-text-secondary);
-    --primary-color: var(--color-primary);
-    --primary-variant-color: var(--color-primary-variant);
-    --secondary-color: var(--color-secondary);
-    --surface-color: var(--color-surface);
-    --border-color: var(--color-border);
-    --slider-track-color: var(--color-slider-track);
-    --flow-background-color: var(--color-flow-background);
-    --node-background-color: var(--color-node-background);
-    --node-border-color: var(--color-node-border);
+    --color-background-val: #ffffff;
+    --color-text-primary-val: #121212;
+    --color-text-secondary-val: #4a4a4a;
+    --color-primary-val: #248aff;
+    --color-primary-variant-val: #448bdd;
+    --color-secondary-val: #03DAC6;
+    --color-surface-val: #f5f5f5;
+    --color-border-val: #e0e0e0;
+    --color-slider-track-val: #cccccc;
+    --color-flow-background-val: #f0f0f0;
+    --color-node-background-val: #ffffff;
+    --color-node-border-val: var(--color-primary-val);
+
+    --background-color: var(--color-background-val);
+    --primary-text-color: var(--color-text-primary-val);
+    --secondary-text-color: var(--color-text-secondary-val);
+    --primary-color: var(--color-primary-val);
+    --primary-variant-color: var(--color-primary-variant-val);
+    --secondary-color: var(--color-secondary-val);
+    --surface-color: var(--color-surface-val);
+    --border-color: var(--color-border-val);
+    --slider-track-color: var(--color-slider-track-val);
+    --flow-background-color: var(--color-flow-background-val);
+    --node-background-color: var(--color-node-background-val);
+    --node-border-color: var(--color-node-border-val);
+    
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  :root.dark {
+    --color-background-val: #121212;
+    --color-text-primary-val: #E0E0E0;
+    --color-text-secondary-val: #A0A0A0;
+    --color-primary-val: #43baff;
+    --color-primary-variant-val: #438bdd;
+    --color-surface-val: #1E1E1E;
+    --color-border-val: #2C2C2C;
+    --color-slider-track-val: #535353;
+    --color-flow-background-val: #2a2a2a;
+    --color-node-background-val: #3c3c3c;
+  }
+
+  body {
+    background-color: var(--color-background-val);
+    color: var(--color-text-primary-val);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  button {
+    background-color: var(--color-primary-val);
+    color: var(--color-background-val);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.2s ease-in-out;
+  }
+  button:hover {
+    background-color: var(--color-primary-variant-val);
+  }
+  button:active {
+    background-color: var(--color-primary-variant-val);
+  }
+  button:disabled {
+    background-color: var(--color-text-secondary-val);
+    cursor: not-allowed;
   }
 
   a {
-    @apply text-secondary transition-colors duration-200 ease-in-out;
+    color: var(--color-secondary-val);
+    transition: color 0.2s ease-in-out;
+    text-decoration: none;
   }
   a:hover {
-    @apply text-primary underline;
+    color: var(--color-primary-val);
+    text-decoration: underline;
   }
+}
+
+@theme {
+  --color-background: var(--color-background-val);
+  --color-text-primary: var(--color-text-primary-val);
+  --color-text-secondary: var(--color-text-secondary-val);
+  --color-primary: var(--color-primary-val);
+  --color-primary-variant: var(--color-primary-variant-val);
+  --color-secondary: var(--color-secondary-val);
+  --color-surface: var(--color-surface-val);
+  --color-border: var(--color-border-val);
+  --color-slider-track: var(--color-slider-track-val);
+  --color-flow-background: var(--color-flow-background-val);
+  --color-node-background: var(--color-node-background-val);
+  --color-node-border: var(--color-node-border-val);
 }
 
 @layer components {
   .btn {
-    @apply bg-primary text-background border-none py-2 px-4 rounded cursor-pointer text-base transition-colors duration-200 ease-in-out;
+    background-color: var(--color-primary-val);
+    color: var(--color-background-val);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.2s ease-in-out;
   }
   .btn:hover {
-    @apply bg-primary-variant;
+    background-color: var(--color-primary-variant-val);
   }
   .btn:active {
-    @apply bg-primary-variant;
+    background-color: var(--color-primary-variant-val);
   }
   .btn:disabled {
-    @apply bg-text-secondary cursor-not-allowed;
+    background-color: var(--color-text-secondary-val);
+    cursor: not-allowed;
   }
 }
 
-/* Slider Styles - keeping these as CSS as they are complex to do with Tailwind only */
+/* Slider Styles */
 input[type="range"] {
     -webkit-appearance: none;
     appearance: none;
@@ -65,13 +130,13 @@ input[type="range"] {
 
 /* Track */
 input[type="range"]::-webkit-slider-runnable-track {
-    background: var(--color-slider-track);
+    background: var(--color-slider-track-val);
     height: 0.25rem;
     border-radius: 0.25rem;
 }
 
 input[type="range"]::-moz-range-track {
-    background: var(--color-slider-track);
+    background: var(--color-slider-track-val);
     height: 0.25rem;
     border-radius: 0.25rem;
 }
@@ -81,7 +146,7 @@ input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
     margin-top: -0.375rem;
-    background-color: var(--color-primary);
+    background-color: var(--color-primary-val);
     height: 1rem;
     width: 1rem;
     border-radius: 50%;
@@ -89,7 +154,7 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 input[type="range"]::-moz-range-thumb {
-    background-color: var(--color-primary);
+    background-color: var(--color-primary-val);
     height: 1rem;
     width: 1rem;
     border-radius: 50%;
@@ -98,17 +163,17 @@ input[type="range"]::-moz-range-thumb {
 
 /* Routing Graph Styles (xyflow) */
 .svelte-flow__background {
-    background-color: var(--color-flow-background);
+    background-color: var(--color-flow-background-val);
 }
 
 .svelte-flow__node {
-    background-color: var(--color-node-background);
-    color: var(--color-text-primary);
-    border: 1px solid var(--color-node-border);
+    background-color: var(--color-node-background-val);
+    color: var(--color-text-primary-val);
+    border: 1px solid var(--color-node-border-val);
 }
 
 .svelte-flow__edge-path {
-    stroke: var(--color-primary);
+    stroke: var(--color-primary-val);
 }
 
 svg {

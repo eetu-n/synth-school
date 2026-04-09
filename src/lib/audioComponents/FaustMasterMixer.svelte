@@ -67,10 +67,10 @@
 
 <div class="flex items-center">
     <button
-        class="bg-transparent border-none text-xl cursor-pointer ml-4 p-0 w-[1.5em] h-[1.5em] inline-flex items-center justify-start"
+        class="bg-transparent border-none text-xl cursor-pointer ml-4 p-0 w-[1.5em] h-[1.5em] inline-flex items-center justify-start min-h-0 text-text-primary fill-current"
         onclick={() => (mute = !mute)}
     >
-        <span class="w-auto h-[1em] block">
+        <span class="w-[1em] h-[1em] block [&>svg]:w-full [&>svg]:h-full [&>svg]:block">
             {#if mute}
                 {@html mutedIcon}
             {:else if gain < 0.2}

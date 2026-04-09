@@ -44,8 +44,10 @@
 
 {#if innerWidth >= breakpoint}
     <div class="flex h-screen w-full overflow-hidden" class:select-none={isDragging} class:cursor-col-resize={isDragging}>
-      <div class="overflow-y-auto p-5 bg-background" style="width: {leftWidth}%">
-          {@render leftSide()}
+      <div class="overflow-y-auto p-5 bg-background flex flex-col" style="width: {leftWidth}%">
+          <div class="flex flex-col min-h-full">
+            {@render leftSide()}
+          </div>
       </div>
       
       <!-- svelte-ignore a11y_no_noninteractive_element_interactions, a11y_no_noninteractive_tabindex -->
@@ -58,8 +60,10 @@
           aria-label="Resize panels"
       ></div>
       
-      <div class="overflow-y-auto p-5 bg-surface" style="width: {100 - leftWidth}%">
-          {@render rightSide()}
+      <div class="overflow-y-auto p-5 bg-surface flex flex-col" style="width: {100 - leftWidth}%">
+          <div class="flex flex-col min-h-full">
+            {@render rightSide()}
+          </div>
       </div>
     </div>
 {:else}
@@ -86,13 +90,16 @@
         </div>
 
         <div class="flex-grow overflow-y-auto">
-            <div class="overflow-y-auto p-5 bg-background" hidden={activeTab !== 'left'}>
-                {@render leftSide()}
+            <div class="overflow-y-auto p-5 bg-background flex flex-col" hidden={activeTab !== 'left'}>
+                <div class="flex flex-col min-h-full">
+                    {@render leftSide()}
+                </div>
             </div>
-            <div class="overflow-y-auto p-5 bg-surface" hidden={activeTab !== 'right'}>
-                {@render rightSide()}
+            <div class="overflow-y-auto p-5 bg-surface flex flex-col" hidden={activeTab !== 'right'}>
+                <div class="flex flex-col min-h-full">
+                    {@render rightSide()}
+                </div>
             </div>
         </div>
     </div>
 {/if}
-
