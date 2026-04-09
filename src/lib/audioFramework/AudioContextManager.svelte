@@ -49,7 +49,11 @@
 	}
 </script>
 
-<button onclick={started ? handleStop : handleStart} disabled={loading}>
+<button 
+	onclick={started ? handleStop : handleStart} 
+	disabled={loading}
+	class="bg-primary hover:bg-primary-variant text-white font-semibold py-2 px-6 rounded transition-colors text-sm tracking-wider"
+>
 	{#if loading}
 		Loading...
 	{:else if started}

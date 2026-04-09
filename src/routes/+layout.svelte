@@ -44,7 +44,7 @@
 
 <div class="flex flex-col h-screen w-screen relative">
     <header 
-        class="flex-shrink-0 relative bg-surface dark:bg-dark-surface border-b border-border dark:border-dark-border shadow-md z-10 transition-all duration-300 ease-in-out overflow-hidden"
+        class="flex-shrink-0 relative bg-[#1d2b3c] text-white border-b border-white/10 shadow-md z-10 transition-all duration-300 ease-in-out overflow-hidden"
         class:h-16={headerExpanded}
         class:h-0={!headerExpanded}
         class:border-b-0={!headerExpanded}
@@ -60,10 +60,10 @@
 
                 <button 
                     onclick={() => darkMode = !darkMode}
-                    class="p-2 rounded-full transition-colors duration-200 bg-transparent text-text-primary hover:bg-black/10 dark:hover:bg-white/10"
+                    class="p-2 rounded-full transition-colors duration-200 bg-transparent text-gray-300 hover:bg-white/10"
                     aria-label="Toggle dark mode"
                 >
-                    <div class="w-6 h-6 fill-current">
+                    <div class="w-5 h-5 fill-current text-white">
                         {#if darkMode}
                             {@html sunIcon}
                         {:else}
@@ -76,14 +76,14 @@
     </header>
 
     <button 
-        class="absolute right-2 bg-surface dark:bg-dark-surface border border-border dark:border-dark-border border-t-0 rounded-bl-md rounded-br-md cursor-pointer p-0 px-3 z-[101] transition-all duration-300 ease-in-out h-auto min-h-0 text-text-primary"
+        class="absolute right-2 bg-[#1d2b3c] text-white border border-white/10 border-t-0 rounded-bl-md rounded-br-md cursor-pointer p-0 px-3 z-[101] transition-all duration-300 ease-in-out h-auto min-h-0"
         class:top-16={headerExpanded}
         class:top-0={!headerExpanded}
         onclick={() => headerExpanded = !headerExpanded}
         aria-label="Toggle Header"
     >
         <div 
-            class="flex items-center justify-center transition-transform duration-300 ease fill-current"
+            class="flex items-center justify-center transition-transform duration-300 ease fill-current text-white"
             class:rotate-180={!headerExpanded}
         >
             <div class="w-3.5 h-3.5">

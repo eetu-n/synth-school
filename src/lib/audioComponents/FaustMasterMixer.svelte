@@ -67,7 +67,7 @@
 
 <div class="flex items-center">
     <button
-        class="bg-transparent border-none text-xl cursor-pointer ml-4 p-0 w-[1.5em] h-[1.5em] inline-flex items-center justify-start min-h-0 text-text-primary fill-current"
+        class="bg-transparent border-none text-xl cursor-pointer ml-4 p-0 w-[1.5em] h-[1.5em] inline-flex items-center justify-start min-h-0 text-gray-300 hover:text-white transition-colors fill-current"
         onclick={() => (mute = !mute)}
     >
         <span class="w-[1em] h-[1em] block [&>svg]:w-full [&>svg]:h-full [&>svg]:block">
@@ -82,6 +82,6 @@
             {/if}
         </span>
     </button>
-    <HSlider oninput={handleGainChange} bind:value={gain} />
+    <HSlider oninput={handleGainChange} bind:value={gain} class="header-slider" />
 </div>
 

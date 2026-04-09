@@ -10,24 +10,24 @@
   let { prev, next }: Props = $props();
 </script>
 
-<div class="flex justify-between items-center mt-auto pt-4 border-t border-border">
+<div class="p-6 border-t border-border/50 flex justify-between items-center mt-auto -mx-5 -mb-5 bg-surface/50">
   {#if prev}
-    <a href={prev} class="flex items-center justify-center w-10 h-10 rounded-full bg-transparent transition-colors duration-200 hover:bg-surface text-text-primary fill-current" aria-label="Previous Lesson">
-      <span class="w-6 h-6 block [&>svg]:w-full [&>svg]:h-full [&>svg]:block">{@html leftIcon}</span>
+    <a href={prev} class="p-2 text-text-primary hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors" aria-label="Previous Lesson">
+      <span class="w-6 h-6 block">{@html leftIcon}</span>
     </a>
   {:else}
-    <div class="flex items-center justify-center w-10 h-10 text-text-secondary opacity-30 cursor-not-allowed fill-current" aria-hidden="true">
-      <span class="w-6 h-6 block [&>svg]:w-full [&>svg]:h-full [&>svg]:block">{@html leftIcon}</span>
+    <div class="p-2 text-text-secondary opacity-30 cursor-not-allowed" aria-hidden="true">
+      <span class="w-6 h-6 block">{@html leftIcon}</span>
     </div>
   {/if}
 
   {#if next}
-    <a href={next} class="flex items-center justify-center w-10 h-10 rounded-full bg-transparent transition-colors duration-200 hover:bg-surface text-text-primary fill-current" aria-label="Next Lesson">
-      <span class="w-6 h-6 block [&>svg]:w-full [&>svg]:h-full [&>svg]:block">{@html rightIcon}</span>
+    <a href={next} class="p-2 text-text-primary hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors" aria-label="Next Lesson">
+      <span class="w-6 h-6 block">{@html rightIcon}</span>
     </a>
   {:else}
-    <div class="flex items-center justify-center w-10 h-10 text-text-secondary opacity-30 cursor-not-allowed fill-current" aria-hidden="true">
-      <span class="w-6 h-6 block [&>svg]:w-full [&>svg]:h-full [&>svg]:block">{@html rightIcon}</span>
+    <div class="p-2 text-text-secondary opacity-30 cursor-not-allowed" aria-hidden="true">
+      <span class="w-6 h-6 block">{@html rightIcon}</span>
     </div>
   {/if}
 </div>

@@ -2,21 +2,20 @@
 
 @layer base {
   :root {
-    /* Light Mode - Emerald & Zinc Palette */
-    --color-background-val: #fafafa; /* Zinc 50 */
-    --color-text-primary-val: #09090b; /* Zinc 950 */
-    --color-text-secondary-val: #52525b; /* Zinc 600 */
-    --color-primary-val: #059669; /* Emerald 600 */
-    --color-primary-variant-val: #047857; /* Emerald 700 */
-    --color-secondary-val: #0891b2; /* Cyan 600 */
-    --color-surface-val: #f4f4f5; /* Zinc 100 */
-    --color-border-val: #e4e4e7; /* Zinc 200 */
-    --color-slider-track-val: #d4d4d8; /* Zinc 300 */
-    --color-flow-background-val: #fafafa;
+    --color-background-val: #f0f2f5; 
+    --color-text-primary-val: #1e293b;
+    --color-text-secondary-val: #64748b;
+    --color-primary-val: #1fb0a8;
+    --color-primary-variant-val: #1a9b93; 
+    --color-secondary-val: #e87953;
+    --color-surface-val: #ffffff; 
+    --color-border-val: #e2e8f0; 
+    --color-slider-track-val: #cbd5e1; 
+    --color-flow-background-val: #f0f2f5;
     --color-node-background-val: #ffffff;
-    --color-node-border-val: #e4e4e7;
-    --color-signal-actual-val: #dc2626; /* Red 600 */
-    --color-signal-aliased-val: #2563eb; /* Blue 600 */
+    --color-node-border-val: #e2e8f0;
+    --color-signal-actual-val: #e87953; 
+    --color-signal-aliased-val: #3b82f6; 
 
     /* Legacy variables for components */
     --background-color: var(--color-background-val);
@@ -38,26 +37,26 @@
   }
 
   :root.dark {
-    /* Dark Mode - Deep Zinc Palette */
-    --color-background-val: #09090b; /* Zinc 950 */
-    --color-text-primary-val: #f4f4f5; /* Zinc 100 */
-    --color-text-secondary-val: #a1a1aa; /* Zinc 400 */
-    --color-primary-val: #10b981; /* Emerald 500 */
-    --color-primary-variant-val: #059669; /* Emerald 600 */
-    --color-surface-val: #18181b; /* Zinc 900 */
-    --color-border-val: #27272a; /* Zinc 800 */
-    --color-slider-track-val: #3f3f46; /* Zinc 700 */
-    --color-flow-background-val: #09090b;
-    --color-node-background-val: #18181b;
-    --color-node-border-val: #27272a;
-    --color-signal-actual-val: #f87171; /* Red 400 */
-    --color-signal-aliased-val: #60a5fa; /* Blue 400 */
+    /* Dark Mode - Deep Slate & Teal Palette */
+    --color-background-val: #0f172a; 
+    --color-text-primary-val: #f1f5f9; 
+    --color-text-secondary-val: #94a3b8; 
+    --color-primary-val: #2dd4bf;
+    --color-primary-variant-val: #14b8a6; 
+    --color-surface-val: #1e293b; 
+    --color-border-val: #334155; 
+    --color-slider-track-val: #475569; 
+    --color-flow-background-val: #0f172a;
+    --color-node-background-val: #1e293b;
+    --color-node-border-val: #334155;
+    --color-signal-actual-val: #fb923c; 
+    --color-signal-aliased-val: #60a5fa; 
   }
 
   body {
     background-color: var(--color-background-val);
     color: var(--color-text-primary-val);
-    font-feature-settings: "cv02", "cv03", "cv04", "ss01";
+    font-family: 'Inter', system-ui, sans-serif;
   }
 
   button {
@@ -65,17 +64,14 @@
     color: #ffffff;
     border: none;
     padding: 0.5rem 1.25rem;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
     font-size: 0.875rem;
     font-weight: 600;
-    letter-spacing: 0.025em;
-    text-transform: uppercase;
     transition: all 0.15s ease-in-out;
   }
   button:hover:not(:disabled) {
-    background-color: var(--color-primary-variant-val);
-    filter: brightness(1.1);
+    filter: brightness(1.05);
   }
   button:active:not(:disabled) {
     transform: scale(0.98);
@@ -92,10 +88,24 @@
     transition: color 0.15s ease-in-out;
     text-decoration: none;
     font-weight: 500;
-    border-bottom: 1px solid transparent;
   }
   a:hover {
-    border-bottom-color: var(--color-primary-val);
+    text-decoration: underline;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-slider-track-val);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-secondary-val);
   }
 }
 
@@ -125,13 +135,13 @@ input[type="range"] {
 }
 
 input[type="range"]::-webkit-slider-runnable-track {
-    background: var(--color-slider-track-val);
+    background: var(--color-border-val);
     height: 4px;
     border-radius: 2px;
 }
 
 input[type="range"]::-moz-range-track {
-    background: var(--color-slider-track-val);
+    background: var(--color-border-val);
     height: 4px;
     border-radius: 2px;
 }
@@ -144,8 +154,8 @@ input[type="range"]::-webkit-slider-thumb {
     height: 16px;
     width: 16px;
     border-radius: 9999px;
-    border: 2px solid var(--color-background-val);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    border: none;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 input[type="range"]::-moz-range-thumb {
@@ -153,8 +163,24 @@ input[type="range"]::-moz-range-thumb {
     height: 16px;
     width: 16px;
     border-radius: 9999px;
-    border: 2px solid var(--color-background-val);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    border: none;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Header Slider Styles (Static) */
+.header-slider::-webkit-slider-runnable-track {
+    background: rgba(255, 255, 255, 0.2) !important;
+}
+.header-slider::-moz-range-track {
+    background: rgba(255, 255, 255, 0.2) !important;
+}
+.header-slider::-webkit-slider-thumb {
+    background-color: #ffffff !important;
+    border-color: #1d2b3c !important;
+}
+.header-slider::-moz-range-thumb {
+    background-color: #ffffff !important;
+    border-color: #1d2b3c !important;
 }
 
 /* Routing Graph Styles (xyflow) */
@@ -166,10 +192,10 @@ input[type="range"]::-moz-range-thumb {
     background-color: var(--color-node-background-val);
     color: var(--color-text-primary-val);
     border: 1px solid var(--color-node-border-val);
-    border-radius: 4px;
+    border-radius: 8px;
     font-size: 12px;
     padding: 8px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
 .svelte-flow__edge-path {
