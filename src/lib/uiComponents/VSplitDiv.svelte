@@ -81,22 +81,26 @@
     </div>
 {:else}
     <div class="flex flex-col h-screen w-full overflow-hidden">
-        <div class="flex flex-shrink-0">
+        <div class="flex flex-shrink-0 border-b border-border/50">
             <button 
                 onclick={() => activeTab = 'left'} 
-                class="flex-1 py-3 px-4 bg-surface border-none border-b-2 text-text-primary text-base cursor-pointer transition-colors duration-200"
+                class="flex-1 py-4 px-4 bg-surface border-none border-b-2 text-base font-semibold transition-all duration-200 uppercase tracking-wider"
+                class:border-primary={activeTab === 'left'}
+                class:text-primary={activeTab === 'left'}
                 class:border-transparent={activeTab !== 'left'}
+                class:text-text-secondary={activeTab !== 'left'}
                 class:bg-background={activeTab === 'left'}
-                class:border-b-primary={activeTab === 'left'}
             >
                 Lesson
             </button>
             <button 
                 onclick={() => activeTab = 'right'} 
-                class="flex-1 py-3 px-4 bg-surface border-none border-b-2 text-text-primary text-base cursor-pointer transition-colors duration-200"
+                class="flex-1 py-4 px-4 bg-surface border-none border-b-2 text-base font-semibold transition-all duration-200 uppercase tracking-wider"
+                class:border-primary={activeTab === 'right'}
+                class:text-primary={activeTab === 'right'}
                 class:border-transparent={activeTab !== 'right'}
+                class:text-text-secondary={activeTab !== 'right'}
                 class:bg-background={activeTab === 'right'}
-                class:border-b-primary={activeTab === 'right'}
             >
                 Workspace
             </button>
