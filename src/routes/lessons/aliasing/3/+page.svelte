@@ -8,10 +8,17 @@ let sampleRate: number = $state(10);
 let showOriginal: boolean = $state(true);
 </script>
 
-<VSplitDiv {leftSide} {rightSide} prev="/lessons/aliasing/2" />
+<VSplitDiv {leftSide} {rightSide} prev="/lessons/aliasing/2"/>
 
 {#snippet leftSide()}
-<h1>Aliasing</h1>
+    <h1>Aliasing</h1>
+    <p>
+        Here you can change both the frequency as well as the sample rate on the graph in the other pane.
+        Get a feel for how the two interact.
+        <br/><br/>
+        As you can see, the aliased signal "folds" around the Nyquist frequency, in fact the Nyquist frequency is often known as the "folding frequency".
+        
+    </p>
 {/snippet}
 
 {#snippet rightSide()}

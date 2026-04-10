@@ -96,7 +96,7 @@
     let datasets = []
     if (showOriginal) {
       datasets.push({
-        label: `Actual Signal${showValues ? ` (${Number(frequency.toFixed(2))} Hz)` : ''}`,
+        label: `Original${showValues ? ` (${Number(frequency.toFixed(2))} Hz)` : ''}`,
         data: highFreqData,
         borderColor: signalActualColor,
         backgroundColor: signalActualColor,
@@ -184,23 +184,38 @@
 
 <div class="bg-surface dark:bg-dark-surface rounded-xl shadow-sm border border-border dark:border-dark-border p-6 my-4 w-full max-w-3xl mx-auto flex flex-col" bind:this={chartContainer}>
   {#if showLabels}
-    <div class="flex justify-center items-center space-x-6 mb-6">
+    <div class="flex justify-center items-start space-x-8 mb-6">
       {#if showSamples}
-        <div class="flex items-center space-x-2">
-          <div class="w-6 h-2 rounded-sm" style="background-color: {secondaryColor}"></div>
-          <span class="text-xs font-medium text-text-secondary uppercase tracking-wider">Samples</span>
+        <div class="flex flex-col items-center">
+          <div class="flex items-center space-x-2 mb-1">
+            <div class="w-6 h-2 rounded-sm" style="background-color: {secondaryColor}"></div>
+            <span class="text-[10px] font-bold text-text-secondary uppercase tracking-widest">Samples</span>
+          </div>
+          {#if showValues}
+            <span class="text-xs font-semibold text-text-primary">{Number(sampleRate.toFixed(2))} Hz</span>
+          {/if}
         </div>
       {/if}
       {#if showOriginal}
-        <div class="flex items-center space-x-2">
-          <div class="w-6 h-2 rounded-sm" style="background-color: {signalActualColor}"></div>
-          <span class="text-xs font-medium text-text-secondary uppercase tracking-wider">Actual Signal</span>
+        <div class="flex flex-col items-center">
+          <div class="flex items-center space-x-2 mb-1">
+            <div class="w-6 h-2 rounded-sm" style="background-color: {signalActualColor}"></div>
+            <span class="text-[10px] font-bold text-text-secondary uppercase tracking-widest">Original</span>
+          </div>
+          {#if showValues}
+            <span class="text-xs font-semibold text-text-primary">{Number(frequency.toFixed(2))} Hz</span>
+          {/if}
         </div>
       {/if}
       {#if showAliased && Math.abs(aliasedFreq - frequency) > 0.001}
-        <div class="flex items-center space-x-2">
-          <div class="w-6 h-2 rounded-sm" style="background-color: {signalAliasedColor}"></div>
-          <span class="text-xs font-medium text-text-secondary uppercase tracking-wider">Aliased</span>
+        <div class="flex flex-col items-center">
+          <div class="flex items-center space-x-2 mb-1">
+            <div class="w-6 h-2 rounded-sm" style="background-color: {signalAliasedColor}"></div>
+            <span class="text-[10px] font-bold text-text-secondary uppercase tracking-widest">Aliased</span>
+          </div>
+          {#if showValues}
+            <span class="text-xs font-semibold text-text-primary">{Number(Math.abs(aliasedFreq).toFixed(2))} Hz</span>
+          {/if}
         </div>
       {/if}
     </div>

@@ -81,26 +81,18 @@
     </div>
 {:else}
     <div class="flex flex-col h-screen w-full overflow-hidden">
-        <div class="flex flex-shrink-0 border-b border-border/50">
+        <div class="flex flex-shrink-0 border-b border-border/50 p-2 gap-2 bg-surface">
             <button 
                 onclick={() => activeTab = 'left'} 
-                class="flex-1 py-4 px-4 bg-surface border-none border-b-2 text-base font-semibold transition-all duration-200 uppercase tracking-wider"
-                class:border-primary={activeTab === 'left'}
-                class:text-primary={activeTab === 'left'}
-                class:border-transparent={activeTab !== 'left'}
-                class:text-text-secondary={activeTab !== 'left'}
-                class:bg-background={activeTab === 'left'}
+                class="flex-1 py-3 px-4 rounded-md border-none border-b-2 text-sm font-bold transition-all duration-200 uppercase tracking-widest
+                       {activeTab === 'left' ? 'border-primary text-primary bg-background shadow-sm' : 'border-transparent text-text-secondary/60 bg-transparent'}"
             >
                 Lesson
             </button>
             <button 
                 onclick={() => activeTab = 'right'} 
-                class="flex-1 py-4 px-4 bg-surface border-none border-b-2 text-base font-semibold transition-all duration-200 uppercase tracking-wider"
-                class:border-primary={activeTab === 'right'}
-                class:text-primary={activeTab === 'right'}
-                class:border-transparent={activeTab !== 'right'}
-                class:text-text-secondary={activeTab !== 'right'}
-                class:bg-background={activeTab === 'right'}
+                class="flex-1 py-3 px-4 rounded-md border-none border-b-2 text-sm font-bold transition-all duration-200 uppercase tracking-widest
+                       {activeTab === 'right' ? 'border-primary text-primary bg-background shadow-sm' : 'border-transparent text-text-secondary/60 bg-transparent'}"
             >
                 Workspace
             </button>
