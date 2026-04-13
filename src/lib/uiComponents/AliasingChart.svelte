@@ -192,7 +192,7 @@
             <span class="text-[10px] font-bold text-text-secondary uppercase tracking-widest">Samples</span>
           </div>
           {#if showValues}
-            <span class="text-xs font-semibold text-text-primary">{Number(sampleRate.toFixed(2))} Hz</span>
+            <span class="text-xs font-semibold text-text-primary">{sampleRate.toFixed(2)} Hz</span>
           {/if}
         </div>
       {/if}
@@ -203,7 +203,7 @@
             <span class="text-[10px] font-bold text-text-secondary uppercase tracking-widest">Original</span>
           </div>
           {#if showValues}
-            <span class="text-xs font-semibold text-text-primary">{Number(frequency.toFixed(2))} Hz</span>
+            <span class="text-xs font-semibold text-text-primary">{frequency.toFixed(2)} Hz</span>
           {/if}
         </div>
       {/if}
@@ -214,7 +214,7 @@
             <span class="text-[10px] font-bold text-text-secondary uppercase tracking-widest">Aliased</span>
           </div>
           {#if showValues}
-            <span class="text-xs font-semibold text-text-primary">{Number(Math.abs(aliasedFreq).toFixed(2))} Hz</span>
+            <span class="text-xs font-semibold text-text-primary">{Math.abs(aliasedFreq).toFixed(2)} Hz</span>
           {/if}
         </div>
       {/if}
