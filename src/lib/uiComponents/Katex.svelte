@@ -1,6 +1,12 @@
+<script lang="ts" module>
+    let helpShownInSession = false;
+</script>
+
 <script lang="ts">
     import { onMount } from 'svelte';
     import { browser } from '$app/environment';
+    import { slide } from 'svelte/transition';
+    import ResponsiveText from './ResponsiveText.svelte';
     import katex from "katex";
     import { delegate } from 'tippy.js';
     import 'tippy.js/dist/tippy.css';
@@ -9,6 +15,12 @@
 
     let container = $state<HTMLElement>();
     let mounted = $state(false);
+    let showHelp = $state(false);
+
+    if (browser && !helpShownInSession && !localStorage.getItem('katex-tooltip-help-seen')) {
+        showHelp = true;
+        helpShownInSession = true;
+    }
 
     const katexString = $derived.by(() => {
         if (!mounted || !browser) return "";
@@ -62,6 +74,11 @@
             }
         };
     });
+
+    function dismissHelp() {
+        showHelp = false;
+        localStorage.setItem('katex-tooltip-help-seen', 'true');
+    }
 </script>
 
 <svelte:head>
@@ -78,6 +95,24 @@
         <span class="opacity-0">{math}</span>
     {/if}
 </span>
+
+{#if showHelp}
+    <div 
+        transition:slide={{ axis: 'y' }}
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[var(--color-surface-val)] border border-[var(--color-border-val)] shadow-2xl rounded-full py-2 px-5 flex items-center gap-3 w-fit max-w-[calc(100%-2rem)]"
+    >
+        <div class="text-xs sm:text-sm text-[var(--color-text-secondary-val)] whitespace-nowrap">
+            <span class="font-bold text-[var(--color-primary-val)]">Tip:</span> <ResponsiveText mobileText="Tap" desktopText="Hover over" /> most math symbols for definitions
+        </div>
+        <button 
+            onclick={dismissHelp}
+            class="!bg-transparent !p-0 !text-[var(--color-text-secondary-val)] hover:!text-[var(--color-text-primary-val)] transition-colors flex items-center justify-center -mr-1"
+            aria-label="Dismiss"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+    </div>
+{/if}
 
 <style>
     :global(.katex *) {
