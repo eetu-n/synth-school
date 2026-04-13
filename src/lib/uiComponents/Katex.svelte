@@ -99,7 +99,7 @@
 {#if showHelp}
     <div 
         transition:slide={{ axis: 'y' }}
-        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[var(--color-surface-val)] border border-[var(--color-border-val)] shadow-2xl rounded-full py-2 px-5 flex items-center gap-3 w-fit max-w-[calc(100%-2rem)]"
+        class="fixed bottom-24 lg:bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[var(--color-surface-val)] border border-[var(--color-border-val)] shadow-2xl rounded-full py-2 px-5 flex items-center gap-3 w-fit max-w-[calc(100%-2rem)]"
     >
         <div class="text-xs sm:text-sm text-[var(--color-text-secondary-val)] whitespace-nowrap">
             <span class="font-bold text-[var(--color-primary-val)]">Tip:</span> <ResponsiveText mobileText="Tap" desktopText="Hover over" /> most math symbols for definitions
