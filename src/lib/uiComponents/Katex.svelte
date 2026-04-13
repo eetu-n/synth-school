@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import { onMount } from 'svelte';
     import { browser } from '$app/environment';
     import katex from "katex";
@@ -7,21 +7,26 @@
 
     let { math = "", displayMode = false } = $props();
 
-    let container = $state();
+    let container = $state<HTMLElement>();
     let mounted = $state(false);
-
-    const options = {
-        throwOnError: false,
-        trust: true,
-        strict: false, 
-        displayMode: displayMode,
-        macros: {
-            "\\tooltip": "\\htmlData{tippy-content=#2}{\\htmlClass{math-tip cursor-help border-b border-dotted border-gray-400}{#1}}"
-        }
-    };
 
     const katexString = $derived.by(() => {
         if (!mounted || !browser) return "";
+        const options = {
+            throwOnError: false,
+            trust: true,
+            strict: false, 
+            displayMode: displayMode,
+            macros: {
+                "\\tooltip": "\\htmlData{tippy-content=#2}{\\htmlClass{math-tip cursor-help}{#1}}",
+                "\\fn": "\\tooltip{f_n}{Nyquist frequency}",
+                "\\fnv": "\\tooltip{f_n}{Nyquist frequency: #1Hz}",
+                "\\fo": "\\tooltip{f_o}{Original frequency}",
+                "\\fov": "\\tooltip{f_o}{Original frequency: #1Hz}",
+                "\\fa": "\\tooltip{f_a}{Aliased frequency}",
+                "\\fav": "\\tooltip{f_a}{Aliased frequency: #1Hz}"
+            }
+        };
         try {
             return katex.renderToString(math, options);
         } catch (e) {
@@ -33,7 +38,9 @@
     onMount(() => {
         mounted = true;
 
-        const instance = delegate(container, {
+        if (!container) return;
+
+        const instance = delegate(container as HTMLElement, {
             target: '.math-tip',
             allowHTML: true,
             theme: 'light-border',
@@ -43,16 +50,22 @@
             content: (reference) => {
                 const attr = 'data-tippy-content';
                 // Look at the element itself, or the closest parent that has the attribute
-                return reference.getAttribute(attr) || reference.closest(`[${attr}]`)?.getAttribute(attr);
+                return reference.getAttribute(attr) || reference.closest(`[${attr}]`)?.getAttribute(attr) || "";
             }
         });
 
-        return () => instance.destroy();
+        return () => {
+            if (Array.isArray(instance)) {
+                instance.forEach((i: any) => i.destroy());
+            } else if (instance && (instance as any).destroy) {
+                (instance as any).destroy();
+            }
+        };
     });
 </script>
 
 <svelte:head>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <link rel="stylesheet" href="/katex/katex.min.css">
 </svelte:head>
 
 <span
@@ -75,6 +88,5 @@
     :global(.math-tip) {
         display: inline-block;
         line-height: 1;
-        border-bottom-width: 1px;
     }
 </style>
