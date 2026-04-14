@@ -17,12 +17,13 @@
     let showOriginal:   boolean = $state(true);
 </script>
 
-<VSplitDiv {leftSide} {rightSide} prev="/lessons/aliasing/2" next="/lessons/aliasing/4"/>
+<VSplitDiv {leftSide} {rightSide} prev="/lessons/aliasing/3"/>
 
 {#snippet leftSide()}
     <h1>Aliasing</h1>
     <p>
-        As you can see, increasing the frequency past the Nyquist frequency causes the aliased frequency to decrease proportionally.
+        When the original frequency increases past the sampling frequency, the aliased frequency also switches directions and starts increasing as well.
+        You might be able to notice that the phase of the signal also changes at this point. 
         <br/><br/>
         So:
         <br/>
@@ -47,6 +48,6 @@
 
     Change the frequency:
     <br />
-    <HSlider min={5.05} max={10} step={0.05} width="100%" bind:value={frequency}>Frequency</HSlider>
+    <HSlider min={7.5} max={12.5} step={0.05} width="100%" bind:value={frequency}>Frequency</HSlider>
     <br />
 {/snippet}
