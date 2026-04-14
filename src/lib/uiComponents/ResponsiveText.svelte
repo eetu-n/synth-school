@@ -5,7 +5,7 @@
         breakpoint?: number;
     }
 
-    let { mobileText, desktopText, breakpoint = 768 }: Props = $props();
+    let { mobileText, desktopText, breakpoint = 1200 }: Props = $props();
 
     let isMobile: boolean = $state(false);
 

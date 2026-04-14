@@ -3,6 +3,7 @@
     import HSlider from "$lib/uiComponents/HSlider.svelte";
     import VSplitDiv from "$lib/uiComponents/VSplitDiv.svelte";
     import Toggle from "$lib/uiComponents/Toggle.svelte";
+    import ResponsiveText from "$lib/uiComponents/ResponsiveText.svelte";
 
     let frequency: number = $state(2);
     let sampleRate: number = $state(10);
@@ -19,7 +20,7 @@
         This interval is called the <i>sampling frequency</i> or <i>sample rate</i>.
         <br/>
         In practice, if the sample rate is high enough, we can perfectly reconstruct the original signal.
-        You can see this intuitively on the chart on the other pane; you can still easily see the shape of the original signal even if you toggle its visibility.
+        You can see this intuitively on the chart <ResponsiveText mobileText="in the workspace tab" desktopText="on the right" />; you can still easily see the shape of the original signal even if you toggle its visibility.
         <br/>
         <br/>
         Note: the example signals here are all simple sine waves, but this applies to more complex signals as well.
