@@ -26,7 +26,13 @@
 {/snippet}
 
 {#snippet rightSide()}
-    <MockResample {frequency} {sampleRate} {play} outputNode={audioState.preMasterNode as RouterNode} />
+    {#if audioState.context != null && audioState.masterNode != null}
+        <MockResample {frequency} {sampleRate} {play} outputNode={audioState.preMasterNode as RouterNode} />
+    {:else}
+        <p class="mt-4 flex flex-col justify-center items-center gap-4">
+            Start audio engine from the top left
+        </p>
+    {/if}
 
     <AliasingChart
         {frequency}

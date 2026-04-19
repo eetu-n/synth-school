@@ -54,7 +54,9 @@
                 <div class="flex items-center gap-2 sm:gap-6">
                     {#if browser}
                         <AudioContextManager />
-                        <FaustMasterMixer bind:masterNode={audioState.masterNode as FaustNode} bind:preNode={audioState.preMasterNode as RouterNode} bind:destinationNode={audioState.destinationNode as RoutedAudioNode<AudioDestinationNode>} />
+                        {#if audioState.context}
+                            <FaustMasterMixer bind:masterNode={audioState.masterNode as FaustNode} bind:preNode={audioState.preMasterNode as RouterNode} bind:destinationNode={audioState.destinationNode as RoutedAudioNode<AudioDestinationNode>} />
+                        {/if}
                     {/if}
                 </div>
 
