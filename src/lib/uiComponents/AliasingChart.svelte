@@ -23,6 +23,7 @@
   interface Props {
     frequency?: number;
     sampleRate?: number;
+    duration?: number;
     showOriginal?: boolean;
     showAliased?: boolean;
     showSamples?: boolean;
@@ -34,6 +35,7 @@
   let { 
     frequency = 11, 
     sampleRate = 10, 
+    duration = 1,
     showOriginal = true, 
     showAliased = true, 
     showSamples = true, 
@@ -79,7 +81,6 @@
     const aliasedData = [];
     const samplesData = [];
     
-    const duration = 1; // 1 second
     const resolution = 1000;
     
     for (let i = 0; i <= resolution; i++) {
@@ -150,7 +151,7 @@
         x: {
             type: 'linear' as const,
             min: 0,
-            max: 1,
+            max: duration,
             ticks: {
                 display: showAxisLabels,
                 color: secondaryTextColor,
