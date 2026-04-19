@@ -6,6 +6,7 @@
     import HSlider from "$lib/uiComponents/HSlider.svelte";
     import VSplitDiv from "$lib/uiComponents/VSplitDiv.svelte";
     import Toggle from '$lib/uiComponents/Toggle.svelte';
+    import AudioOverlay from '$lib/uiComponents/AudioOverlay.svelte';
 
     let frequency:      number  = $state(1000);
     let sampleRate:     number  = $state(2500);
@@ -26,34 +27,32 @@
 {/snippet}
 
 {#snippet rightSide()}
-    {#if audioState.context != null && audioState.masterNode != null}
-        <MockResample {frequency} {sampleRate} {play} outputNode={audioState.preMasterNode as RouterNode} />
-    {:else}
-        <p class="mt-4 flex flex-col justify-center items-center gap-4">
-            Start audio engine from the top left
-        </p>
-    {/if}
+    <AudioOverlay>
+        {#if audioState.context != null && audioState.masterNode != null}
+            <MockResample {frequency} {sampleRate} {play} outputNode={audioState.preMasterNode as RouterNode} />
+        {/if}
 
-    <AliasingChart
-        {frequency}
-        {sampleRate}
-        showAliased={true}
-        showSamples={true}
-        showOriginal={true}
-        showValues={true}
-        duration={0.005}
-    />
+        <AliasingChart
+            {frequency}
+            {sampleRate}
+            showAliased={true}
+            showSamples={true}
+            showOriginal={true}
+            showValues={true}
+            duration={0.005}
+        />
 
-    <Toggle colored={true} bind:checked={play}>Play</Toggle>
+        <Toggle colored={true} bind:checked={play}>Play</Toggle>
 
-    <br />
+        <br />
 
-    Change the frequency:
-    <br />
-    <HSlider min={0} max={2000} step={1} width="100%" bind:value={frequency}>Frequency</HSlider>
-    <br /><br />
-    Change the sample rate:
-    <br />
-    <HSlider min={1} max={4000} step={1} width="100%" bind:value={sampleRate}>Sample Rate</HSlider>
-    <br />
+        Change the frequency:
+        <br />
+        <HSlider min={0} max={2000} step={1} width="100%" bind:value={frequency}>Frequency</HSlider>
+        <br /><br />
+        Change the sample rate:
+        <br />
+        <HSlider min={1} max={4000} step={1} width="100%" bind:value={sampleRate}>Sample Rate</HSlider>
+        <br />
+    </AudioOverlay>
 {/snippet}

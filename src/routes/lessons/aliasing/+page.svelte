@@ -8,6 +8,7 @@
     import RouterNode from '$lib/audioFramework/RouterNode';
     import RoutingGraph from '$lib/uiComponents/RoutingGraph.svelte';
     import Toggle from '$lib/uiComponents/Toggle.svelte';
+    import AudioOverlay from '$lib/uiComponents/AudioOverlay.svelte';
 
     var rightIsAliasing = $state(Math.random() < 0.5);
 
@@ -48,25 +49,23 @@
 {/snippet}
 
 {#snippet rightSide()}
-    <div class="flex justify-end py-4 px-8">
-        <label class="flex items-center gap-2 cursor-pointer text-sm text-text-secondary">
-            <span>Routing Graph</span>
-            <Toggle bind:checked={showRoutingGraph} />
-        </label>
-    </div>
-    {#if audioState.context != null && audioState.masterNode != null}
-        <div class="mt-4 flex flex-col justify-center items-center gap-4">
-            <FaustSawSelector outputNode={audioState.preMasterNode as RouterNode} isRightAliasing={rightIsAliasing} />
-
-            <Scope inputNode={audioState.preMasterNode as RoutedAudioNode}/>
-            <Frequency inputNode={audioState.preMasterNode as RoutedAudioNode}/>
+    <AudioOverlay>
+        <div class="flex justify-end py-4 px-8">
+            <label class="flex items-center gap-2 cursor-pointer text-sm text-text-secondary">
+                <span>Routing Graph</span>
+                <Toggle bind:checked={showRoutingGraph} />
+            </label>
         </div>
-        {#if showRoutingGraph}
+        <div class="mt-4 flex flex-col justify-center items-center gap-4">
+            {#if audioState.context != null && audioState.masterNode != null}
+                <FaustSawSelector outputNode={audioState.preMasterNode as RouterNode} isRightAliasing={rightIsAliasing} />
+
+                <Scope inputNode={audioState.preMasterNode as RoutedAudioNode}/>
+                <Frequency inputNode={audioState.preMasterNode as RoutedAudioNode}/>
+            {/if}
+        </div>
+        {#if showRoutingGraph && audioState.context != null && audioState.masterNode != null}
             <RoutingGraph startNode={audioState.preMasterNode} />
         {/if}
-    {:else}
-        <p class="mt-4 flex flex-col justify-center items-center gap-4">
-            Start audio engine from the top left 
-        </p>
-    {/if}
+    </AudioOverlay>
 {/snippet}
