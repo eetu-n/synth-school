@@ -17,22 +17,13 @@
     let showOriginal:   boolean = $state(true);
 </script>
 
-<VSplitDiv {leftSide} {rightSide} prev="/lessons/aliasing/3"/>
+<VSplitDiv {leftSide} {rightSide} prev="/lessons/aliasing/3" next="/lessons/aliasing/5" />
 
 {#snippet leftSide()}
     <h1>Aliasing</h1>
     <p>
         When the original frequency increases past the sampling frequency, the aliased frequency also switches directions and starts increasing as well.
-        You might be able to notice that the phase of the signal also changes at this point. 
-        <br/><br/>
-        So:
-        <br/>
-        <Katex math={String.raw`\fo = {${fo}} = \fnv{${fn}} + {${diff}}`}/> 
-        <br/>
-        <br/>
-        becomes:
-        <br/>
-        <Katex math={String.raw`\fav{${fa}} = {${fa}} = \fnv{${fn}} - {${diff}}`}/> 
+        You might be able to notice that the phase of the signal also inverts at this point. 
     </p>
 {/snippet}
 
