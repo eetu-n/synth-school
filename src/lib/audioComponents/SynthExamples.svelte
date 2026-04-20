@@ -12,7 +12,7 @@
     await getAudioContext(),
   );
 
-  let tempo = $state(120);
+  let tempo = $state(90);
 
   $effect(() => {
     if (faustNode && outputNode) {

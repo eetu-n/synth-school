@@ -1,6 +1,5 @@
 <script lang="ts">
     import VSplitDiv from "$lib/uiComponents/VSplitDiv.svelte";
-    import ResponsiveText from "$lib/uiComponents/ResponsiveText.svelte";
     import SynthExamples from "$lib/audioComponents/SynthExamples.svelte";
     import { audioState } from "$lib/audioFramework/audioState.svelte";
     import RouterNode from "$lib/audioFramework/RouterNode";
