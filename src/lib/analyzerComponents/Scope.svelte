@@ -1,35 +1,15 @@
 <script lang="ts">
     import { audioState } from '$lib/audioFramework/audioState.svelte';
-    import { analyzerStyles } from './analyzerStyles';
     import RoutedAudioNode from '$lib/audioFramework/RoutedAudioNode';
 
     let { inputNode }: { inputNode: RoutedAudioNode<any> } = $props();
 
     let canvas = $state<HTMLCanvasElement | null>(null);
-    let context = $derived(canvas?.getContext('2d') ?? null);
-    let width: number = $derived(canvas?.width ?? 0);
-    let height: number = $derived(canvas?.height ?? 0);
-
+    let container = $state<HTMLDivElement | null>(null);
+    
     let analyser: RoutedAudioNode<AnalyserNode> | null = null;
-    let dataArray: Uint8Array<ArrayBuffer> | null = null;
+    let dataArray: Uint8Array | null = null;
     let drawVisual: number;
-
-    function findTriggerPoint(data: Uint8Array): number {
-        let triggerIndex = 0;
-        let armed = false;
-        const triggerThreshold = 128;
-        const hysteresisLevel = 70;
-
-        for (let i = 0; i < data.length; i++) {
-            if (!armed && data[i] < hysteresisLevel) {
-                armed = true;
-            } else if (armed && data[i] >= triggerThreshold) {
-                triggerIndex = i;
-                break;
-            }
-        }
-        return triggerIndex;
-    }
 
     function findTriggerPointWithAutocorellation(data: Uint8Array): number {
         // Find the mean to remove DC offset
@@ -98,61 +78,79 @@
     }
 
     function draw(){
-        if (!canvas || !analyser || !dataArray || !context || width == 0 || height == 0) return;
+        if (!canvas || !analyser || !dataArray) return;
+        const context = canvas.getContext('2d');
+        if (!context) return;
+
         drawVisual = requestAnimationFrame(draw);
         analyser.audioNode?.getByteTimeDomainData(dataArray);
 
-        // Fill solid color
-        context.fillStyle = analyzerStyles.colors.background;
+        const width = canvas.width;
+        const height = canvas.height;
+
+        // Get current colors from CSS variables
+        const style = getComputedStyle(canvas);
+        const surfaceColor = style.getPropertyValue('--color-surface-val').trim() || '#1e293b';
+        const gridColor = style.getPropertyValue('--color-border-val').trim() || '#334155';
+        const signalColor = style.getPropertyValue('--color-primary-val').trim() || '#2dd4bf';
+
+        // Background
+        context.fillStyle = surfaceColor;
         context.fillRect(0, 0, width, height);
 
-        // Draw grid
+        // Grid
         context.lineWidth = 1;
-        context.strokeStyle = analyzerStyles.colors.grid;
+        context.strokeStyle = gridColor;
+        context.globalAlpha = 0.4;
         context.beginPath();
+        
+        // Horizontal lines (Center and quarters)
         for (let i = 1; i < 4; i++) {
             context.moveTo(0, (height / 4) * i);
             context.lineTo(width, (height / 4) * i);
         }
+        // Vertical lines
         for (let i = 1; i < 8; i++) {
-            context.moveTo((width / 8) * i, 0);
-            context.lineTo((width / 8) * i, height);
+            const x = (width / 8) * i;
+            context.moveTo(x, 0);
+            context.lineTo(x, height);
         }
         context.stroke();
+        context.globalAlpha = 1.0;
 
-        // Begin the path
-        context.lineWidth = 2;
-        context.strokeStyle = analyzerStyles.colors.signal;
-        context.shadowBlur = 8;
-        context.shadowColor = analyzerStyles.colors.signal;
-        context.beginPath();
-
+        // Signal path
         const triggerIndex = findTriggerPointWithAutocorellation(dataArray);
-
         const drawLength = dataArray.length / 2;
         const sliceWidth = width / drawLength;
-        let x = 0;
         
+        context.lineWidth = 3;
+        context.strokeStyle = signalColor;
+        context.lineJoin = 'round';
+        context.lineCap = 'round';
+        
+        // Signal glow
+        context.shadowBlur = 6;
+        context.shadowColor = signalColor;
+
+        context.beginPath();
+        let x = 0;
         for (let i = 0; i < drawLength; i++) {
-          const sampleIndex = triggerIndex + i;
-          // Stop if we run out of samples in the buffer
-          if (sampleIndex >= dataArray.length) break;
+            const sampleIndex = triggerIndex + i;
+            if (sampleIndex >= dataArray.length) break;
 
-          const v = dataArray[sampleIndex] / 128.0;
-          const y = v * (height / 2);
+            const v = (dataArray[sampleIndex] - 128) / 128.0;
+            const y = (height / 2) - (v * (height * 0.45));
 
-          if (i === 0) {
-            context.moveTo(x, y);
-          } else {
-            context.lineTo(x, y);
-          }
-
-          x += sliceWidth;
+            if (i === 0) {
+                context.moveTo(x, y);
+            } else {
+                context.lineTo(x, y);
+            }
+            x += sliceWidth;
         }
-
-        // Finish the line
-        context.lineTo(width, height / 2);
         context.stroke();
+        
+        // Reset shadow
         context.shadowBlur = 0;
     }
 
@@ -169,12 +167,9 @@
                 inputNode.connect(analyser);
             };
 
-
-            if (context) context.clearRect(0, 0, width, height);
             draw();
         }
         
-
         return () => {
             cancelAnimationFrame(drawVisual);
             if (analyser && inputNode) {
@@ -184,6 +179,13 @@
     });
 </script>
 
-<canvas bind:this={canvas} width=400 height=200 class="rounded-lg shadow-lg border border-slate-700">
-
-</canvas>
+<div bind:this={container} class="bg-surface dark:bg-dark-surface rounded-xl shadow-sm border border-border dark:border-dark-border p-6 my-4 w-full max-w-3xl mx-auto flex flex-col">
+    <div class="w-full aspect-[2/1] relative">
+        <canvas 
+            bind:this={canvas} 
+            width="800" 
+            height="400"
+            class="w-full h-full block"
+        ></canvas>
+    </div>
+</div>
