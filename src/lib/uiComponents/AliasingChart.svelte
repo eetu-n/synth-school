@@ -61,7 +61,7 @@
       secondaryColor = styles.getPropertyValue('--primary-color').trim();
       signalActualColor = styles.getPropertyValue('--signal-actual-color').trim();
       signalAliasedColor = styles.getPropertyValue('--signal-aliased-color').trim();
-      gridColor = styles.getPropertyValue('--border-color').trim();
+      gridColor = styles.getPropertyValue('--color-grid-val').trim() || styles.getPropertyValue('--border-color').trim();
     }
   });
 

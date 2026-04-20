@@ -8,11 +8,24 @@
     let container = $state<HTMLDivElement | null>(null);
 
     let analyser: RoutedAudioNode<AnalyserNode> | null = null;
-    let dataArray: Uint8Array | null = null;
+    let dataArray: Uint8Array<any> | null = null;
     let drawVisual: number;
 
+    const fMin = 20;
+    const fMax = 20000;
+    const labels = [
+        { f: 100, text: "100Hz" },
+        { f: 1000, text: "1kHz" },
+        { f: 10000, text: "10kHz" }
+    ];
+
+    function getXPos(f: number): string {
+        const x = 100 * (Math.log10(f / fMin) / Math.log10(fMax / fMin));
+        return `${x}%`;
+    }
+
     function draw(){
-        if (!canvas || !analyser || !dataArray) return;
+        if (!canvas || !analyser || !dataArray || !audioState.context) return;
         const context = canvas.getContext('2d');
         if (!context) return;
 
@@ -21,65 +34,75 @@
 
         const width = canvas.width;
         const height = canvas.height;
+        const sampleRate = audioState.context.sampleRate;
+        const bufferLength = dataArray.length;
 
         // Get current colors from CSS variables
         const style = getComputedStyle(canvas);
         const surfaceColor = style.getPropertyValue('--color-surface-val').trim() || '#1e293b';
-        const gridColor = style.getPropertyValue('--color-border-val').trim() || '#334155';
+        const gridColor = style.getPropertyValue('--color-grid-val').trim() || '#475569';
         const signalColor = style.getPropertyValue('--color-primary-val').trim() || '#2dd4bf';
 
         // Background
         context.fillStyle = surfaceColor;
         context.fillRect(0, 0, width, height);
 
-        // Grid
-        context.lineWidth = 1;
+        // Horizontal Grid Lines
         context.strokeStyle = gridColor;
-        context.globalAlpha = 0.4;
-        context.beginPath();
-        
-        // Horizontal lines
         for (let i = 1; i < 4; i++) {
-            context.moveTo(0, (height / 4) * i);
-            context.lineTo(width, (height / 4) * i);
+            context.lineWidth = i === 2 ? 1.5 : 1; // Center line slightly thicker
+            context.globalAlpha = i === 2 ? 0.6 : 0.4;
+            context.beginPath();
+            const y = (height / 4) * i;
+            context.moveTo(0, y);
+            context.lineTo(width, y);
+            context.stroke();
         }
-        // Vertical lines
-        for (let i = 1; i < 8; i++) {
-            const x = (width / 8) * i;
-            context.moveTo(x, 0);
-            context.lineTo(x, height);
+        
+        // Vertical Grid Lines (Logarithmic)
+        for (let decade = 10; decade <= 10000; decade *= 10) {
+            for (let i = 1; i <= 9; i++) {
+                const f = decade * i;
+                if (f < fMin || f > fMax) continue;
+                
+                const x = width * (Math.log10(f / fMin) / Math.log10(fMax / fMin));
+                
+                // Major lines (100, 1000, 10000) are prominent
+                const isMajor = (i === 1 && (decade === 100 || decade === 1000 || decade === 10000));
+                context.lineWidth = isMajor ? 2 : 1;
+                context.globalAlpha = isMajor ? 0.7 : 0.3;
+                
+                context.beginPath();
+                context.moveTo(x, 0);
+                context.lineTo(x, height);
+                context.stroke();
+            }
         }
-        context.stroke();
         context.globalAlpha = 1.0;
 
-        // Frequency Bars
+        // Frequency Bars (Logarithmic)
         context.fillStyle = signalColor;
         context.shadowBlur = 6;
         context.shadowColor = signalColor;
 
-        const sliceWidth = width / dataArray.length;
-
-        if (sliceWidth < 1) {
-            // High density: draw single pixel columns
-            for (let px = 0; px < width; px++) {
-                let max = 0;
-                const start = Math.floor(px / sliceWidth);
-                const end = Math.floor((px + 1) / sliceWidth);
-                for (let i = start; i < end && i < dataArray.length; i++) {
-                    if (dataArray[i] > max) max = dataArray[i];
-                }
-                const barHeight = (max / 255) * (height * 0.85);
-                context.fillRect(px, height - barHeight, 1, barHeight);
+        for (let x = 0; x < width; x++) {
+            const f1 = fMin * Math.pow(fMax / fMin, x / width);
+            const f2 = fMin * Math.pow(fMax / fMin, (x + 1) / width);
+            
+            const i1 = Math.floor(f1 * (analyser.audioNode!.fftSize / sampleRate));
+            const i2 = Math.ceil(f2 * (analyser.audioNode!.fftSize / sampleRate));
+            
+            let max = 0;
+            const start = i1;
+            const end = Math.max(i1 + 1, i2);
+            
+            for (let i = start; i < end && i < bufferLength; i++) {
+                if (dataArray[i] > max) max = dataArray[i];
             }
-        } else {
-            // Low density: draw bars with small gaps
-            let x = 0;
-            const gap = sliceWidth > 2 ? 1 : 0;
-            const drawWidth = sliceWidth - gap;
-            for (let i = 0; i < dataArray.length; i++) {
-                const barHeight = (dataArray[i] / 255) * (height * 0.85);
-                context.fillRect(x, height - barHeight, drawWidth, barHeight);
-                x += sliceWidth;
+            
+            if (max > 0) {
+                const barHeight = (max / 255) * (height * 0.85);
+                context.fillRect(x, height - barHeight, 1, barHeight);
             }
         }
 
@@ -94,8 +117,8 @@
                 audioState.context.createAnalyser()
             );
             if (analyser.audioNode){
-                // Larger FFT for better frequency resolution
-                analyser.audioNode.fftSize = 2 ** 13; 
+                analyser.audioNode.fftSize = 2 ** 14; 
+                analyser.audioNode.smoothingTimeConstant = 0.8;
                 dataArray = new Uint8Array(analyser.audioNode.frequencyBinCount);
                 inputNode.connect(analyser);
             };
@@ -115,12 +138,24 @@
 </script>
 
 <div bind:this={container} class="bg-surface dark:bg-dark-surface rounded-xl shadow-sm border border-border dark:border-dark-border p-6 my-4 w-full max-w-3xl mx-auto flex flex-col">
-    <div class="w-full aspect-[2/1] relative">
+    <div class="w-full aspect-[2/1] relative mb-2">
         <canvas 
             bind:this={canvas} 
             width="800" 
             height="400"
             class="w-full h-full block"
         ></canvas>
+    </div>
+    
+    <!-- Frequency Labels -->
+    <div class="relative w-full h-4 px-0 select-none overflow-hidden">
+        {#each labels as label}
+            <div 
+                class="absolute top-0 -translate-x-1/2 text-[10px] font-bold text-text-secondary uppercase tracking-tight"
+                style="left: {getXPos(label.f)}"
+            >
+                {label.text}
+            </div>
+        {/each}
     </div>
 </div>

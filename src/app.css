@@ -10,6 +10,7 @@
     --color-secondary-val: #e87953;
     --color-surface-val: #ffffff; 
     --color-border-val: #e2e8f0; 
+    --color-grid-val: #cbd5e1; 
     --color-slider-track-val: #cbd5e1; 
     --color-flow-background-val: #f0f2f5;
     --color-node-background-val: #ffffff;
@@ -45,6 +46,7 @@
     --color-primary-variant-val: #14b8a6; 
     --color-surface-val: #1e293b; 
     --color-border-val: #334155; 
+    --color-grid-val: #475569; 
     --color-slider-track-val: #475569; 
     --color-flow-background-val: #0f172a;
     --color-node-background-val: #1e293b;

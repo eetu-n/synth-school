@@ -8,7 +8,7 @@
     let container = $state<HTMLDivElement | null>(null);
     
     let analyser: RoutedAudioNode<AnalyserNode> | null = null;
-    let dataArray: Uint8Array | null = null;
+    let dataArray: Uint8Array<any> | null = null;
     let drawVisual: number;
 
     function findTriggerPointWithAutocorellation(data: Uint8Array): number {
@@ -91,7 +91,7 @@
         // Get current colors from CSS variables
         const style = getComputedStyle(canvas);
         const surfaceColor = style.getPropertyValue('--color-surface-val').trim() || '#1e293b';
-        const gridColor = style.getPropertyValue('--color-border-val').trim() || '#334155';
+        const gridColor = style.getPropertyValue('--color-grid-val').trim() || '#475569';
         const signalColor = style.getPropertyValue('--color-primary-val').trim() || '#2dd4bf';
 
         // Background
@@ -101,7 +101,7 @@
         // Grid
         context.lineWidth = 1;
         context.strokeStyle = gridColor;
-        context.globalAlpha = 0.4;
+        context.globalAlpha = 0.5;
         context.beginPath();
         
         // Horizontal lines (Center and quarters)
