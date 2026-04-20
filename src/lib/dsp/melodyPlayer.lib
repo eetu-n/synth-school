@@ -1,0 +1,41 @@
+import("stdfaust.lib");
+
+// A general player that triggers a melody and plays it to completion.
+// trig_in: trigger signal
+// osc: oscillator function (e.g., os.sawtooth)
+// notes_list: list of notes to play
+// lengths_list: list of note lengths
+// tempo: tempo in BPM
+melody_player(trig_in, osc, notes_list, lengths_list, tempo) = osc(f) * env * 0.2
+with {
+    trig = trig_in > (trig_in : mem);
+    
+    // Tempo scaling
+    dur_scale = 120 / max(1, tempo);
+
+    // Determine note count from the list
+    count = outputs(notes_list);
+    
+    // Use selectn to pick from the list (n inputs, 1 output)
+    getNote(idx) = notes_list : ba.selectn(count, idx);
+    getLength(idx) = lengths_list : ba.selectn(count, idx) * dur_scale;
+
+    // Calculate cumulative start times and total duration
+    getStart(idx) = sum(j, count, (j < idx) * getLength(j));
+    total_dur = sum(j, count, getLength(j));
+    
+    total_samples = total_dur * ma.SR;
+    timer = (select2(trig, max(0, _ - 1), total_samples)) ~ _;
+    active = timer > 0;
+    
+    // Elapsed time in seconds
+    t = (total_samples - timer) / ma.SR;
+    
+    // Find current note index
+    idx = sum(i, count, t >= getStart(i)) - 1 : max(0) : int;
+    
+    f = getNote(idx) : ba.midikey2hz;
+    
+    // Note envelope
+    env = active * ((t - getStart(idx)) < (getLength(idx) * 0.9)) : si.smoo;
+};
