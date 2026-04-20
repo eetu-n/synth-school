@@ -63,7 +63,12 @@ export function closeAudioContext() {
     
     const contextToClose = audioContext;
     audioContext = null;
+    
+    // Clear all state
     audioState.context = null;
+    audioState.masterNode = null;
+    audioState.preMasterNode = null;
+    audioState.destinationNode = null;
 
     // Reset promise for the next start IMMEDIATELY and SYNCHRONOUSLY
     createNewPromise();

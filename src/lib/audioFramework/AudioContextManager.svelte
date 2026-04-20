@@ -1,11 +1,14 @@
 <!-- Module to start / stop the audio engine with a button -->
 
 <script lang="ts">
-	import { audioState } from '$lib/audioFramework/audioState.svelte';
+	import { audioState, audioLoadingState } from '$lib/audioFramework/audioState.svelte';
 	import { startAudioContext, closeAudioContext, getAudioContext } from '$lib/audioFramework/audioContextManager';
 
-	let loading = $state(false);
+	let internalLoading = $state(false);
 	let error = $state<string | null>(null);
+
+    // Consider both the internal context creation and any pending nodes
+    let loading = $derived(internalLoading || audioLoadingState.isLoading);
 
 	$effect(() => {
 		return () => {
@@ -16,9 +19,9 @@
 	});
 
 	async function handleStart() {
-		if (loading) return;
+		if (internalLoading) return;
 
-		loading = true;
+		internalLoading = true;
 		error = null;
 
 		startAudioContext();
@@ -28,7 +31,7 @@
 		} catch (e: any) {
 			error = e.message;
 		} finally {
-			loading = false;
+			internalLoading = false;
 		}
 	}
 
@@ -40,10 +43,11 @@
 <button 
 	onclick={audioState.context ? handleStop : handleStart} 
 	disabled={loading}
-	class="bg-primary hover:bg-primary-variant text-white font-semibold py-2 px-3 sm:px-6 rounded transition-colors text-xs sm:text-sm tracking-wider whitespace-nowrap"
+	class="bg-primary hover:bg-primary-variant disabled:bg-gray-600 text-white font-semibold py-2 px-3 sm:px-6 rounded transition-all text-xs sm:text-sm tracking-wider whitespace-nowrap flex items-center justify-center gap-2 min-w-[120px]"
 >
 	{#if loading}
-		Loading...
+		<div class="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+		<span>Starting...</span>
 	{:else if audioState.context}
 		Stop Audio
 	{:else}

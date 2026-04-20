@@ -1,19 +1,24 @@
 <script lang="ts">
-    import { audioState } from '$lib/audioFramework/audioState.svelte';
+    import { audioState, audioLoadingState } from '$lib/audioFramework/audioState.svelte';
     import { startAudioContext, getAudioContext } from '$lib/audioFramework/audioContextManager';
     import { fade } from 'svelte/transition';
 
     let { children } = $props();
 
-    let loading = $state(false);
+    let internalLoading = $state(false);
     let error = $state<string | null>(null);
 
-    const isReady = $derived(audioState.context != null && audioState.masterNode != null);
+    // Consider both the internal context creation and any pending nodes
+    let loading = $derived(internalLoading || audioLoadingState.isLoading);
+
+    // isReady determines when to HIDE the overlay.
+    // It requires a context, a master node, AND that nothing is currently loading.
+    const isReady = $derived(audioState.context != null && audioState.masterNode != null && !loading);
 
     async function handleStart() {
-        if (loading) return;
+        if (internalLoading) return;
 
-        loading = true;
+        internalLoading = true;
         error = null;
 
         startAudioContext();
@@ -23,12 +28,18 @@
         } catch (e: any) {
             error = e.message;
         } finally {
-            loading = false;
+            internalLoading = false;
         }
     }
 </script>
 
 <div class="relative w-full h-full min-h-[200px] flex flex-col">
+    {#if audioState.context}
+        <div class="flex-grow flex flex-col" class:invisible={!isReady}>
+            {@render children()}
+        </div>
+    {/if}
+
     {#if !isReady}
         <div 
             transition:fade={{ duration: 200 }}
@@ -52,12 +63,12 @@
                 >
                     {#if loading}
                         <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        Starting...
+                        <span>Starting...</span>
                     {:else}
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 fill-current" viewBox="0 0 24 24">
                             <path d="M8 5v14l11-7z"/>
                         </svg>
-                        Start Audio
+                        <span>Start Audio</span>
                     {/if}
                 </button>
 
@@ -66,7 +77,5 @@
                 {/if}
             </div>
         </div>
-    {:else}
-        {@render children()}
     {/if}
 </div>

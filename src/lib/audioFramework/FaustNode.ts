@@ -20,11 +20,17 @@ export default class FaustNode extends RoutedAudioNode<FaustAudioWorkletNode> {
 	}
 
     static async create(name: string, context: AudioContext, inputs = [], outputs = []) {
-        let worklet = await FaustNode.createWorkletNode(name, context);
-        if (!worklet) {
-            return null;
+        const { audioLoadingState } = await import('./audioState.svelte.ts');
+        audioLoadingState.increment();
+        try {
+            let worklet = await FaustNode.createWorkletNode(name, context);
+            if (!worklet) {
+                return null;
+            }
+            return new FaustNode(name, context, worklet);
+        } finally {
+            audioLoadingState.decrement();
         }
-        return new FaustNode(name, context, worklet);
     }
 
     setParamValue(param: string, value: number) {
