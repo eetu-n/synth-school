@@ -29,8 +29,6 @@
 </script>
 
 <div class="relative w-full h-full min-h-[200px] flex flex-col">
-    {@render children()}
-
     {#if !isReady}
         <div 
             transition:fade={{ duration: 200 }}
@@ -68,5 +66,7 @@
                 {/if}
             </div>
         </div>
+    {:else}
+        {@render children()}
     {/if}
 </div>
