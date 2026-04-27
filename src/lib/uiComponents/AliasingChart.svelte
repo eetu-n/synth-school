@@ -155,8 +155,7 @@
             ticks: {
                 display: showAxisLabels,
                 color: secondaryTextColor,
-                font: { size: 10 },
-                callback: (value: any) => showAxisLabels ? value : ''
+                font: { size: 10 }
             },
             grid: {
                 color: gridColor,
@@ -170,8 +169,7 @@
             ticks: {
                 display: showAxisLabels,
                 color: secondaryTextColor,
-                font: { size: 10 },
-                callback: (value: any) => showAxisLabels ? value : ''
+                font: { size: 10 }
             },
             grid: {
                 color: gridColor,
