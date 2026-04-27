@@ -1,39 +1,43 @@
 import("stdfaust.lib");
 
-f0 = 220;
+// --- Controls ---
+f = hslider("freq", 220, 50, 2000, 0.01);
 n_max = 100;
-
-n_end = hslider("harmonics_end", 1, 1, n_max, 1);
-wave_type = nentry("wave_type", 0, 0, 2, 1); // 0=saw, 1=square, 2=triangle
+n_end = hslider("harmonics_end", 1, 1, n_max, 1) : si.smoo;
+wave_type = nentry("wave_type", 0, 0, 2, 1); 
 gate = checkbox("gate") : si.smoo;
 
-// All harmonics for saw (0), only odd for square (1) and triangle (2)
-harmonic_allowed(n) = (wave_type == 0) + (n % 2 == 1) > 0;
+// All harmonics for saw, odd for square and triangle
+is_allowed(n) = ba.if(
+    wave_type == 0, 1.0,
+    float(n % 2 != 0)
+);
 
-// Phase sync
-phase = os.phasor(1.0, f0);
+// Amplitude scaling
+get_amp(n) = ba.if(
+    wave_type == 2, 1.0 / float(n * n),
+    1.0 / float(n)
+);
 
-// Amplitude logic: Triangle is 1/n^2, others are 1/n
-amp(n) = (wave_type == 2) * tri_amp(n) 
-       + (wave_type < 2) * s_amp(n);
+// Phase
+get_phase(n) = ba.ifNc(
+    wave_type == 0, saw_phase(n),
+    wave_type == 1, 1.0,
+    triangle_phase(n)
+);
 
-tri_amp(n) = 1.0 / (n * n);
-s_amp(n) = 1.0 / n;
+saw_phase(n) = (((n-1) % 2) * -2) + 1;
+triangle_phase(n) = (((n-1)/2) % 2) * -2 + 1;
 
-// Phase logic: 
-// Saw (0): alternating (-1)^n
-// Square (1): all same (1.0)
-// Triangle (2): alternating (-1)^((n-1)/2)
-phase_flip(n) = (wave_type == 0) * ((((n-1) % 2) * -2) + 1)
-              + (wave_type == 1) * 1.0
-              + (wave_type == 2) * (((((n-1)/2) % 2) * -2) + 1);
+// --- Generation ---
+phase = os.phasor(1.0, f);
 
-// Not using os.osc for phase sync
-harmonic(n) = sin(2.0 * ma.PI * n * phase) 
-             * ((n <= n_end) * harmonic_allowed(n) : si.smoo) 
-             * amp(n) 
-             * phase_flip(n);
+harmonic(n) = sin(2.0 * ma.PI * float(n) * phase) * multiplier
+with {
+    multiplier = (float(n) <= n_end) * is_allowed(n) * get_amp(n) * get_phase(n);
+};
 
 additive_synth = sum(i, n_max, harmonic(i + 1));
 
-process = additive_synth * 0.5 * gate <: _, _;
+// Output stage
+process = additive_synth * 0.9 * gate <: _, _;
