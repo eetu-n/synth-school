@@ -3,7 +3,7 @@ import("stdfaust.lib");
 // --- Controls ---
 f = hslider("freq", 220, 50, 2000, 0.01);
 n_max = 100;
-n_end = hslider("harmonics_end", 1, 1, n_max, 1) : si.smoo;
+n_end = hslider("harmonics_end", 1, 1, n_max, 1);
 wave_type = nentry("wave_type", 0, 0, 2, 1); 
 gate = checkbox("gate") : si.smoo;
 
@@ -11,7 +11,7 @@ gate = checkbox("gate") : si.smoo;
 is_allowed(n) = (wave_type == 0) + (n % 2 != 0) > 0;
 
 // Amplitude scaling: Triangle is 1/n^2, others are 1/n
-get_amp(n) = (wave_type == 2) * (1.0 / (n * n)) 
+get_amp(n) = (wave_type == 2) * (1.0 / (n * n))
            + (wave_type < 2) * (1.0 / n);
 
 saw_phase(n) = (((n-1) % 2) * -2) + 1;
@@ -24,7 +24,7 @@ get_phase(n) = (wave_type == 0) * saw_phase(n)
 // --- Generation ---
 phase = os.phasor(1.0, f);
 
-harmonic(n) = sin(2.0 * ma.PI * float(n) * phase) * multiplier
+harmonic(n) = sin(2.0 * ma.PI * n * phase) * (multiplier : si.smoo)
 with {
     multiplier = (n <= n_end) * is_allowed(n) * get_amp(n) * get_phase(n);
 };
