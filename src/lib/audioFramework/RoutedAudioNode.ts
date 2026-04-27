@@ -59,24 +59,28 @@ export default class RoutedAudioNode<T extends AudioNode | null = null> {
         }
     };
 
-    disconnect(outputNode: RoutedAudioNode<any>) {
+    disconnect(outputNode: RoutedAudioNode<any> | null | undefined) {
+        if (!outputNode) return;
         outputNode.disconnectFrom(this);
         this.removeOutput(outputNode);
         outputNode.removeInput(this);
     }
 
     disconnectAll() {
-        this.outputs.forEach(output => {
+        const currentOutputs = [...this.outputs];
+        currentOutputs.forEach(output => {
             this.disconnect(output);
         });
     }
 
     destroy() {
-        for (const output of this.outputs) {
+        const currentOutputs = [...this.outputs];
+        for (const output of currentOutputs) {
             this.disconnect(output);
         }
 
-        for (const input of this.inputs) {
+        const currentInputs = [...this.inputs];
+        for (const input of currentInputs) {
             input.disconnect(this);
         }
 
