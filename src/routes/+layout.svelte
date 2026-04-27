@@ -52,6 +52,9 @@
         <div class="py-4 px-2 sm:px-6 h-full">
             <div class="flex items-center justify-between gap-2 sm:gap-6 h-full">
                 <div class="flex items-center gap-2 sm:gap-6">
+                    <a href="/" class="flex-shrink-0 transition-transform hover:scale-110 px-2" aria-label="Go to home page">
+                        <img src={favicon} alt="Synth School Home" class="w-8 h-8" />
+                    </a>
                     {#if browser}
                         <AudioContextManager />
                         {#if audioState.context}
