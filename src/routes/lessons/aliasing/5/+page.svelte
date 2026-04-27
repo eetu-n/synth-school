@@ -28,9 +28,7 @@
 
 {#snippet rightSide()}
     <AudioOverlay>
-        {#if audioState.context != null && audioState.masterNode != null}
-            <MockResample {frequency} {sampleRate} {play} outputNode={audioState.preMasterNode as RouterNode} />
-        {/if}
+        <MockResample {frequency} {sampleRate} {play} outputNode={audioState.preMasterNode as RouterNode} />
 
         <AliasingChart
             {frequency}
