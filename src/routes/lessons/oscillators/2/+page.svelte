@@ -10,7 +10,7 @@
 
 </script>
 
-<VSplitDiv {leftSide} {rightSide} prev="/lessons/oscillators/1" />
+<VSplitDiv {leftSide} {rightSide} prev="/lessons/oscillators/1" next="/lessons/oscillators/3"/>
 
 {#snippet leftSide()}
     <h1>Sine wave oscillator</h1>
@@ -19,6 +19,8 @@
         It is sound energy at only a single frequency, where all other sounds have energy at multiple different frequencies.
         <br/><br/>
         <ResponsiveText mobileText="In the other pane" desktopText="On the right" /> there is a spectrogram, a graph that shows sound energy at different frequencies in real time.
+        You should be able to see the tall individual peak corresponding to the frequency of the played sine wave, with perhaps some smaller slopes around it.
+        These slopes are not actually there, but come as an artifact due to how the spectrogram is calculated.
 
     </p>
 {/snippet}
@@ -26,7 +28,7 @@
 {#snippet rightSide()}
     <AudioOverlay>
         <SinSynth outputNode={audioState.preMasterNode as RouterNode} />
-        <Scope inputNode={audioState.preMasterNode as RouterNode} />
+        <!-- <Scope inputNode={audioState.preMasterNode as RouterNode} /> -->
         <Frequency inputNode={audioState.preMasterNode as RouterNode} />
     </AudioOverlay>
 {/snippet}
