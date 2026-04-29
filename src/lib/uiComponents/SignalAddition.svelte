@@ -95,7 +95,7 @@
             class="w-full h-auto overflow-visible select-none"
         >
             <!-- Grid Lines and Labels -->
-            {#snippet yAxis(startX, centerY)}
+            {#snippet yAxis(startX: number, centerY: number)}
                 {#each [-2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2] as val}
                     {@const y = getY(val, centerY)}
                     {#if y >= centerY - CHART_HEIGHT / 2 - 2 && y <= centerY + CHART_HEIGHT / 2 + 2}
@@ -119,7 +119,7 @@
                 {/each}
             {/snippet}
 
-            {#snippet chartBox(startX, startY, label)}
+            {#snippet chartBox(startX: number, startY: number, label: string)}
                 <rect
                     x={startX} y={startY}
                     width={CHART_WIDTH} height={CHART_HEIGHT}
@@ -136,7 +136,7 @@
                 {@render yAxis(startX, startY + CHART_HEIGHT / 2)}
             {/snippet}
 
-            {#snippet vector(x, yStart, yEnd, color, opacity = 1)}
+            {#snippet vector(x: number, yStart: number, yEnd: number, color: string, opacity: number = 1)}
                 {@const headSize = 6}
                 {@const direction = yEnd < yStart ? 1 : -1}
                 <line
