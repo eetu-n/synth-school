@@ -135,7 +135,7 @@
   --color-primary-variant: var(--color-primary-variant-val);
   --color-secondary: var(--color-secondary-val);
   --color-surface: var(--color-surface-val);
-  --color-border: var(--color-border-val);
+  --color-grid: var(--color-grid-val);
   --color-slider-track: var(--color-slider-track-val);
   --color-flow-background: var(--color-flow-background-val);
   --color-node-background: var(--color-node-background-val);
