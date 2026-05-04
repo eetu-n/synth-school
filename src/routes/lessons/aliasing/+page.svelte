@@ -1,8 +1,8 @@
 <script lang="ts">
     import FaustSawSelector from '$lib/components/audio/FaustSawSelector.svelte';
     import { audioState } from '$lib/audio/framework/audioState.svelte';
-    import Frequency from '$lib/components/analyzer/Frequency.svelte';
-    import Scope from '$lib/components/analyzer/Scope.svelte';
+    import Frequency from '$lib/components/ui/viz/Frequency.svelte';
+    import Scope from '$lib/components/ui/viz/Scope.svelte';
     import VSplitDiv from '$lib/components/ui/layout/VSplitDiv.svelte';
     import RoutedAudioNode from '$lib/audio/framework/RoutedAudioNode';
     import RouterNode from '$lib/audio/framework/RouterNode';

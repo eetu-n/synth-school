@@ -3,9 +3,9 @@
     import { audioState } from "$lib/audio/framework/audioState.svelte";
     import RouterNode from "$lib/audio/framework/RouterNode";
     import AudioOverlay from "$lib/components/ui/layout/AudioOverlay.svelte";
-    import Scope from "$lib/components/analyzer/Scope.svelte";
+    import Scope from "$lib/components/ui/viz/Scope.svelte";
     import ResponsiveText from "$lib/components/ui/text/ResponsiveText.svelte";
-    import Frequency from "$lib/components/analyzer/Frequency.svelte";
+    import Frequency from "$lib/components/ui/viz/Frequency.svelte";
     import AdditiveSaw from "$lib/components/audio/AdditiveSaw.svelte";
     import SignalAddition from "$lib/components/ui/viz/SignalAddition.svelte";
 
