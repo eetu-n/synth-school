@@ -1,4 +1,4 @@
-import RoutedAudioNode from "$lib/audioFramework/RoutedAudioNode";
+import RoutedAudioNode from "$lib/audio/framework/RoutedAudioNode";
 
 export default class RouterNode extends RoutedAudioNode{
     constructor (name: string, context: AudioContext) {

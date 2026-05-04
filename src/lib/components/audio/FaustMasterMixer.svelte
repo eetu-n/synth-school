@@ -1,14 +1,14 @@
 <script lang="ts">
-    import FaustNode from "$lib/audioFramework/FaustNode";
-    import { getAudioContext } from "$lib/audioFramework/audioContextManager";
-    import HSlider from "$lib/uiComponents/HSlider.svelte";
+    import FaustNode from "$lib/audio/framework/FaustNode";
+    import { getAudioContext } from "$lib/audio/framework/audioContextManager";
+    import HSlider from "$lib/components/ui/inputs/HSlider.svelte";
 
     import mutedIcon from "$lib/assets/volume-mute.svg?raw";
     import volumeLowIcon from "$lib/assets/volume-low.svg?raw";
     import volumeMidIcon from "$lib/assets/volume-mid.svg?raw";
     import volumeHighIcon from "$lib/assets/volume-high.svg?raw";
-    import RoutedAudioNode from "$lib/audioFramework/RoutedAudioNode";
-    import RouterNode from "$lib/audioFramework/RouterNode";
+    import RoutedAudioNode from "$lib/audio/framework/RoutedAudioNode";
+    import RouterNode from "$lib/audio/framework/RouterNode";
 
     let {
         masterNode = $bindable(),

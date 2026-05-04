@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { audioState } from '$lib/audioFramework/audioState.svelte';
-    import RoutedAudioNode from '$lib/audioFramework/RoutedAudioNode';
+    import { audioState } from '$lib/audio/framework/audioState.svelte';
+    import RoutedAudioNode from '$lib/audio/framework/RoutedAudioNode';
 
     let { inputNode }: { inputNode?: RoutedAudioNode<any> } = $props();
 

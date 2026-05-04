@@ -1,6 +1,6 @@
-import type RoutedAudioNode from '$lib/audioFramework/RoutedAudioNode';
-import RouterNode from '$lib/audioFramework/RouterNode';
-import FaustNode from '$lib/audioFramework/FaustNode';
+import type RoutedAudioNode from '$lib/audio/framework/RoutedAudioNode';
+import RouterNode from '$lib/audio/framework/RouterNode';
+import FaustNode from '$lib/audio/framework/FaustNode';
 
 export const audioState = $state({
     context: null as AudioContext | null,

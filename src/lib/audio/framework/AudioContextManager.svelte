@@ -1,8 +1,8 @@
 <!-- Module to start / stop the audio engine with a button -->
 
 <script lang="ts">
-	import { audioState, audioLoadingState } from '$lib/audioFramework/audioState.svelte';
-	import { startAudioContext, closeAudioContext, getAudioContext } from '$lib/audioFramework/audioContextManager';
+	import { audioState, audioLoadingState } from '$lib/audio/framework/audioState.svelte';
+	import { startAudioContext, closeAudioContext, getAudioContext } from '$lib/audio/framework/audioContextManager';
 
 	let internalLoading = $state(false);
 	let error = $state<string | null>(null);

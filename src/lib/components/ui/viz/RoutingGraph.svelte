@@ -1,7 +1,7 @@
 <script lang="ts">
     import { SvelteFlow, Background, Controls, Position } from '@xyflow/svelte';
     import '@xyflow/svelte/dist/style.css';
-    import type RoutedAudioNode from '$lib/audioFramework/RoutedAudioNode';
+    import type RoutedAudioNode from '$lib/audio/framework/RoutedAudioNode';
 
     const nodeDefaults = {
         sourcePosition: Position.Right,

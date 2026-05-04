@@ -1,8 +1,8 @@
 <script lang="ts">
-  import FaustNode from "$lib/audioFramework/FaustNode";
-  import type RoutedAudioNode from "$lib/audioFramework/RoutedAudioNode";
-  import { getAudioContext } from "$lib/audioFramework/audioContextManager";
-  import HSlider from "$lib/uiComponents/HSlider.svelte";
+  import FaustNode from "$lib/audio/framework/FaustNode";
+  import type RoutedAudioNode from "$lib/audio/framework/RoutedAudioNode";
+  import { getAudioContext } from "$lib/audio/framework/audioContextManager";
+  import HSlider from "$lib/components/ui/inputs/HSlider.svelte";
 
   let {
     outputNode,

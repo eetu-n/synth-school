@@ -1,9 +1,9 @@
 <script lang="ts">
-  import FaustNode from "$lib/audioFramework/FaustNode";
-  import type RoutedAudioNode from "$lib/audioFramework/RoutedAudioNode";
-  import { getAudioContext } from "$lib/audioFramework/audioContextManager";
-  import HSlider from "$lib/uiComponents/HSlider.svelte";
-  import Toggle from "$lib/uiComponents/Toggle.svelte";
+  import FaustNode from "$lib/audio/framework/FaustNode";
+  import type RoutedAudioNode from "$lib/audio/framework/RoutedAudioNode";
+  import { getAudioContext } from "$lib/audio/framework/audioContextManager";
+  import HSlider from "$lib/components/ui/inputs/HSlider.svelte";
+  import Toggle from "$lib/components/ui/inputs/Toggle.svelte";
 
   let {
     outputNode,
@@ -27,7 +27,7 @@
   $effect(() => {
     if (faustNode) {
       faustNode.setParamValue("harmonics_end", harmonicsEnd);
-      faustNode.setParamValue("wave_type", 0);
+      faustNode.setParamValue("wave_type", 1); // Square
       faustNode.setParamValue("gate", isPlaying ? 1 : 0);
     }
   });
@@ -41,7 +41,10 @@
   <Toggle colored={true} bind:checked={isPlaying}>Play</Toggle>
 
   <div class="flex flex-col gap-2">
-    <label for="harmonics-range" class="text-sm font-medium">Harmonic Range</label>
+    <div class="flex justify-between items-center">
+      <label for="harmonics-range" class="text-sm font-medium">Harmonic Range (Odd only)</label>
+      <span class="text-xs font-mono">{harmonicsEnd}</span>
+    </div>
     <HSlider
       bind:value={harmonicsEnd}
       min={1}

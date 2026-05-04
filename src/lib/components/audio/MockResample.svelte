@@ -1,7 +1,7 @@
 <script lang="ts">
-  import FaustNode from "$lib/audioFramework/FaustNode";
-  import { getAudioContext } from "$lib/audioFramework/audioContextManager";
-  import type RoutedAudioNode from "$lib/audioFramework/RoutedAudioNode";
+  import FaustNode from "$lib/audio/framework/FaustNode";
+  import { getAudioContext } from "$lib/audio/framework/audioContextManager";
+  import type RoutedAudioNode from "$lib/audio/framework/RoutedAudioNode";
 
   let {
     outputNode,

@@ -1,6 +1,6 @@
 <script lang="ts">
-    import MultipleChoice from "$lib/uiComponents/MultipleChoice.svelte";
-    import Chart from "$lib/uiComponents/Chart.svelte";
+    import MultipleChoice from "$lib/components/ui/layout/MultipleChoice.svelte";
+    import Chart from "$lib/components/ui/viz/Chart.svelte";
 </script>
 
 <MultipleChoice

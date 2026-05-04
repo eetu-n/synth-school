@@ -1,8 +1,8 @@
 <script lang="ts">
-    import AliasingChart from "$lib/uiComponents/AliasingChart.svelte";
-    import HSlider from "$lib/uiComponents/HSlider.svelte";
-    import VSplitDiv from "$lib/uiComponents/VSplitDiv.svelte";
-    import Katex from "$lib/uiComponents/Katex.svelte"
+    import AliasingChart from "$lib/components/ui/viz/AliasingChart.svelte";
+    import HSlider from "$lib/components/ui/inputs/HSlider.svelte";
+    import VSplitDiv from "$lib/components/ui/layout/VSplitDiv.svelte";
+    import Katex from "$lib/components/ui/text/Katex.svelte"
 
     let frequency:      number  = $state(7.5);
     let sampleRate:     number  = $state(10);

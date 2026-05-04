@@ -1,14 +1,14 @@
 <script lang="ts">
-    import FaustSawSelector from '$lib/audioComponents/FaustSawSelector.svelte';
-    import { audioState } from '$lib/audioFramework/audioState.svelte';
-    import Frequency from '$lib/analyzerComponents/Frequency.svelte';
-    import Scope from '$lib/analyzerComponents/Scope.svelte';
-    import VSplitDiv from '$lib/uiComponents/VSplitDiv.svelte';
-    import RoutedAudioNode from '$lib/audioFramework/RoutedAudioNode';
-    import RouterNode from '$lib/audioFramework/RouterNode';
-    import RoutingGraph from '$lib/uiComponents/RoutingGraph.svelte';
-    import Toggle from '$lib/uiComponents/Toggle.svelte';
-    import AudioOverlay from '$lib/uiComponents/AudioOverlay.svelte';
+    import FaustSawSelector from '$lib/components/audio/FaustSawSelector.svelte';
+    import { audioState } from '$lib/audio/framework/audioState.svelte';
+    import Frequency from '$lib/components/analyzer/Frequency.svelte';
+    import Scope from '$lib/components/analyzer/Scope.svelte';
+    import VSplitDiv from '$lib/components/ui/layout/VSplitDiv.svelte';
+    import RoutedAudioNode from '$lib/audio/framework/RoutedAudioNode';
+    import RouterNode from '$lib/audio/framework/RouterNode';
+    import RoutingGraph from '$lib/components/ui/viz/RoutingGraph.svelte';
+    import Toggle from '$lib/components/ui/inputs/Toggle.svelte';
+    import AudioOverlay from '$lib/components/ui/layout/AudioOverlay.svelte';
 
     var rightIsAliasing = $state(Math.random() < 0.5);
 

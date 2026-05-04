@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { audioState, audioLoadingState } from '$lib/audioFramework/audioState.svelte';
-    import { startAudioContext, getAudioContext } from '$lib/audioFramework/audioContextManager';
+    import { audioState, audioLoadingState } from '$lib/audio/framework/audioState.svelte';
+    import { startAudioContext, getAudioContext } from '$lib/audio/framework/audioContextManager';
     import { fade } from 'svelte/transition';
 
     let { children } = $props();

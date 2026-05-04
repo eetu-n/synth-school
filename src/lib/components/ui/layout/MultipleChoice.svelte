@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { Snippet } from 'svelte';
-    import VSplitDiv from './VSplitDiv.svelte';
+    import VSplitDiv from '$lib/components/ui/layout/VSplitDiv.svelte';
 
     interface Option {
         id: string | number;

@@ -1,9 +1,9 @@
 <script lang="ts">
-    import AliasingChart from "$lib/uiComponents/AliasingChart.svelte";
-    import HSlider from "$lib/uiComponents/HSlider.svelte";
-    import VSplitDiv from "$lib/uiComponents/VSplitDiv.svelte";
-    import Toggle from "$lib/uiComponents/Toggle.svelte";
-    import ResponsiveText from "$lib/uiComponents/ResponsiveText.svelte";
+    import AliasingChart from "$lib/components/ui/viz/AliasingChart.svelte";
+    import HSlider from "$lib/components/ui/inputs/HSlider.svelte";
+    import VSplitDiv from "$lib/components/ui/layout/VSplitDiv.svelte";
+    import Toggle from "$lib/components/ui/inputs/Toggle.svelte";
+    import ResponsiveText from "$lib/components/ui/text/ResponsiveText.svelte";
 
     let frequency: number = $state(2);
     let sampleRate: number = $state(10);

@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { Snippet } from 'svelte';
-    import LessonNavigation from './LessonNavigation.svelte';
+    import LessonNavigation from '$lib/components/ui/layout/LessonNavigation.svelte';
 
     let { 
         leftSide, 

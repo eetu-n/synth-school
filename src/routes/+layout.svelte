@@ -2,16 +2,16 @@
     import { browser } from '$app/environment';
     import "../app.css"
     import favicon from "$lib/assets/favicon.svg";
-    import AudioContextManager from "$lib/audioFramework/AudioContextManager.svelte";
-    import FaustMasterMixer from "$lib/audioComponents/FaustMasterMixer.svelte";
-    import { audioState } from "$lib/audioFramework/audioState.svelte";
-    import FaustNode from '$lib/audioFramework/FaustNode';
-    import RouterNode from '$lib/audioFramework/RouterNode';
+    import AudioContextManager from "$lib/audio/framework/AudioContextManager.svelte";
+    import FaustMasterMixer from "$lib/components/audio/FaustMasterMixer.svelte";
+    import { audioState } from "$lib/audio/framework/audioState.svelte";
+    import FaustNode from '$lib/audio/framework/FaustNode';
+    import RouterNode from '$lib/audio/framework/RouterNode';
 
     import closeIcon from '$lib/assets/angle-up.svg?raw';
     import sunIcon from '$lib/assets/sun.svg?raw';
     import moonIcon from '$lib/assets/moon.svg?raw';
-    import RoutedAudioNode from '$lib/audioFramework/RoutedAudioNode';
+    import RoutedAudioNode from '$lib/audio/framework/RoutedAudioNode';
 
     let { children } = $props();
     let headerExpanded = $state(true);

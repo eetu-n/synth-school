@@ -1,12 +1,12 @@
 <script lang="ts">
-    import VSplitDiv from "$lib/uiComponents/VSplitDiv.svelte";
-    import { audioState } from "$lib/audioFramework/audioState.svelte";
-    import RouterNode from "$lib/audioFramework/RouterNode";
-    import AudioOverlay from "$lib/uiComponents/AudioOverlay.svelte";
-    import Scope from "$lib/analyzerComponents/Scope.svelte";
-    import ResponsiveText from "$lib/uiComponents/ResponsiveText.svelte";
-    import Frequency from "$lib/analyzerComponents/Frequency.svelte";
-    import AdditiveSaw from "$lib/audioComponents/AdditiveSaw.svelte";
+    import VSplitDiv from "$lib/components/ui/layout/VSplitDiv.svelte";
+    import { audioState } from "$lib/audio/framework/audioState.svelte";
+    import RouterNode from "$lib/audio/framework/RouterNode";
+    import AudioOverlay from "$lib/components/ui/layout/AudioOverlay.svelte";
+    import Scope from "$lib/components/analyzer/Scope.svelte";
+    import ResponsiveText from "$lib/components/ui/text/ResponsiveText.svelte";
+    import Frequency from "$lib/components/analyzer/Frequency.svelte";
+    import AdditiveSaw from "$lib/components/audio/AdditiveSaw.svelte";
 
 </script>
 

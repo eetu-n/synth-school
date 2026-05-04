@@ -6,7 +6,7 @@
     import { onMount } from 'svelte';
     import { browser } from '$app/environment';
     import { slide } from 'svelte/transition';
-    import ResponsiveText from './ResponsiveText.svelte';
+    import ResponsiveText from '$lib/components/ui/text/ResponsiveText.svelte';
     import katex from "katex";
     import { delegate } from 'tippy.js';
     import 'tippy.js/dist/tippy.css';

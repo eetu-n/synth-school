@@ -1,12 +1,12 @@
 <script lang="ts">
-    import { audioState } from '$lib/audioFramework/audioState.svelte';
-    import RouterNode from '$lib/audioFramework/RouterNode';
-    import MockResample from "$lib/audioComponents/MockResample.svelte";
-    import AliasingChart from "$lib/uiComponents/AliasingChart.svelte";
-    import HSlider from "$lib/uiComponents/HSlider.svelte";
-    import VSplitDiv from "$lib/uiComponents/VSplitDiv.svelte";
-    import Toggle from '$lib/uiComponents/Toggle.svelte';
-    import AudioOverlay from '$lib/uiComponents/AudioOverlay.svelte';
+    import { audioState } from '$lib/audio/framework/audioState.svelte';
+    import RouterNode from '$lib/audio/framework/RouterNode';
+    import MockResample from "$lib/components/audio/MockResample.svelte";
+    import AliasingChart from "$lib/components/ui/viz/AliasingChart.svelte";
+    import HSlider from "$lib/components/ui/inputs/HSlider.svelte";
+    import VSplitDiv from "$lib/components/ui/layout/VSplitDiv.svelte";
+    import Toggle from '$lib/components/ui/inputs/Toggle.svelte';
+    import AudioOverlay from '$lib/components/ui/layout/AudioOverlay.svelte';
 
     let frequency:      number  = $state(1000);
     let sampleRate:     number  = $state(2500);
