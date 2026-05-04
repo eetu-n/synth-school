@@ -15,6 +15,7 @@
         onIncorrect?: (selected: Option) => void;
         prev?: string;
         next?: string;
+        shuffleAnswers?: boolean;
     }
 
     let { 
@@ -23,8 +24,19 @@
         onCorrect, 
         onIncorrect,
         prev,
-        next
+        next,
+        shuffleAnswers = true
     }: Props = $props();
+
+    let displayOptions = $derived.by(() => {
+        if (!shuffleAnswers) return options;
+        const arr = [...options];
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    });
 
     let selectedId = $state<string | number | null>(null);
     let isSubmitted = $state(false);
@@ -76,7 +88,7 @@
     <div class="flex flex-col h-full overflow-hidden">
         <!-- Options Section -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 2xl:gap-6 flex-grow overflow-y-auto mb-6 pr-2">
-            {#each options as option}
+            {#each displayOptions as option}
                 {@const isSelected = selectedId === option.id}
                 {@const isCorrect = isSubmitted && option.isCorrect}
                 {@const isWrong = isSubmitted && isSelected && !option.isCorrect}
