@@ -2,11 +2,22 @@
     import type { Snippet } from 'svelte';
     import LessonNavigation from './LessonNavigation.svelte';
 
-    let { leftSide, rightSide, prev, next }: { 
+    let { 
+        leftSide, 
+        rightSide, 
+        prev, 
+        next, 
+        leftTabTitle = 'Lesson', 
+        rightTabTitle = 'Workspace',
+        nextClass = ''
+    }: { 
         leftSide: Snippet, 
         rightSide: Snippet,
         prev?: string,
-        next?: string
+        next?: string,
+        leftTabTitle?: string,
+        rightTabTitle?: string,
+        nextClass?: string
     } = $props();
 
     let leftWidth = $state(30);
@@ -57,7 +68,7 @@
             </div>
             {#if prev || next}
                 <div class="mt-8">
-                    <LessonNavigation {prev} {next} />
+                    <LessonNavigation {prev} {next} {nextClass} />
                 </div>
             {/if}
           </div>
@@ -87,14 +98,14 @@
                 class="flex-1 py-3 px-4 rounded-md border-none border-b-2 text-sm font-bold transition-all duration-200 uppercase tracking-widest
                        {activeTab === 'left' ? 'border-primary text-primary bg-background shadow-sm' : 'border-transparent text-text-secondary/60 bg-transparent'}"
             >
-                Lesson
+                {leftTabTitle}
             </button>
             <button 
                 onclick={() => activeTab = 'right'} 
                 class="flex-1 py-3 px-4 rounded-md border-none border-b-2 text-sm font-bold transition-all duration-200 uppercase tracking-widest
                        {activeTab === 'right' ? 'border-primary text-primary bg-background shadow-sm' : 'border-transparent text-text-secondary/60 bg-transparent'}"
             >
-                Workspace
+                {rightTabTitle}
             </button>
         </div>
 
@@ -113,7 +124,7 @@
 
         {#if prev || next}
             <div class="flex-shrink-0 bg-surface border-t border-border/50 px-5 pb-2">
-                <LessonNavigation {prev} {next} />
+                <LessonNavigation {prev} {next} {nextClass} />
             </div>
         {/if}
     </div>

@@ -5,9 +5,10 @@
   interface Props {
     prev?: string;
     next?: string;
+    nextClass?: string;
   }
 
-  let { prev, next }: Props = $props();
+  let { prev, next, nextClass }: Props = $props();
 </script>
 
 <div class="flex justify-between items-center py-4">
@@ -22,7 +23,7 @@
   {/if}
 
   {#if next}
-    <a href={next} class="p-2 text-text-primary hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors" aria-label="Next Lesson">
+    <a href={next} class="p-2 text-text-primary hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors {nextClass}" aria-label="Next Lesson">
       <span class="w-6 h-6 block">{@html rightIcon}</span>
     </a>
   {:else}

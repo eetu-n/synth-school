@@ -140,5 +140,8 @@
     leftSide={leftSideSnippet} 
     rightSide={rightSideSnippet} 
     {prev} 
-    next={isCorrectAnswer ? next : undefined} 
+    next={isCorrectAnswer ? next : undefined}
+    leftTabTitle="Question"
+    rightTabTitle="Answer"
+    nextClass={isCorrectAnswer ? 'animate-bounce-horizontal text-primary hover:bg-primary/10' : ''}
 />

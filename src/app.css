@@ -142,7 +142,17 @@
   --color-node-border: var(--color-node-border-val);
   --color-signal-actual: var(--color-signal-actual-val);
   --color-signal-aliased: var(--color-signal-aliased-val);
+
+  @keyframes bounce-horizontal {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(5px); }
+  }
 }
+
+.animate-bounce-horizontal {
+    animation: bounce-horizontal 1s infinite;
+}
+
 
 /* Slider Styles */
 input[type="range"] {
