@@ -3,19 +3,17 @@
     import Chart from "$lib/uiComponents/Chart.svelte";
 </script>
 
-<div class="flex-grow h-full w-full p-8 flex flex-col overflow-hidden">
-    <MultipleChoice
-        {question}
-        options={[
-            { id: 1, content: a1, isCorrect: true },
-            { id: 2, content: a2 },
-            { id: 3, content: a3 },
-            { id: 4, content: a4 }
-        ]}
-        prev="/lessons/oscillators/4"
-        next="/lessons/aliasing/1"
-    />
-</div>
+<MultipleChoice
+    {question}
+    options={[
+        { id: 1, content: a1, isCorrect: true },
+        { id: 2, content: a2 },
+        { id: 3, content: a3 },
+        { id: 4, content: a4 }
+    ]}
+    prev="/lessons/oscillators/4"
+    next="/lessons/aliasing/1"
+/>
 
 {#snippet question()}
     <p>Which one of these signals is created by summing signals A and B?</p>
