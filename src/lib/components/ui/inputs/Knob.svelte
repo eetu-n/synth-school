@@ -9,6 +9,7 @@
     scale = "linear", // "linear" | "log" | "exp"
     exponent = 2,     // Used if scale is "exp"
     unit = "",
+    defaultValue = value,
   } = $props();
 
   let isDragging = $state(false);
@@ -95,6 +96,10 @@
       value = Math.max(min, Math.min(max, newValue));
     }
   }
+
+  function handleDblClick() {
+    value = defaultValue;
+  }
 </script>
 
 <div class="flex flex-col items-center gap-1 select-none" style="width: {size}px;">
@@ -116,6 +121,7 @@
     onpointerup={handlePointerUp}
     onwheel={handleWheel}
     onkeydown={handleKeyDown}
+    ondblclick={handleDblClick}
   >
     <!-- Background Track (270 deg) -->
     <svg viewBox="0 0 100 100" class="w-full h-full transform rotate-[135deg] overflow-visible">
