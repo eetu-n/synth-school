@@ -17,7 +17,7 @@
     release = 200
   }: { 
     outputNode: RoutedAudioNode | null,
-    buttonLabel: string,
+    buttonLabel?: string,
     waveform?: number,
     frequency?: number,
     cutoff?: number,
@@ -30,11 +30,34 @@
   } = $props();
 
   let gate = $state(false);
+  let faustNode = $state<FaustNode | null>(null);
 
-  let faustNode = await FaustNode.create(
-    "subtractiveSynth",
-    await getAudioContext(),
-  );
+  // Initialize FaustNode reactively when context is ready
+  $effect(() => {
+    let activeNode: FaustNode | null = null;
+    let isDestroyed = false;
+
+    async function init() {
+      const context = await getAudioContext();
+      if (isDestroyed) return;
+      
+      const node = await FaustNode.create("subtractiveSynth", context);
+      if (isDestroyed) {
+        node?.destroy();
+        return;
+      }
+      faustNode = node;
+      activeNode = node;
+    }
+
+    init();
+
+    return () => {
+      isDestroyed = true;
+      activeNode?.destroy();
+      faustNode = null;
+    };
+  });
 
   $effect(() => {
     if (faustNode && outputNode) {
@@ -64,12 +87,8 @@
       faustNode.setParamValue("gate", gate ? 1 : 0);
     }
   });
-
-  $effect(() => {
-    return () => faustNode?.destroy();
-  });
 </script>
-
+  
   <button 
     class="btn btn-primary btn-lg w-full h-32 text-2xl font-black tracking-tighter shadow-xl transition-all active:scale-95 group relative overflow-hidden"
     onpointerdown={() => gate = true}

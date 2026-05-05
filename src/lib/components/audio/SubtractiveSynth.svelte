@@ -6,28 +6,58 @@
 
   let {
     outputNode,
-  }: { outputNode: RoutedAudioNode | null } = $props();
+    waveSelect = $bindable(0),
+    freq = $bindable(440),
+    gain = $bindable(0.5),
+    cutoff = $bindable(2000),
+    resonance = $bindable(0.5),
+    attack = $bindable(10),
+    decay = $bindable(100),
+    sustain = $bindable(0.7),
+    release = $bindable(100),
+  }: {
+    outputNode: RoutedAudioNode | null;
+    waveSelect?: number;
+    freq?: number;
+    gain?: number;
+    cutoff?: number;
+    resonance?: number;
+    attack?: number;
+    decay?: number;
+    sustain?: number;
+    release?: number;
+  } = $props();
 
   // --- States ---
-  let waveSelect = $state(0);
-  let freq = $state(440);
-  let gain = $state(0.5);
   let gate = $state(false);
+  let faustNode = $state<FaustNode | null>(null);
 
-  // Filter
-  let cutoff = $state(2000);
-  let resonance = $state(0.5);
+  // Initialize FaustNode reactively when context is ready
+  $effect(() => {
+    let activeNode: FaustNode | null = null;
+    let isDestroyed = false;
 
-  // ADSR
-  let attack = $state(10);
-  let decay = $state(100);
-  let sustain = $state(0.7);
-  let release = $state(100);
+    async function init() {
+      const context = await getAudioContext();
+      if (isDestroyed) return;
+      
+      const node = await FaustNode.create("subtractiveSynth", context);
+      if (isDestroyed) {
+        node?.destroy();
+        return;
+      }
+      faustNode = node;
+      activeNode = node;
+    }
 
-  let faustNode = await FaustNode.create(
-    "subtractiveSynth",
-    await getAudioContext(),
-  );
+    init();
+
+    return () => {
+      isDestroyed = true;
+      activeNode?.destroy();
+      faustNode = null;
+    };
+  });
 
   $effect(() => {
     if (faustNode && outputNode) {
@@ -50,10 +80,6 @@
       faustNode.setParamValue("Sustain", sustain);
       faustNode.setParamValue("Release", release);
     }
-  });
-
-  $effect(() => {
-    return () => faustNode?.destroy();
   });
 </script>
 
