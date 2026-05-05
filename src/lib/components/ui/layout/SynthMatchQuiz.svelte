@@ -11,7 +11,7 @@
     prev?: string;
     next?: string;
     
-    // Target Parameters
+    // Target Parameters (Optional - will be randomized if not provided)
     waveform?: number;
     frequency?: number;
     cutoff?: number;
@@ -31,7 +31,27 @@
     thresholdDecay?: number;
     thresholdSustain?: number;
     thresholdRelease?: number;
+
+    randomize?: boolean; // If true, forces randomization even if defaults are provided
   }
+
+  // Helper for stable random values
+  const randomBetween = (min: number, max: number, step: number = 1) => {
+    const val = Math.random() * (max - min) + min;
+    return Math.round(val / step) * step;
+  };
+
+  const initialRandoms = {
+    waveform: Math.floor(Math.random() * 3),
+    frequency: randomBetween(200, 1200, 10),
+    cutoff: randomBetween(400, 5000, 10),
+    resonance: randomBetween(1, 6, 0.1),
+    gain: 0.5,
+    attack: randomBetween(5, 300, 1),
+    decay: randomBetween(50, 400, 1),
+    sustain: randomBetween(0.2, 0.8, 0.05),
+    release: randomBetween(100, 1000, 1)
+  };
 
   let { 
     outputNode,
@@ -39,26 +59,26 @@
     prev, 
     next,
     
-    // Default target values
-    waveform = 0,
-    frequency = 440,
-    cutoff = 2000,
-    resonance = 1.0,
-    gain = 0.5,
-    attack = 10,
-    decay = 100,
-    sustain = 0.7,
-    release = 200,
+    // Default target values (use randoms if not provided)
+    waveform = initialRandoms.waveform,
+    frequency = initialRandoms.frequency,
+    cutoff = initialRandoms.cutoff,
+    resonance = initialRandoms.resonance,
+    gain = initialRandoms.gain,
+    attack = initialRandoms.attack,
+    decay = initialRandoms.decay,
+    sustain = initialRandoms.sustain,
+    release = initialRandoms.release,
 
     // Default thresholds
-    thresholdFreq = 10,
-    thresholdCutoff = 100,
-    thresholdResonance = 0.2,
-    thresholdGain = 0.05,
-    thresholdAttack = 50,
-    thresholdDecay = 100,
-    thresholdSustain = 0.1,
-    thresholdRelease = 100
+    thresholdFreq = 20,
+    thresholdCutoff = 200,
+    thresholdResonance = 0.5,
+    thresholdGain = 0.1,
+    thresholdAttack = 100,
+    thresholdDecay = 150,
+    thresholdSustain = 0.15,
+    thresholdRelease = 200
   }: Props = $props();
 
   // Current values from the interactive synth
@@ -76,26 +96,34 @@
 
   let isCorrect = $state(false);
   let showFeedback = $state(false);
+  let feedbackSnapshot = $state({
+    waveform: true,
+    frequency: true,
+    cutoff: true,
+    resonance: true,
+    gain: true,
+    attack: true,
+    decay: true,
+    sustain: true,
+    release: true
+  });
 
   function checkAnswer() {
     showFeedback = true;
     
-    const waveformMatch = currentParams.waveform === waveform;
-    const freqMatch = Math.abs(currentParams.frequency - frequency) <= thresholdFreq;
-    const cutoffMatch = Math.abs(currentParams.cutoff - cutoff) <= thresholdCutoff;
-    const resonanceMatch = Math.abs(currentParams.resonance - resonance) <= thresholdResonance;
-    const gainMatch = Math.abs(currentParams.gain - gain) <= thresholdGain;
-    const attackMatch = Math.abs(currentParams.attack - attack) <= thresholdAttack;
-    const decayMatch = Math.abs(currentParams.decay - decay) <= thresholdDecay;
-    const sustainMatch = Math.abs(currentParams.sustain - sustain) <= thresholdSustain;
-    const releaseMatch = Math.abs(currentParams.release - release) <= thresholdRelease;
+    feedbackSnapshot = {
+      waveform: currentParams.waveform === waveform,
+      frequency: Math.abs(currentParams.frequency - frequency) <= thresholdFreq,
+      cutoff: Math.abs(currentParams.cutoff - cutoff) <= thresholdCutoff,
+      resonance: Math.abs(currentParams.resonance - resonance) <= thresholdResonance,
+      gain: Math.abs(currentParams.gain - gain) <= thresholdGain,
+      attack: Math.abs(currentParams.attack - attack) <= thresholdAttack,
+      decay: Math.abs(currentParams.decay - decay) <= thresholdDecay,
+      sustain: Math.abs(currentParams.sustain - sustain) <= thresholdSustain,
+      release: Math.abs(currentParams.release - release) <= thresholdRelease
+    };
     
-    if (waveformMatch && freqMatch && cutoffMatch && resonanceMatch && 
-        gainMatch && attackMatch && decayMatch && sustainMatch && releaseMatch) {
-      isCorrect = true;
-    } else {
-      isCorrect = false;
-    }
+    isCorrect = Object.values(feedbackSnapshot).every(v => v);
   }
 </script>
 
@@ -104,7 +132,7 @@
     <div class="text-xs font-bold text-primary uppercase tracking-[0.2em] opacity-80">Target Sound</div>
     
     {#if typeof question === 'string'}
-      <p class="text-lg font-medium">{question}</p>
+      <p class="text-lg font-medium leading-tight">{question}</p>
     {:else}
       {@render question()}
     {/if}
@@ -132,16 +160,17 @@
           {isCorrect ? 'Perfect Match!' : 'Not quite there yet...'}
         </h4>
         {#if !isCorrect}
-          <ul class="text-xs mt-2 grid grid-cols-2 gap-x-4 list-disc list-inside opacity-80">
-            {#if currentParams.waveform !== waveform}<li>Check Waveform</li>{/if}
-            {#if Math.abs(currentParams.frequency - frequency) > thresholdFreq}<li>Frequency off</li>{/if}
-            {#if Math.abs(currentParams.cutoff - cutoff) > thresholdCutoff}<li>Cutoff off</li>{/if}
-            {#if Math.abs(currentParams.resonance - resonance) > thresholdResonance}<li>Resonance off</li>{/if}
-            {#if Math.abs(currentParams.gain - gain) > thresholdGain}<li>Gain off</li>{/if}
-            {#if Math.abs(currentParams.attack - attack) > thresholdAttack}<li>Attack off</li>{/if}
-            {#if Math.abs(currentParams.decay - decay) > thresholdDecay}<li>Decay off</li>{/if}
-            {#if Math.abs(currentParams.sustain - sustain) > thresholdSustain}<li>Sustain off</li>{/if}
-            {#if Math.abs(currentParams.release - release) > thresholdRelease}<li>Release off</li>{/if}
+          <div class="text-[10px] mt-2 text-base-content/60 font-medium mb-1">HINTS:</div>
+          <ul class="text-[11px] grid grid-cols-2 gap-x-4 gap-y-1 list-disc list-inside opacity-80">
+            {#if !feedbackSnapshot.waveform}<li>Check Waveform</li>{/if}
+            {#if !feedbackSnapshot.frequency}<li>Frequency off</li>{/if}
+            {#if !feedbackSnapshot.cutoff}<li>Cutoff off</li>{/if}
+            {#if !feedbackSnapshot.resonance}<li>Resonance off</li>{/if}
+            {#if !feedbackSnapshot.gain}<li>Gain off</li>{/if}
+            {#if !feedbackSnapshot.attack}<li>Attack off</li>{/if}
+            {#if !feedbackSnapshot.decay}<li>Decay off</li>{/if}
+            {#if !feedbackSnapshot.sustain}<li>Sustain off</li>{/if}
+            {#if !feedbackSnapshot.release}<li>Release off</li>{/if}
           </ul>
         {/if}
       </div>
