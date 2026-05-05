@@ -60,7 +60,7 @@
 <svelte:window bind:innerWidth={innerWidth} onmousemove={onDrag} onmouseup={stopDragging} />
 
 {#if innerWidth >= breakpoint}
-    <div class="flex h-screen w-full overflow-hidden" class:select-none={isDragging} class:cursor-col-resize={isDragging}>
+    <div class="flex h-full w-full overflow-hidden" class:select-none={isDragging} class:cursor-col-resize={isDragging}>
       <div class="overflow-y-auto p-5 bg-background flex flex-col" style="width: {leftWidth}%">
           <div class="flex flex-col min-h-full">
             <div class="flex-grow">
@@ -91,7 +91,7 @@
       </div>
     </div>
 {:else}
-    <div class="flex flex-col h-screen w-full overflow-hidden">
+    <div class="flex flex-col h-full w-full overflow-hidden">
         <div class="flex flex-shrink-0 border-b border-border/50 p-2 gap-2 bg-surface">
             <button 
                 onclick={() => activeTab = 'left'} 

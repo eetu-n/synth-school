@@ -42,7 +42,7 @@
     <title>Synth School</title>
 </svelte:head>
 
-<div class="flex flex-col h-screen w-screen relative">
+<div class="flex flex-col h-full w-full relative">
     <header 
         class="flex-shrink-0 relative bg-[#1d2b3c] text-white border-b border-white/10 shadow-md z-10 transition-all duration-300 ease-in-out overflow-hidden"
         class:h-16={headerExpanded}

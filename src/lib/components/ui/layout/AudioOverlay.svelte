@@ -33,7 +33,7 @@
     }
 </script>
 
-<div class="relative w-full h-full min-h-[200px] flex flex-col">
+<div class="relative w-full h-full min-h-[200px] flex flex-col overflow-hidden">
     {#if audioState.context}
         <div class="flex-grow flex flex-col" class:invisible={!isReady}>
             {@render children()}
@@ -43,7 +43,7 @@
     {#if !isReady}
         <div 
             transition:fade={{ duration: 200 }}
-            class="absolute -inset-5 z-50 flex items-center justify-center bg-black/70 backdrop-blur-[3px]"
+            class="absolute inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-[3px]"
         >
             <div class="bg-[#1d2b3c] p-8 rounded-2xl border border-white/10 shadow-2xl text-center max-w-xs transform transition-all duration-300 animate-in fade-in zoom-in-95 duration-300">
                 <div class="mb-6 flex justify-center">

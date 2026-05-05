@@ -55,6 +55,14 @@
     --color-signal-aliased-val: #60a5fa; 
   }
 
+  html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
   body {
     background-color: var(--color-background-val);
     color: var(--color-text-primary-val);
