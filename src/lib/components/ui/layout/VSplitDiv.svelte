@@ -25,7 +25,7 @@
 
     // Responsive state
     let innerWidth = $state(typeof window !== 'undefined' ? window.innerWidth : Infinity);
-    const breakpoint = 1200;
+    const breakpoint = 1280;
     let activeTab: 'left' | 'right' = $state('left');
 
     function startDragging() {

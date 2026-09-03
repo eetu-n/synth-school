@@ -154,27 +154,9 @@
       {/if}
     </div>
 
-    {#if showFeedback}
-      <div class="p-4 rounded-xl border-2 transition-all {isCorrect ? 'border-green-500 bg-green-500/10' : 'border-red-500 bg-red-500/10'}">
-        <h4 class="font-bold {isCorrect ? 'text-green-600' : 'text-red-600'}">
-          {isCorrect ? 'Perfect Match!' : 'Not quite there yet...'}
-        </h4>
-        {#if !isCorrect}
-          <div class="text-[10px] mt-2 text-base-content/60 font-medium mb-1">HINTS:</div>
-          <ul class="text-[11px] grid grid-cols-2 gap-x-4 gap-y-1 list-disc list-inside opacity-80">
-            {#if !feedbackSnapshot.waveform}<li>Check Waveform</li>{/if}
-            {#if !feedbackSnapshot.frequency}<li>Frequency off</li>{/if}
-            {#if !feedbackSnapshot.cutoff}<li>Cutoff off</li>{/if}
-            {#if !feedbackSnapshot.resonance}<li>Resonance off</li>{/if}
-            {#if !feedbackSnapshot.gain}<li>Gain off</li>{/if}
-            {#if !feedbackSnapshot.attack}<li>Attack off</li>{/if}
-            {#if !feedbackSnapshot.decay}<li>Decay off</li>{/if}
-            {#if !feedbackSnapshot.sustain}<li>Sustain off</li>{/if}
-            {#if !feedbackSnapshot.release}<li>Release off</li>{/if}
-          </ul>
-        {/if}
-      </div>
-    {/if}
+    <div class="hidden xl:block mt-auto w-full">
+      {@render feedbackBlock()}
+    </div>
   </div>
 {/snippet}
 
@@ -201,6 +183,10 @@
       {/if}
     </div>
 
+    <div class="xl:hidden w-full">
+      {@render feedbackBlock()}
+    </div>
+
     <div class="flex justify-end pt-4 border-t border-border/30 mt-6">
       <button 
         onclick={checkAnswer}
@@ -220,3 +206,27 @@
   leftTabTitle="Challenge"
   rightTabTitle="Your Controls"
 />
+
+{#snippet feedbackBlock()}
+    {#if showFeedback}
+      <div class="p-4 rounded-xl border-2 transition-all {isCorrect ? 'border-green-500 bg-green-500/10' : 'border-red-500 bg-red-500/10'}">
+        <h4 class="font-bold {isCorrect ? 'text-green-600' : 'text-red-600'}">
+          {isCorrect ? 'Perfect Match!' : 'Not quite there yet...'}
+        </h4>
+        {#if !isCorrect}
+          <div class="text-[10px] mt-2 text-base-content/60 font-medium mb-1">HINTS:</div>
+          <ul class="text-[11px] grid grid-cols-2 gap-x-4 gap-y-1 list-disc list-inside opacity-80">
+            {#if !feedbackSnapshot.waveform}<li>Check Waveform</li>{/if}
+            {#if !feedbackSnapshot.frequency}<li>Frequency off</li>{/if}
+            {#if !feedbackSnapshot.cutoff}<li>Cutoff off</li>{/if}
+            {#if !feedbackSnapshot.resonance}<li>Resonance off</li>{/if}
+            {#if !feedbackSnapshot.gain}<li>Gain off</li>{/if}
+            {#if !feedbackSnapshot.attack}<li>Attack off</li>{/if}
+            {#if !feedbackSnapshot.decay}<li>Decay off</li>{/if}
+            {#if !feedbackSnapshot.sustain}<li>Sustain off</li>{/if}
+            {#if !feedbackSnapshot.release}<li>Release off</li>{/if}
+          </ul>
+        {/if}
+      </div>
+    {/if}
+{/snippet}
