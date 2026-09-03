@@ -35,7 +35,7 @@
 
 <div class="relative w-full h-full min-h-[200px] flex flex-col overflow-hidden">
     {#if audioState.context}
-        <div class="flex-grow flex flex-col" class:invisible={!isReady}>
+        <div class="flex-grow flex flex-col min-h-0" class:invisible={!isReady}>
             {@render children()}
         </div>
     {/if}

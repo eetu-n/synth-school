@@ -128,8 +128,8 @@
 </script>
 
 {#snippet leftSide()}
-  <div class="flex flex-col gap-6 h-full">
-    <div class="text-xs font-bold text-primary uppercase tracking-[0.2em] opacity-80">Target Sound</div>
+  <div class="flex flex-col gap-6 flex-1 pb-6">
+    <div class="text-xs font-bold text-primary uppercase tracking-[0.2em] opacity-80 hidden xl:block">Target Sound</div>
     
     {#if typeof question === 'string'}
       <p class="text-lg font-medium leading-tight">{question}</p>
@@ -137,7 +137,7 @@
       {@render question()}
     {/if}
 
-    <div class="mt-auto mb-auto">
+    <div class="w-full">
       {#if outputNode}
         <StaticSubtractiveSynth 
           {outputNode} 
@@ -179,12 +179,12 @@
 {/snippet}
 
 {#snippet rightSide()}
-  <div class="flex flex-col gap-6 h-full">
-    <div class="text-xs font-bold text-secondary uppercase tracking-[0.2em] opacity-80">Your Synth</div>
+  <div class="flex flex-col gap-6 flex-1 pb-6">
+    <div class="text-xs font-bold text-secondary uppercase tracking-[0.2em] opacity-80 hidden xl:block">Your Synth</div>
     
-    <div class="flex-grow flex items-center justify-center overflow-y-auto">
+    <div class="w-full">
       {#if outputNode}
-        <div class="scale-90 xl:scale-100 py-4">
+        <div class="py-4 w-full">
            <SubtractiveSynth 
              {outputNode}
              bind:waveSelect={currentParams.waveform}
@@ -201,7 +201,7 @@
       {/if}
     </div>
 
-    <div class="flex justify-end pt-4 border-t border-border/30">
+    <div class="flex justify-end pt-4 border-t border-border/30 mt-6">
       <button 
         onclick={checkAnswer}
         class="btn btn-primary px-12"

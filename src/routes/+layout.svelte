@@ -97,7 +97,7 @@
         </div>
     </button>
 
-    <div class="flex-grow overflow-y-auto relative flex flex-col">
+    <div class="flex-grow overflow-y-auto relative flex flex-col min-h-0">
         {@render children()}
     </div>
 </div>

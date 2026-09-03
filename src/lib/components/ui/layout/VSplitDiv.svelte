@@ -61,11 +61,12 @@
 
 {#if innerWidth >= breakpoint}
     <div class="flex h-full w-full overflow-hidden" class:select-none={isDragging} class:cursor-col-resize={isDragging}>
-      <div class="overflow-y-auto p-5 bg-background flex flex-col" style="width: {leftWidth}%">
-          <div class="flex flex-col min-h-full">
+      <div class="overflow-y-auto bg-background flex flex-col" style="width: {leftWidth}%">
+          <div class="flex flex-col px-5 pt-5">
             <div class="flex-grow">
                 {@render leftSide()}
             </div>
+            <div class="h-5 flex-shrink-0 w-full"></div>
             {#if prev || next}
                 <div class="mt-8">
                     <LessonNavigation {prev} {next} {nextClass} />
@@ -84,9 +85,10 @@
           aria-label="Resize panels"
       ></div>
       
-      <div class="overflow-y-auto p-5 bg-surface flex flex-col" style="width: {100 - leftWidth}%">
-          <div class="flex flex-col min-h-full">
+      <div class="overflow-y-auto bg-surface flex flex-col" style="width: {100 - leftWidth}%">
+          <div class="flex flex-col px-5 pt-5">
             {@render rightSide()}
+            <div class="h-5 flex-shrink-0 w-full"></div>
           </div>
       </div>
     </div>
@@ -109,15 +111,17 @@
             </button>
         </div>
 
-        <div class="flex-grow flex flex-col overflow-hidden">
-            <div class="flex-1 overflow-y-auto p-5 bg-background flex flex-col" class:hidden={activeTab !== 'left'}>
-                <div class="flex flex-col min-h-full">
+        <div class="flex-grow flex flex-col overflow-hidden min-h-0">
+            <div class="flex-1 overflow-y-auto bg-background flex flex-col min-h-0" class:hidden={activeTab !== 'left'}>
+                <div class="flex flex-col px-5 pt-5">
                     {@render leftSide()}
+                    <div class="h-5 flex-shrink-0 w-full"></div>
                 </div>
             </div>
-            <div class="flex-1 overflow-y-auto p-5 bg-surface flex flex-col" class:hidden={activeTab !== 'right'}>
-                <div class="flex flex-col min-h-full">
+            <div class="flex-1 overflow-y-auto bg-surface flex flex-col min-h-0" class:hidden={activeTab !== 'right'}>
+                <div class="flex flex-col px-5 pt-5">
                     {@render rightSide()}
+                    <div class="h-5 flex-shrink-0 w-full"></div>
                 </div>
             </div>
         </div>
