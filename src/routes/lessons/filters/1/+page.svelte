@@ -27,6 +27,11 @@
         <b>Band-pass filters</b> allow a specific band of frequencies to pass and remove others.
         They can be thought of as both a low-pass and high-pass filter applied to the same signal.
     </p>
+    <br>
+    <p>
+        Some common parameters for filters are the <b>cutoff frequency</b>, <b>quality (Q)</b>, <b>bandwidth</b>, and <b>gain</b>.
+        These are discussed in detail in the following sections.
+    </p>
 {/snippet}
 
 {#snippet rightSide()}

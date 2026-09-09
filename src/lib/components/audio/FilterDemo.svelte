@@ -76,6 +76,7 @@
     </div>
 
     <div class="flex flex-col items-center">
+    <!-- TODO: change to a h-slider that corresponds to the spectrograph -->
       <Knob
         bind:value={cutoffFreq}
         min={minCutoff}
