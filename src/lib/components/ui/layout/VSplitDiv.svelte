@@ -1,5 +1,6 @@
 <script lang="ts">
     import type { Snippet } from 'svelte';
+    import { page } from '$app/stores';
     import LessonNavigation from '$lib/components/ui/layout/LessonNavigation.svelte';
 
     let { 
@@ -19,6 +20,19 @@
         rightTabTitle?: string,
         nextClass?: string
     } = $props();
+
+    const lessonModules = import.meta.glob('/src/routes/lessons/**/+page.svelte');
+    const lessonPaths = Object.keys(lessonModules)
+        .map(p => p.replace('/src/routes', '').replace('/+page.svelte', ''))
+        .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+
+    let currentPath = $derived($page.url.pathname.replace(/\/$/, ''));
+    let currentFolder = $derived(currentPath.substring(0, currentPath.lastIndexOf('/')));
+    let siblings = $derived(lessonPaths.filter(p => p.substring(0, p.lastIndexOf('/')) === currentFolder));
+    let currentIndex = $derived(siblings.indexOf(currentPath));
+
+    let computedPrev = $derived(prev !== undefined ? prev : (currentIndex > 0 ? siblings[currentIndex - 1] : undefined));
+    let computedNext = $derived(next !== undefined ? next : (currentIndex !== -1 && currentIndex < siblings.length - 1 ? siblings[currentIndex + 1] : undefined));
 
     let leftWidth = $state(30);
     let isDragging = $state(false);
@@ -67,9 +81,9 @@
                 {@render leftSide()}
             </div>
             <div class="h-5 flex-shrink-0 w-full"></div>
-            {#if prev || next}
+            {#if computedPrev || computedNext}
                 <div class="mt-8">
-                    <LessonNavigation {prev} {next} {nextClass} />
+                    <LessonNavigation prev={computedPrev} next={computedNext} {nextClass} />
                 </div>
             {/if}
           </div>
@@ -126,9 +140,9 @@
             </div>
         </div>
 
-        {#if prev || next}
+        {#if computedPrev || computedNext}
             <div class="flex-shrink-0 bg-surface border-t border-border/50 px-5 pb-2">
-                <LessonNavigation {prev} {next} {nextClass} />
+                <LessonNavigation prev={computedPrev} next={computedNext} {nextClass} />
             </div>
         {/if}
     </div>
