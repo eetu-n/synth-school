@@ -3,8 +3,8 @@
   import rightIcon from '$lib/assets/angles-right.svg?raw';
 
   interface Props {
-    prev?: string;
-    next?: string;
+    prev?: string | null;
+    next?: string | null;
     nextClass?: string;
   }
 

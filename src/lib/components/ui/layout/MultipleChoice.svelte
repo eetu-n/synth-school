@@ -13,8 +13,8 @@
         options: Option[];
         onCorrect?: () => void;
         onIncorrect?: (selected: Option) => void;
-        prev?: string;
-        next?: string;
+        prev?: string | null;
+        next?: string | null;
         shuffleAnswers?: boolean;
     }
 
@@ -151,8 +151,8 @@
 <VSplitDiv 
     leftSide={leftSideSnippet} 
     rightSide={rightSideSnippet} 
-    {prev} 
-    next={isCorrectAnswer ? next : undefined}
+    {prev}
+    next={isCorrectAnswer ? next : null}
     leftTabTitle="Question"
     rightTabTitle="Answer"
     nextClass={isCorrectAnswer ? 'animate-bounce-horizontal text-primary hover:bg-primary/10' : ''}

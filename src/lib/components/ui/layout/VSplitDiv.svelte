@@ -14,8 +14,8 @@
     }: { 
         leftSide: Snippet, 
         rightSide: Snippet,
-        prev?: string,
-        next?: string,
+        prev?: string | null,
+        next?: string | null,
         leftTabTitle?: string,
         rightTabTitle?: string,
         nextClass?: string
@@ -31,8 +31,8 @@
     let siblings = $derived(lessonPaths.filter(p => p.substring(0, p.lastIndexOf('/')) === currentFolder));
     let currentIndex = $derived(siblings.indexOf(currentPath));
 
-    let computedPrev = $derived(prev !== undefined ? prev : (currentIndex > 0 ? siblings[currentIndex - 1] : undefined));
-    let computedNext = $derived(next !== undefined ? next : (currentIndex !== -1 && currentIndex < siblings.length - 1 ? siblings[currentIndex + 1] : undefined));
+    let computedPrev = $derived(prev !== undefined ? prev : (currentIndex > 0 ? siblings[currentIndex - 1] : null));
+    let computedNext = $derived(next !== undefined ? next : (currentIndex !== -1 && currentIndex < siblings.length - 1 ? siblings[currentIndex + 1] : null));
 
     let leftWidth = $state(30);
     let isDragging = $state(false);

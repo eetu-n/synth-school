@@ -11,7 +11,7 @@
 
 </script>
 
-<VSplitDiv {leftSide} {rightSide} next="/lessons/oscillators/5/a" />
+<VSplitDiv {leftSide} {rightSide} />
 
 {#snippet leftSide()}
     <h1>Signal Addition</h1>

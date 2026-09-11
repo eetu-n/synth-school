@@ -17,6 +17,4 @@
     {f1}
     {f2}
     {f3}
-    prev="/lessons/oscillators/5/b"
-    next="/lessons/aliasing/1"
 />

@@ -17,6 +17,4 @@
     {f1}
     {f2}
     {f3}
-    prev="/lessons/oscillators/4"
-    next="/lessons/oscillators/5/b"
 />

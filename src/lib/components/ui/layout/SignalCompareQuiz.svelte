@@ -9,8 +9,8 @@
         f1: (t: number) => number;
         f2: (t: number) => number;
         f3: (t: number) => number;
-        prev?: string;
-        next?: string;
+        prev?: string | null;
+        next?: string | null;
     }
 
     let { fa, fb, f0, f1, f2, f3, prev, next }: Props = $props();
