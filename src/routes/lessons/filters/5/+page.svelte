@@ -9,7 +9,7 @@
 
 </script>
 
-<VSplitDiv {leftSide} {rightSide} prev="/lessons/filters/4"/>
+<VSplitDiv {leftSide} {rightSide} />
 
 {#snippet leftSide()}
     <h1>Shelving Filters</h1>

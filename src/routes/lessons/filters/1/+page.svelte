@@ -9,7 +9,7 @@
 
 </script>
 
-<VSplitDiv {leftSide} {rightSide} next="/lessons/filters/2" />
+<VSplitDiv {leftSide} {rightSide} />
 
 {#snippet leftSide()}
     <h1>Filters</h1>

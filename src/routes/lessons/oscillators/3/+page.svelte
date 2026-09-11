@@ -10,7 +10,7 @@
 
 </script>
 
-<VSplitDiv {leftSide} {rightSide} prev="/lessons/oscillators/2" next="/lessons/oscillators/4"/>
+<VSplitDiv {leftSide} {rightSide} />
 
 {#snippet leftSide()}
     <h1>Adding more sines</h1>

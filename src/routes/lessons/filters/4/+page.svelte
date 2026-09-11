@@ -9,7 +9,7 @@
 
 </script>
 
-<VSplitDiv {leftSide} {rightSide} prev="/lessons/filters/3" next="/lessons/filters/5" />
+<VSplitDiv {leftSide} {rightSide} />
 
 {#snippet leftSide()}
     <h1>Filter Bandwidth</h1>

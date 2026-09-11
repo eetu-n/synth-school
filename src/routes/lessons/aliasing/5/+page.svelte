@@ -16,7 +16,7 @@
 
 </script>
 
-<VSplitDiv {leftSide} {rightSide} prev="/lessons/aliasing/4" />
+<VSplitDiv {leftSide} {rightSide} />
 
 {#snippet leftSide()}
     <h1>How does it sound?</h1>

@@ -10,7 +10,7 @@
     let showOriginal: boolean = $state(true);
 </script>
 
-<VSplitDiv {leftSide} {rightSide} next="/lessons/aliasing/2" />
+<VSplitDiv {leftSide} {rightSide} />
 
 {#snippet leftSide()}
     <h1>Sampling</h1>

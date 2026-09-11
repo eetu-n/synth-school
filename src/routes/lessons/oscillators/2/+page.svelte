@@ -10,7 +10,7 @@
 
 </script>
 
-<VSplitDiv {leftSide} {rightSide} prev="/lessons/oscillators/1" next="/lessons/oscillators/3"/>
+<VSplitDiv {leftSide} {rightSide} />
 
 {#snippet leftSide()}
     <h1>Sine wave oscillator</h1>
