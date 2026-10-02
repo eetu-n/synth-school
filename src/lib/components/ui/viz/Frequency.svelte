@@ -154,7 +154,7 @@
                 inputNode.connect(analyser);
             };
 
-            draw();
+            drawVisual = requestAnimationFrame(draw);
         } else {
             analyser = null;
         }
