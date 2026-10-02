@@ -9,7 +9,7 @@
 
 </script>
 
-<VSplitDiv {leftSide} {rightSide} />
+<AudioOverlay><VSplitDiv {leftSide} {rightSide} /> </AudioOverlay>
 
 {#snippet leftSide()}
     <h1>Filter Cutoff Frequency</h1>
@@ -20,17 +20,11 @@
         For example, an ideal low-pass filter with a cutoff of 500Hz would allow all frequencies below 500Hz to pass, and remove all frequencies above 500Hz.
     </p>
     <p>
-        However, in practice, filters are most often not ideal, and have a <b>transition band</b>, where the signal is attenuated somewhat but not completely.
-    </p>
-    <p>
-        TODO: Midi follow
+        However, as you can see, in practice, filters are most often not ideal, and have a <b>transition band</b>, where the signal is attenuated somewhat but not completely.
     </p>
 {/snippet}
 
 {#snippet rightSide()}
-    <AudioOverlay>
-    TODO: horizontal slider for cutoff frequency that shows the passband in the spectrogram
-        <FilterDemo outputNode={audioState.preMasterNode as RouterNode} enableResonance={false}/>
-        <Frequency inputNode={audioState.preMasterNode as RouterNode} />
-    </AudioOverlay>
+    <FilterDemo outputNode={audioState.preMasterNode as RouterNode} enableCutoff={true} />
+    <Frequency inputNode={audioState.preMasterNode as RouterNode} />
 {/snippet}
