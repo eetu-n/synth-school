@@ -10,7 +10,8 @@ export class FilterResponseAnalyzer {
         filterNode: BiquadFilterNode | IIRFilterNode, 
         numPoints: number = 200, 
         fMin: number = 20, 
-        fMax: number = 20000
+        fMax: number = 20000,
+        cascade: number = 1
     ): { f: number, value: number }[] {
         if (
             !this.freqArrayCache || 
@@ -42,7 +43,7 @@ export class FilterResponseAnalyzer {
 
         const lineData: { f: number, value: number }[] = [];
         for (let i = 0; i < numPoints; i++) {
-            const mag = magResponse[i];
+            const mag = Math.pow(magResponse[i], cascade);
             const db = mag > 0 ? 20 * Math.log10(mag) : -100;
             // value is normalized: 0.0 represents -40dB, 1.0 represents +20dB.
             const value = (db + 40) / 60;
