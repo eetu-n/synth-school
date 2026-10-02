@@ -19,6 +19,7 @@
 
   let isPlaying = $state(false);
   let cutoffFreq = $state(500);
+  let qValue = $state(1);
   let filtSelect = $state(0); // 0 = LP, 1 = HP, 2 = BP
 
   let minCutoff = $derived(filtSelect === 2 ? 250 : 20);
@@ -38,7 +39,6 @@
 
   $effect(() => {
     return () => {
-      filterNode.disconnect();
       routedFilterNode.destroy();
     };
   });
@@ -52,6 +52,7 @@
 
   $effect(() => {
     filterNode.frequency.value = cutoffFreq;
+    filterNode.Q.value = qValue;
     
     if (filtSelect === 0) filterNode.type = "lowpass";
     else if (filtSelect === 1) filterNode.type = "highpass";
@@ -75,7 +76,7 @@
       bind:value={filtSelect}
     />
 
-    <div class="flex flex-col items-center">
+    <div class="flex flex-row gap-4 items-center">
     <!-- TODO: change to a h-slider that corresponds to the spectrograph -->
       <Knob
         bind:value={cutoffFreq}
@@ -86,6 +87,15 @@
         unit="Hz"
         scale="log"
         defaultValue={500}
+        size={80}
+      />
+      <Knob
+        bind:value={qValue}
+        min={0.1}
+        max={20}
+        step={0.1}
+        label="Resonance (Q)"
+        defaultValue={1}
         size={80}
       />
     </div>
