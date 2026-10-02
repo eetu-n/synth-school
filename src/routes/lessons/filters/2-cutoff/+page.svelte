@@ -7,6 +7,7 @@
     import Frequency from "$lib/components/ui/viz/Frequency.svelte";
     import ResponsiveText from "$lib/components/ui/text/ResponsiveText.svelte";
 
+    let lineData = $state<{ f: number, value: number }[]>([]);
 </script>
 
 <AudioOverlay><VSplitDiv {leftSide} {rightSide} /> </AudioOverlay>
@@ -25,6 +26,6 @@
 {/snippet}
 
 {#snippet rightSide()}
-    <FilterDemo outputNode={audioState.preMasterNode as RouterNode} enableCutoff={true} />
-    <Frequency inputNode={audioState.preMasterNode as RouterNode} />
+    <FilterDemo outputNode={audioState.preMasterNode as RouterNode} enableCutoff={true} bind:lineData />
+    <Frequency inputNode={audioState.preMasterNode as RouterNode} {lineData} />
 {/snippet}
