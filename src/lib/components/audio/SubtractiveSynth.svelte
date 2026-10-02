@@ -3,6 +3,7 @@
   import type RoutedAudioNode from "$lib/audio/framework/RoutedAudioNode";
   import { getAudioContext } from "$lib/audio/framework/audioContextManager";
   import Knob from "$lib/components/ui/inputs/Knob.svelte";
+  import Radio from "$lib/components/ui/inputs/Radio.svelte";
 
   let {
     outputNode,
@@ -93,32 +94,15 @@
         <h3 class="text-[11px] font-black uppercase tracking-widest text-base-content/40 border-b border-base-200 leading-none pb-1">Oscillator</h3>
         
         <div class="flex flex-wrap items-center gap-8">
-          <div class="flex flex-col gap-2 items-center w-24">
-            <span class="text-[10px] uppercase font-bold text-base-content/70">Waveform</span>
-            <div class="flex flex-col gap-1 w-full">
-              <button 
-                class="btn btn-xs h-8 w-full flex items-center justify-start px-2 gap-2 transition-all {waveSelect === 0 ? 'btn-primary shadow-md' : 'btn-ghost bg-base-100/30 border-base-content/10 border'}"
-                onclick={() => waveSelect = 0}
-              >
-                <div class="w-2 h-2 rounded-full {waveSelect === 0 ? 'bg-white shadow-[0_0_8px_white]' : 'bg-base-content/10'}"></div>
-                <span class="text-[10px] font-bold {waveSelect === 0 ? 'text-primary-content' : 'text-base-content/60'}">Sawtooth</span>
-              </button>
-              <button 
-                class="btn btn-xs h-8 w-full flex items-center justify-start px-2 gap-2 transition-all {waveSelect === 1 ? 'btn-primary shadow-md' : 'btn-ghost bg-base-100/30 border-base-content/10 border'}"
-                onclick={() => waveSelect = 1}
-              >
-                <div class="w-2 h-2 rounded-full {waveSelect === 1 ? 'bg-white shadow-[0_0_8px_white]' : 'bg-base-content/10'}"></div>
-                <span class="text-[10px] font-bold {waveSelect === 1 ? 'text-primary-content' : 'text-base-content/60'}">Square</span>
-              </button>
-              <button 
-                class="btn btn-xs h-8 w-full flex items-center justify-start px-2 gap-2 transition-all {waveSelect === 2 ? 'btn-primary shadow-md' : 'btn-ghost bg-base-100/30 border-base-content/10 border'}"
-                onclick={() => waveSelect = 2}
-              >
-                <div class="w-2 h-2 rounded-full {waveSelect === 2 ? 'bg-white shadow-[0_0_8px_white]' : 'bg-base-content/10'}"></div>
-                <span class="text-[10px] font-bold {waveSelect === 2 ? 'text-primary-content' : 'text-base-content/60'}">Triangle</span>
-              </button>
-            </div>
-          </div>
+          <Radio
+            label="Waveform"
+            options={[
+              { label: "Sawtooth", value: 0 },
+              { label: "Square", value: 1 },
+              { label: "Triangle", value: 2 }
+            ]}
+            bind:value={waveSelect}
+          />
 
           <Knob label="Frequency" bind:value={freq} min={20} max={10000} step={1} size={80} scale="log" unit="Hz" />
           <Knob label="Gain" bind:value={gain} min={0} max={1} step={0.01} size={60} />
