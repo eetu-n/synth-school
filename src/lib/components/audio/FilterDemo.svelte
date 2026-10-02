@@ -1,13 +1,19 @@
 <script lang="ts">
-  import FaustNode from "$lib/audio/framework/FaustNode";
-  import type RoutedAudioNode from "$lib/audio/framework/RoutedAudioNode";
   import { getAudioContext } from "$lib/audio/framework/audioContextManager";
+  import RoutedAudioNode from "$lib/audio/framework/RoutedAudioNode";
   import Knob from "$lib/components/ui/inputs/Knob.svelte";
   import Toggle from "$lib/components/ui/inputs/Toggle.svelte";
+  import { FilterResponseAnalyzer } from "$lib/audio/dsp/FilterResponseAnalyzer";
+
+  import Noise from "$lib/components/audio/Noise.svelte";
 
   let {
     outputNode,
-  }: { outputNode: RoutedAudioNode | null } = $props();
+    lineData = $bindable()
+  }: { 
+    outputNode: RoutedAudioNode<any> | null,
+    lineData?: { f: number, value: number }[]
+  } = $props();
 
   let isPlaying = $state(false);
   let cutoffFreq = $state(500);
@@ -21,30 +27,39 @@
     }
   });
 
-  let faustNode = await FaustNode.create(
-    "filterDemo",
-    await getAudioContext(),
-  );
+  const filterAnalyzer = new FilterResponseAnalyzer();
+
+  let audioCtx = await getAudioContext();
+  let filterNode = audioCtx.createBiquadFilter();
+  filterNode.type = "lowpass";
+  let routedFilterNode = new RoutedAudioNode("filterDemo", audioCtx, filterNode);
 
   $effect(() => {
-    if (faustNode && outputNode) {
-      faustNode.connect(outputNode);
-      return () => faustNode?.disconnect(outputNode);
+    return () => {
+      filterNode.disconnect();
+      routedFilterNode.destroy();
+    };
+  });
+
+  $effect(() => {
+    if (outputNode) {
+      routedFilterNode.connect(outputNode);
+      return () => routedFilterNode.disconnect(outputNode);
     }
   });
 
   $effect(() => {
-    if (faustNode) {
-      faustNode.setParamValue("cutoffFreq", cutoffFreq);
-      faustNode.setParamValue("filtSelect", filtSelect);
-      faustNode.setParamValue("play", isPlaying ? 1 : 0);
-    }
-  });
-
-  $effect(() => {
-    return () => faustNode?.destroy();
+    filterNode.frequency.value = cutoffFreq;
+    
+    if (filtSelect === 0) filterNode.type = "lowpass";
+    else if (filtSelect === 1) filterNode.type = "highpass";
+    else if (filtSelect === 2) filterNode.type = "bandpass";
+    
+    lineData = filterAnalyzer.getResponseLineData(filterNode);
   });
 </script>
+
+<Noise outputNode={routedFilterNode} bind:isPlaying />
 
 <div class="flex flex-col gap-6 p-4">
   <div class="flex flex-col md:flex-row gap-8 items-center justify-center p-4 bg-base-200/50 rounded-xl">
