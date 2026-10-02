@@ -44,8 +44,8 @@ export class FilterResponseAnalyzer {
         for (let i = 0; i < numPoints; i++) {
             const mag = magResponse[i];
             const db = mag > 0 ? 20 * Math.log10(mag) : -100;
-            // value is normalized: 0.0 represents -40dB, 1.0 represents 0dB.
-            const value = (db + 40) / 40;
+            // value is normalized: 0.0 represents -40dB, 1.0 represents +20dB.
+            const value = (db + 40) / 60;
             lineData.push({ f: freqArray[i], value });
         }
 
