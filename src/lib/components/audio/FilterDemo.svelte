@@ -11,10 +11,14 @@
 
   let {
     outputNode,
-    lineData = $bindable()
+    lineData = $bindable(),
+    enableCutoff = $bindable(true),
+    enableResonance = $bindable(true)
   }: { 
     outputNode: RoutedAudioNode<any> | null,
-    lineData?: { f: number, value: number }[]
+    lineData?: { f: number, value: number }[],
+    enableCutoff?: boolean,
+    enableResonance?: boolean
   } = $props();
 
   let isPlaying = $state(false);
@@ -78,26 +82,30 @@
 
     <div class="flex flex-row gap-4 items-center">
     <!-- TODO: change to a h-slider that corresponds to the spectrograph -->
-      <Knob
-        bind:value={cutoffFreq}
-        min={minCutoff}
-        max={20000}
-        step={1}
-        label="Cutoff"
-        unit="Hz"
-        scale="log"
-        defaultValue={500}
-        size={80}
-      />
-      <Knob
-        bind:value={qValue}
-        min={0.1}
-        max={20}
-        step={0.1}
-        label="Resonance (Q)"
-        defaultValue={1}
-        size={80}
-      />
+      {#if enableCutoff}
+        <Knob
+          bind:value={cutoffFreq}
+          min={minCutoff}
+          max={20000}
+          step={1}
+          label="Cutoff"
+          unit="Hz"
+          scale="log"
+          defaultValue={500}
+          size={80}
+        />
+      {/if}
+      {#if enableResonance}
+        <Knob
+          bind:value={qValue}
+          min={0.1}
+          max={20}
+          step={0.1}
+          label="Resonance (Q)"
+          defaultValue={1}
+          size={80}
+        />
+      {/if}
     </div>
     <Toggle colored={true} bind:checked={isPlaying}>Play Noise</Toggle>
   </div>
