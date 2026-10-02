@@ -55,7 +55,11 @@ export default class RoutedAudioNode<T extends AudioNode | null = null> {
 
     disconnectFrom(inputNode: RoutedAudioNode<any>) {
         if (inputNode.audioNode && this.audioNode) {
-            inputNode.audioNode.disconnect(this.audioNode);
+            try {
+                inputNode.audioNode.disconnect(this.audioNode);
+            } catch (e) {
+                // Ignore DOMException if already disconnected
+            }
         }
     };
 

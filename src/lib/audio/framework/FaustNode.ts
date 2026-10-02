@@ -41,6 +41,16 @@ export default class FaustNode extends RoutedAudioNode<FaustAudioWorkletNode> {
         return 0;
     }
 
+    destroy() {
+        super.destroy();
+        if (this.audioNode) {
+            try { this.audioNode.disconnect(); } catch (e) {}
+            if (typeof this.audioNode.destroy === 'function') {
+                this.audioNode.destroy();
+            }
+        }
+    }
+
     static async createWorkletNode(name: string, context: AudioContext): Promise<FaustAudioWorkletNode | null > {
         if (context.state !== 'running') {
             console.error(`AudioContext not running. State: ${context.state}`);
