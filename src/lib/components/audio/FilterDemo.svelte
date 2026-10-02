@@ -24,7 +24,7 @@
 
   let isPlaying = $state(false);
   let cutoffFreq = $state(500);
-  let qValue = $state(1);
+  let qValue = $state(0);
   let filtSelect = $state(0); // 0 = LP, 1 = HP, 2 = BP
 
   let minCutoff = $derived(filtSelect === 2 ? 250 : 20);
