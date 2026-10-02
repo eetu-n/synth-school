@@ -30,7 +30,7 @@
 {#snippet rightSide()}
     <AudioOverlay>
     TODO: horizontal slider for cutoff frequency that shows the passband in the spectrogram
-        <FilterDemo outputNode={audioState.preMasterNode as RouterNode} />
+        <FilterDemo outputNode={audioState.preMasterNode as RouterNode} enableResonance={false}/>
         <Frequency inputNode={audioState.preMasterNode as RouterNode} />
     </AudioOverlay>
 {/snippet}
