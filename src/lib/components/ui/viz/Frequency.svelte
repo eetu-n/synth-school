@@ -2,7 +2,13 @@
     import { audioState } from '$lib/audio/framework/audioState.svelte';
     import RoutedAudioNode from '$lib/audio/framework/RoutedAudioNode';
 
-    let { inputNode }: { inputNode?: RoutedAudioNode<any> } = $props();
+    let { 
+        inputNode,
+        lineData
+    }: { 
+        inputNode?: RoutedAudioNode<any>,
+        lineData?: { f: number, value: number }[]
+    } = $props();
 
     let canvas = $state<HTMLCanvasElement | null>(null);
     let container = $state<HTMLDivElement | null>(null);
@@ -107,6 +113,31 @@
         }
 
         context.shadowBlur = 0;
+
+        const lineColor = style.getPropertyValue('--color-secondary-val').trim() || style.getPropertyValue('--color-signal-actual-val').trim() || '#f43f5e';
+
+        if (lineData && lineData.length > 0) {
+            context.beginPath();
+            context.strokeStyle = lineColor;
+            context.lineWidth = 2;
+            
+            for (let i = 0; i < lineData.length; i++) {
+                const point = lineData[i];
+                if (point.f < fMin || point.f > fMax) continue;
+                
+                const x = width * (Math.log10(point.f / fMin) / Math.log10(fMax / fMin));
+                const y = height - (point.value * height * 0.85);
+                
+                if (i === 0) {
+                    context.moveTo(x, y);
+                } else {
+                    context.lineTo(x, y);
+                }
+            }
+            context.stroke();
+        }
+
+
     }
 
     $effect(() => {
