@@ -4,14 +4,25 @@
 
     let { 
         inputNode,
-        lineData
+        lineData,
+        bandRegions
     }: { 
         inputNode?: RoutedAudioNode<any>,
-        lineData?: { f: number, value: number }[]
+        lineData?: { f: number, value: number }[],
+        bandRegions?: { startF: number, endF: number, label: string, color?: string }[]
     } = $props();
 
     let canvas = $state<HTMLCanvasElement | null>(null);
-    let container = $state<HTMLDivElement | null>(null);
+
+    let w = $state(800);
+    let h = $state(400);
+    let dpr = $state(1);
+
+    $effect(() => {
+        if (typeof window !== 'undefined') {
+            dpr = window.devicePixelRatio || 1;
+        }
+    });
 
     let analyser: RoutedAudioNode<AnalyserNode> | null = null;
     let dataArray: Uint8Array<any> | null = null;
@@ -38,10 +49,14 @@
         drawVisual = requestAnimationFrame(draw);
         analyser.audioNode?.getByteFrequencyData(dataArray);
 
-        const width = canvas.width;
-        const height = canvas.height;
+        const width = w;
+        const height = h;
         const sampleRate = audioState.context.sampleRate;
         const bufferLength = dataArray.length;
+
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.save();
+        context.scale(dpr, dpr);
 
         // Get current colors from CSS variables
         const style = getComputedStyle(canvas);
@@ -57,7 +72,7 @@
         context.strokeStyle = gridColor;
         for (let i = 1; i < 4; i++) {
             context.lineWidth = i === 2 ? 1.5 : 1; // Center line slightly thicker
-            context.globalAlpha = i === 2 ? 0.6 : 0.4;
+            context.globalAlpha = i === 2 ? 0.7 : 0.5;
             context.beginPath();
             const y = (height / 4) * i;
             context.moveTo(0, y);
@@ -75,8 +90,8 @@
                 
                 // Major lines (100, 1000, 10000) are prominent
                 const isMajor = (i === 1 && (decade === 100 || decade === 1000 || decade === 10000));
-                context.lineWidth = isMajor ? 2 : 1;
-                context.globalAlpha = isMajor ? 0.7 : 0.3;
+                context.lineWidth = isMajor ? 1.5 : 1;
+                context.globalAlpha = isMajor ? 0.8 : 0.4;
                 
                 context.beginPath();
                 context.moveTo(x, 0);
@@ -119,7 +134,7 @@
         if (lineData && lineData.length > 0) {
             context.beginPath();
             context.strokeStyle = lineColor;
-            context.lineWidth = 2;
+            context.lineWidth = 2.5;
             
             for (let i = 0; i < lineData.length; i++) {
                 const point = lineData[i];
@@ -137,9 +152,52 @@
             context.stroke();
         }
 
+        if (bandRegions && bandRegions.length > 0) {
+            context.textAlign = "center";
+            context.font = "bold 12px sans-serif";
+            
+            bandRegions.forEach(region => {
+                if (region.endF < fMin || region.startF > fMax) return;
+                
+                const startX = region.startF <= fMin ? 0 : width * (Math.log10(region.startF / fMin) / Math.log10(fMax / fMin));
+                const endX = region.endF >= fMax ? width : width * (Math.log10(region.endF / fMin) / Math.log10(fMax / fMin));
+                
+                let regionColor = region.color || "rgba(255, 255, 255, 0.6)";
+                if (regionColor.startsWith('--')) {
+                    regionColor = style.getPropertyValue(regionColor).trim() || "rgba(255, 255, 255, 0.6)";
+                }
 
+                // Draw separator lines at the boundaries (if not at edges)
+                context.beginPath();
+                context.strokeStyle = regionColor;
+                context.lineWidth = 1.5;
+                context.setLineDash([4, 4]);
+                
+                if (region.startF > fMin && region.startF < fMax) {
+                    context.moveTo(startX, 0);
+                    context.lineTo(startX, height);
+                }
+                if (region.endF < fMax && region.endF > fMin) {
+                    context.moveTo(endX, 0);
+                    context.lineTo(endX, height);
+                }
+                context.stroke();
+                context.setLineDash([]);
+                
+                // Draw text in the middle of the band
+                if (region.label) {
+                    const textWidth = context.measureText(region.label).width;
+                    if (endX - startX > textWidth + 10) {
+                        context.fillStyle = regionColor;
+                        const midX = (startX + endX) / 2;
+                        context.fillText(region.label, midX, 16);
+                    }
+                }
+            });
+        }
+        
+        context.restore();
     }
-
     $effect(() => {
         if (audioState.context && inputNode) {
             analyser = new RoutedAudioNode(
@@ -168,13 +226,14 @@
     });
 </script>
 
-<div bind:this={container} class="bg-surface dark:bg-dark-surface rounded-xl shadow-sm border border-border dark:border-dark-border p-6 my-4 w-full max-w-3xl mx-auto flex flex-col">
-    <div class="w-full aspect-[2/1] relative mb-2">
+<div class="bg-surface dark:bg-dark-surface rounded-xl shadow-sm border border-border dark:border-dark-border p-6 my-4 w-full max-w-3xl mx-auto flex flex-col">
+    <div class="w-full aspect-[2/1] relative mb-2" bind:clientWidth={w} bind:clientHeight={h}>
         <canvas 
             bind:this={canvas} 
-            width="800" 
-            height="400"
-            class="w-full h-full block"
+            width={Math.floor(w * dpr)} 
+            height={Math.floor(h * dpr)}
+            style="width: 100%; height: 100%;"
+            class="block"
         ></canvas>
     </div>
     
