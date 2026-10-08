@@ -132,6 +132,19 @@
         const lineColor = style.getPropertyValue('--color-secondary-val').trim() || style.getPropertyValue('--color-signal-actual-val').trim() || '#f43f5e';
 
         if (lineData && lineData.length > 0) {
+            // Draw 0dB Reference Line
+            const y0dB = height - ((40 / 60) * height * 0.85);
+            context.beginPath();
+            context.strokeStyle = style.getPropertyValue('--color-text-secondary-val').trim() || '#64748b';
+            context.lineWidth = 1.5;
+            context.globalAlpha = 1.0;
+            context.setLineDash([6, 4]);
+            context.moveTo(0, y0dB);
+            context.lineTo(width, y0dB);
+            context.stroke();
+            context.setLineDash([]);
+            context.globalAlpha = 1.0;
+
             context.beginPath();
             context.strokeStyle = lineColor;
             context.lineWidth = 2.5;
