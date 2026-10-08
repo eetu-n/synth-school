@@ -13,27 +13,83 @@
     lineData = $bindable(),
     enableCutoff = $bindable(false),
     enableResonance = $bindable(false),
-    enableSlope = $bindable(false)
+    enableSlope = $bindable(false),
+    showBands = $bindable(false),
+    bandRegions = $bindable([])
   }: { 
     outputNode: RoutedAudioNode<any> | null,
     lineData?: { f: number, value: number }[],
     enableCutoff?: boolean,
     enableResonance?: boolean,
-    enableSlope?: boolean
+    enableSlope?: boolean,
+    showBands?: boolean,
+    bandRegions?: { startF: number, endF: number, label: string, color?: string }[]
   } = $props();
 
   let isPlaying = $state(false);
   let cutoffFreq = $state(500);
-  let qValue = $state(0);
+  let qValue = $state(1);
   let filtSelect = $state(0); // 0 = LP, 1 = HP, 2 = BP
 
-  let minCutoff = $derived(filtSelect === 2 ? 250 : 20);
+  let minCutoff = 20;
   let slopeSelect = $state(1); // 1 = 12dB (2-pole), 2 = 24dB (4-pole), 4 = 48dB (8-pole)
 
   $effect(() => {
     if (cutoffFreq < minCutoff) {
       cutoffFreq = minCutoff;
     }
+  });
+
+  $effect(() => {
+    if (!showBands) {
+      bandRegions = [];
+      return;
+    }
+
+    const regions: { startF: number, endF: number, label: string, color?: string }[] = [];
+    const passColor = "--color-passband-val";
+    const stopColor = "--color-stopband-val";
+    const transColor = "--color-transitionband-val";
+
+    switch (filtSelect) {
+      case 0: { // LP
+        const stopMultiplier = Math.pow(2, 2 / slopeSelect);
+        const stopF = cutoffFreq * stopMultiplier;
+        
+        regions.push({ startF: 0.1, endF: cutoffFreq, label: "Passband", color: passColor });
+        regions.push({ startF: cutoffFreq, endF: stopF, label: "Transition Band", color: transColor });
+        regions.push({ startF: stopF, endF: 100000, label: "Stopband", color: stopColor });
+        break;
+      }
+      case 1: { // HP
+        const stopDivisor = Math.pow(2, 2 / slopeSelect);
+        const stopF = cutoffFreq / stopDivisor;
+        
+        regions.push({ startF: 0.1, endF: stopF, label: "Stopband", color: stopColor });
+        regions.push({ startF: stopF, endF: cutoffFreq, label: "Transition Band", color: transColor });
+        regions.push({ startF: cutoffFreq, endF: 100000, label: "Passband", color: passColor });
+        break;
+      }
+      case 2: { // BP
+        const actualQ = qValue + 1;
+        const bw = cutoffFreq / actualQ;
+        const f1 = cutoffFreq - bw / 2;
+        const f2 = cutoffFreq + bw / 2;
+        
+        const transMult = Math.pow(2, 1.5 / slopeSelect);
+        const stop1 = f1 / transMult;
+        const stop2 = f2 * transMult;
+        
+        regions.push({ startF: 0.1, endF: stop1, label: "Stopband", color: stopColor });
+        regions.push({ startF: stop1, endF: f1, label: "Transition Band", color: transColor });
+        regions.push({ startF: f1, endF: f2, label: "Passband", color: passColor });
+        regions.push({ startF: f2, endF: stop2, label: "Transition Band", color: transColor });
+        regions.push({ startF: stop2, endF: 100000, label: "Stopband", color: stopColor });
+        break;
+      }
+    }
+
+    bandRegions = regions;
   });
 
   let audioCtx = await getAudioContext();
