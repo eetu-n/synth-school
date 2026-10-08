@@ -55,12 +55,12 @@
   $effect(() => {
     filterNodes.forEach(fn => {
       fn.frequency.value = cutoffFreq;
-      fn.Q.value = qValue;
+      fn.Q.value = qValue / slopeSelect;
       if (filtSelect === 0) fn.type = "lowpass";
       else if (filtSelect === 1) fn.type = "highpass";
       else if (filtSelect === 2) fn.type = "bandpass";
     });
     
-    lineData = filterAnalyzer.getResponseLineData(filterNodes[0], 200, 20, 20000, slopeSelect);
+    lineData = filterAnalyzer.getResponseLineData(filterNodes[0], 1000, 20, 20000, slopeSelect);
   });
 </script>
