@@ -17,6 +17,9 @@
     --color-node-border-val: #e2e8f0;
     --color-signal-actual-val: #e87953; 
     --color-signal-aliased-val: #3b82f6; 
+    --color-passband-val: rgba(16, 185, 129, 0.8);
+    --color-stopband-val: rgba(239, 68, 68, 0.8);
+    --color-transitionband-val: rgba(234, 179, 8, 0.8);
 
     /* Legacy variables for components */
     --background-color: var(--color-background-val);
@@ -53,6 +56,9 @@
     --color-node-border-val: #334155;
     --color-signal-actual-val: #fb923c; 
     --color-signal-aliased-val: #60a5fa; 
+    --color-passband-val: rgba(45, 212, 191, 0.8);
+    --color-stopband-val: rgba(248, 113, 113, 0.8);
+    --color-transitionband-val: rgba(250, 204, 21, 0.8);
   }
 
   html, body {
@@ -150,6 +156,9 @@
   --color-node-border: var(--color-node-border-val);
   --color-signal-actual: var(--color-signal-actual-val);
   --color-signal-aliased: var(--color-signal-aliased-val);
+  --color-passband: var(--color-passband-val);
+  --color-stopband: var(--color-stopband-val);
+  --color-transitionband: var(--color-transitionband-val);
 
   @keyframes bounce-horizontal {
     0%, 100% { transform: translateX(0); }
