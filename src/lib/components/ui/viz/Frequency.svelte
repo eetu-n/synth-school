@@ -9,7 +9,7 @@
     }: { 
         inputNode?: RoutedAudioNode<any>,
         lineData?: { f: number, value: number }[],
-        bandRegions?: { startF: number, endF: number, label: string, color?: string }[]
+        bandRegions?: { startF: number, endF: number, label: string }[]
     } = $props();
 
     let canvas = $state<HTMLCanvasElement | null>(null);
@@ -162,9 +162,14 @@
                 const startX = region.startF <= fMin ? 0 : width * (Math.log10(region.startF / fMin) / Math.log10(fMax / fMin));
                 const endX = region.endF >= fMax ? width : width * (Math.log10(region.endF / fMin) / Math.log10(fMax / fMin));
                 
-                let regionColor = region.color || "rgba(255, 255, 255, 0.6)";
-                if (regionColor.startsWith('--')) {
-                    regionColor = style.getPropertyValue(regionColor).trim() || "rgba(255, 255, 255, 0.6)";
+                let regionColor = "rgba(255, 255, 255, 0.6)";
+                const lowerLabel = region.label.toLowerCase();
+                if (lowerLabel.includes('passband')) {
+                    regionColor = style.getPropertyValue('--color-passband-val').trim() || "rgba(16, 185, 129, 0.8)";
+                } else if (lowerLabel.includes('stopband')) {
+                    regionColor = style.getPropertyValue('--color-stopband-val').trim() || "rgba(239, 68, 68, 0.8)";
+                } else if (lowerLabel.includes('transition')) {
+                    regionColor = style.getPropertyValue('--color-transitionband-val').trim() || "rgba(234, 179, 8, 0.8)";
                 }
 
                 // Draw separator lines at the boundaries (if not at edges)

@@ -23,7 +23,7 @@
     enableResonance?: boolean,
     enableSlope?: boolean,
     showBands?: boolean,
-    bandRegions?: { startF: number, endF: number, label: string, color?: string }[]
+    bandRegions?: { startF: number, endF: number, label: string }[]
   } = $props();
 
   let isPlaying = $state(false);
@@ -46,28 +46,25 @@
       return;
     }
 
-    const regions: { startF: number, endF: number, label: string, color?: string }[] = [];
-    const passColor = "--color-passband-val";
-    const stopColor = "--color-stopband-val";
-    const transColor = "--color-transitionband-val";
+    const regions: { startF: number, endF: number, label: string }[] = [];
 
     switch (filtSelect) {
       case 0: { // LP
         const stopMultiplier = Math.pow(2, 2 / slopeSelect);
         const stopF = cutoffFreq * stopMultiplier;
         
-        regions.push({ startF: 0.1, endF: cutoffFreq, label: "Passband", color: passColor });
-        regions.push({ startF: cutoffFreq, endF: stopF, label: "Transition Band", color: transColor });
-        regions.push({ startF: stopF, endF: 100000, label: "Stopband", color: stopColor });
+        regions.push({ startF: 0.1, endF: cutoffFreq, label: "Passband" });
+        regions.push({ startF: cutoffFreq, endF: stopF, label: "Transition Band" });
+        regions.push({ startF: stopF, endF: 100000, label: "Stopband" });
         break;
       }
       case 1: { // HP
         const stopDivisor = Math.pow(2, 2 / slopeSelect);
         const stopF = cutoffFreq / stopDivisor;
         
-        regions.push({ startF: 0.1, endF: stopF, label: "Stopband", color: stopColor });
-        regions.push({ startF: stopF, endF: cutoffFreq, label: "Transition Band", color: transColor });
-        regions.push({ startF: cutoffFreq, endF: 100000, label: "Passband", color: passColor });
+        regions.push({ startF: 0.1, endF: stopF, label: "Stopband" });
+        regions.push({ startF: stopF, endF: cutoffFreq, label: "Transition Band" });
+        regions.push({ startF: cutoffFreq, endF: 100000, label: "Passband" });
         break;
       }
       case 2: { // BP
@@ -80,11 +77,11 @@
         const stop1 = f1 / transMult;
         const stop2 = f2 * transMult;
         
-        regions.push({ startF: 0.1, endF: stop1, label: "Stopband", color: stopColor });
-        regions.push({ startF: stop1, endF: f1, label: "Transition Band", color: transColor });
-        regions.push({ startF: f1, endF: f2, label: "Passband", color: passColor });
-        regions.push({ startF: f2, endF: stop2, label: "Transition Band", color: transColor });
-        regions.push({ startF: stop2, endF: 100000, label: "Stopband", color: stopColor });
+        regions.push({ startF: 0.1, endF: stop1, label: "Stopband" });
+        regions.push({ startF: stop1, endF: f1, label: "Transition Band" });
+        regions.push({ startF: f1, endF: f2, label: "Passband" });
+        regions.push({ startF: f2, endF: stop2, label: "Transition Band" });
+        regions.push({ startF: stop2, endF: 100000, label: "Stopband" });
         break;
       }
     }
