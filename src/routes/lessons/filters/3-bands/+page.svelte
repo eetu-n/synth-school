@@ -19,11 +19,15 @@
         Generally, a filter can be described as having three distinct regions or <i>bands</i>.
         These are:
     </p>
-        <ul>
-            <li><b>Passband</b>: where ideally the filter has no effect on the sound.</li>
-            <li><b>Stopband</b>: where ideally the filter silences all sound.</li>
-            <li><b>Transition Band</b>: which is where the filter smoothly transitions between the two.</li>
-        </ul>
+    <ul>
+        <li><b>Passband</b>: where ideally the filter has no effect on the sound.</li>
+        <li><b>Stopband</b>: where ideally the filter silences all sound.</li>
+        <li><b>Transition Band</b>: which is where the filter smoothly transitions between the two.</li>
+    </ul>
+    <p>
+        However, as you can see, the actual response curve (in orange) is never actually <i>ideal</i>.
+        The filter generally has some effect in the passband; [TODO]
+    </p>
 {/snippet}
 
 {#snippet rightSide()}

@@ -13,7 +13,16 @@
 <AudioOverlay><VSplitDiv {leftSide} {rightSide} /></AudioOverlay>
 
 {#snippet leftSide()}
-    <h1>Filter Bandwidth</h1>
+    <h1>Filter Slope</h1>
+    <p>
+        Many digital filters will give you an option to affect the slope of the transition band, or to the same effect, the width.
+        The simplest form is an option to select between some distinct options given in decibels per octave, or dB/oct.
+        More advanced filters or graphical EQs might give you a continuous slider for this option.
+    </p>
+    <p>
+        You might notice in this implementation, the peak before the transition band becomes larger when the transition band narrows.
+        [TODO: Too detailed?]
+    </p>
 {/snippet}
 
 {#snippet rightSide()}
