@@ -11,7 +11,7 @@
     let bandRegions = $state<{ startF: number, endF: number, label: string, color?: string }[]>([]);
 </script>
 
-<AudioOverlay> <VSplitDiv {leftSide} {rightSide} /></AudioOverlay>
+<AudioOverlay><VSplitDiv {leftSide} {rightSide} /></AudioOverlay>
 
 {#snippet leftSide()}
     <h1>Filter Bands</h1>
@@ -31,6 +31,16 @@
 {/snippet}
 
 {#snippet rightSide()}
-    <FilterDemo outputNode={audioState.preMasterNode as RouterNode} enableCutoff={true} enableSlope={true} bind:lineData showBands={true} bind:bandRegions  />
-    <Frequency inputNode={audioState.preMasterNode as RouterNode} {lineData} {bandRegions} />
+    <FilterDemo
+        outputNode={audioState.preMasterNode as RouterNode}
+        enableCutoff={true}
+        bind:lineData
+        showBands={true}
+        bind:bandRegions
+    />
+    <Frequency
+        inputNode={audioState.preMasterNode as RouterNode}
+        {lineData}
+        {bandRegions}
+    />
 {/snippet}
