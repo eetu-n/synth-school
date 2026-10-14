@@ -202,13 +202,19 @@
                 context.stroke();
                 context.setLineDash([]);
                 
-                // Draw text in the middle of the band
+                // Draw labels, fade out text as it runs out of space to exist
                 if (region.label) {
                     const textWidth = context.measureText(region.label).width;
-                    if (endX - startX > textWidth + 10) {
+                    const minWidth = textWidth + 10;
+                    const fadeMargin = 60;
+                    const availableWidth = endX - startX;
+                    const labelOpacity = Math.min(1, Math.max(0, (availableWidth - minWidth) / fadeMargin));
+
+                    if (labelOpacity > 0.01) {
+                        context.globalAlpha = labelOpacity;
                         context.fillStyle = regionColor;
-                        const midX = (startX + endX) / 2;
-                        context.fillText(region.label, midX, 16);
+                        context.fillText(region.label, (startX + endX) / 2, 16);
+                        context.globalAlpha = 1.0;
                     }
                 }
             });
