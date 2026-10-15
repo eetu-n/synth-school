@@ -6,8 +6,10 @@
     import AudioOverlay from "$lib/components/ui/layout/AudioOverlay.svelte";
     import Frequency from "$lib/components/ui/viz/Frequency.svelte";
     import SynthExamples from "$lib/components/audio/SynthExamples.svelte";
+    import type FaustNode from "$lib/audio/framework/FaustNode";
 
     let lineData = $state<{ f: number, value: number }[]>([]);
+    let synthNode = $state<FaustNode | null>(null);
 </script>
 
 <AudioOverlay><VSplitDiv {leftSide} {rightSide} /> </AudioOverlay>
@@ -23,6 +25,7 @@
 {/snippet}
 
 {#snippet rightSide()}
-    <FilterDemo outputNode={audioState.preMasterNode as RouterNode} enableCutoff={true} enableSlope={true} enableResonance={true} bind:lineData />
+    <SynthExamples bind:faustNode={synthNode} />
+    <FilterDemo inputNode={synthNode} outputNode={audioState.preMasterNode as RouterNode} enableCutoff={true} enableSlope={true} enableResonance={true} bind:lineData />
     <Frequency inputNode={audioState.preMasterNode as RouterNode} {lineData} />
 {/snippet}
