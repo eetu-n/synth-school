@@ -1,5 +1,5 @@
 import RoutedAudioNode from "$lib/audio/framework/RoutedAudioNode";
-import { FilterResponseAnalyzer } from "$lib/audio/dsp/FilterResponseAnalyzer";
+import { FilterResponseAnalyzer } from "$lib/audio/nodes/FilterResponseAnalyzer";
 
 export interface FilterParams {
   cutoff?: number;

@@ -10,7 +10,7 @@ export default class FaustNode extends RoutedAudioNode<FaustAudioWorkletNode> {
 	started: boolean = false;
 	error: string | null = null;
 
-	private constructor(name: string, context: AudioContext, workletNode: FaustAudioWorkletNode) {
+	protected constructor(name: string, context: AudioContext, workletNode: FaustAudioWorkletNode) {
 		super(name, context, workletNode);
 	}
 
