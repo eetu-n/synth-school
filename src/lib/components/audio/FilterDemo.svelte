@@ -4,12 +4,14 @@
   import Knob from "$lib/components/ui/inputs/Knob.svelte";
   import Toggle from "$lib/components/ui/inputs/Toggle.svelte";
   
-  import Filter from "$lib/components/audio/Filter.svelte";
   import Noise from "$lib/components/audio/Noise.svelte";
   import Radio from "$lib/components/ui/inputs/Radio.svelte";
+  import CascadingFilterNode from "$lib/audio/dsp/CascadingFilterNode";
 
   let {
-    outputNode,
+    inputNode,
+    outputNode = null,
+    filterNode = $bindable(null),
     lineData = $bindable(),
     enableCutoff = $bindable(false),
     enableResonance = $bindable(false),
@@ -17,7 +19,9 @@
     showBands = $bindable(false),
     bandRegions = $bindable([])
   }: { 
-    outputNode: RoutedAudioNode<any> | null,
+    inputNode?: RoutedAudioNode<any> | null,
+    outputNode?: RoutedAudioNode<any> | null,
+    filterNode?: CascadingFilterNode | null,
     lineData?: { f: number, value: number }[],
     enableCutoff?: boolean,
     enableResonance?: boolean,
@@ -33,6 +37,34 @@
 
   let minCutoff = 20;
   let slopeSelect = $state(1); // 1 = 12dB (2-pole), 2 = 24dB (4-pole), 4 = 48dB (8-pole)
+
+  let internalFilter = $state<CascadingFilterNode | null>(null);
+
+  // If inputNode was omitted, use noise as default
+  let useInternalNoise = $derived(inputNode === undefined);
+
+  $effect(() => {
+    let active = true;
+    let createdFilter: CascadingFilterNode | null = null;
+
+    async function init() {
+      const audioCtx = await getAudioContext();
+      if (!active) return;
+
+      createdFilter = new CascadingFilterNode("filterDemo", audioCtx);
+      internalFilter = createdFilter;
+      filterNode = createdFilter;
+    }
+
+    init();
+
+    return () => {
+      active = false;
+      createdFilter?.destroy();
+      internalFilter = null;
+      filterNode = null;
+    };
+  });
 
   $effect(() => {
     if (cutoffFreq < minCutoff) {
@@ -89,21 +121,36 @@
     bandRegions = regions;
   });
 
-  let audioCtx = await getAudioContext();
-  let filterInputNode = $state<RoutedAudioNode<any> | null>(null);
+  $effect(() => {
+    if (!internalFilter) return;
+    internalFilter.setParams({
+      cutoff: cutoffFreq,
+      q: qValue,
+      type: filtSelect,
+      slope: slopeSelect
+    });
+    lineData = internalFilter.getLineData();
+  });
+
+  $effect(() => {
+    if (internalFilter && outputNode) {
+      internalFilter.connect(outputNode);
+      return () => internalFilter?.disconnect(outputNode);
+    }
+  });
+
+  $effect(() => {
+    if (internalFilter && inputNode) {
+      inputNode.connect(internalFilter);
+      return () => inputNode?.disconnect(internalFilter);
+    }
+  });
 
 </script>
 
-<Filter 
-  bind:inputNode={filterInputNode}
-  {outputNode}
-  {cutoffFreq}
-  {qValue}
-  {filtSelect}
-  {slopeSelect}
-  bind:lineData
-/>
-<Noise outputNode={filterInputNode} bind:isPlaying />
+{#if useInternalNoise}
+  <Noise outputNode={internalFilter} bind:isPlaying />
+{/if}
 
 <div class="flex flex-col gap-6 p-4">
   <div class="flex flex-col md:flex-row gap-8 items-center justify-center p-4 bg-base-200/50 rounded-xl">
@@ -156,6 +203,8 @@
         />
       {/if}
     </div>
-    <Toggle colored={true} bind:checked={isPlaying}>Play Noise</Toggle>
+    {#if useInternalNoise}
+      <Toggle colored={true} bind:checked={isPlaying}>Play Noise</Toggle>
+    {/if}
   </div>
 </div>
