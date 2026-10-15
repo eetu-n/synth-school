@@ -2,14 +2,12 @@
   import { getAudioContext } from "$lib/audio/framework/audioContextManager";
   import type RoutedAudioNode from "$lib/audio/framework/RoutedAudioNode";
   import Knob from "$lib/components/ui/inputs/Knob.svelte";
-  import Toggle from "$lib/components/ui/inputs/Toggle.svelte";
   import Radio from "$lib/components/ui/inputs/Radio.svelte";
   import CascadingFilterNode from "$lib/audio/nodes/CascadingFilterNode";
-  import NoiseNode from "$lib/audio/nodes/NoiseNode";
   import { FilterResponseAnalyzer, type BandRegion, type FilterType } from "$lib/audio/nodes/FilterResponseAnalyzer";
 
   let {
-    inputNode,
+    inputNode = null,
     outputNode = null,
     filterNode = $bindable<CascadingFilterNode | null>(null),
     lineData = $bindable<{ f: number; value: number }[]>(),
@@ -31,17 +29,12 @@
   } = $props();
 
   // — UI state —
-  let isPlaying = $state(false);
   let cutoffFreq = $state(500);
   let qValue = $state(1);
   let filtSelect = $state<FilterType>("lowpass");
   let slopeSelect = $state(1); // 1 = 12dB, 2 = 24dB, 4 = 48dB
-  let noise = $state<NoiseNode | null>(null);
 
   const MIN_CUTOFF = 20;
-
-  // Only use internal noise when no inputNode prop was provided at all
-  const useInternalNoise = inputNode === undefined;
 
   // — Band region computation —
   $effect(() => {
@@ -61,37 +54,38 @@
 
       filter = new CascadingFilterNode("filterDemo", ctx);
       filterNode = filter;
-
-      // Wire up input
-      if (inputNode) inputNode.connect(filter);
-
-      // Wire up internal noise if no external input
-      if (useInternalNoise) {
-        const created = await NoiseNode.create("noise", ctx);
-        if (active && created) {
-          noise = created;
-          noise.setPlaying(isPlaying);
-          noise.connect(filter);
-        } else {
-          created?.destroy();
-        }
-      }
-
-      // Wire up output
-      if (outputNode) filter.connect(outputNode);
     })();
 
     return () => {
       active = false;
       if (filter) {
-        if (inputNode) inputNode.disconnect(filter);
-        if (outputNode) filter.disconnect(outputNode);
         filter.destroy();
         filterNode = null;
       }
-      noise?.destroy();
-      noise = null;
     };
+  });
+
+  // — Dynamic node routing —
+  $effect(() => {
+    if (filterNode && inputNode) {
+      const src = inputNode;
+      const dst = filterNode;
+      src.connect(dst);
+      return () => {
+        src.disconnect(dst);
+      };
+    }
+  });
+
+  $effect(() => {
+    if (filterNode && outputNode) {
+      const src = filterNode;
+      const dst = outputNode;
+      src.connect(dst);
+      return () => {
+        src.disconnect(dst);
+      };
+    }
   });
 
   // — Sync filter params whenever UI state changes —
@@ -100,9 +94,6 @@
     filterNode.setParams({ cutoff: cutoffFreq, q: qValue, type: filtSelect, slope: slopeSelect });
     lineData = filterNode.getLineData();
   });
-
-  // — Sync noise play state —
-  $effect(() => { noise?.setPlaying(isPlaying); });
 </script>
 
 <div class="flex flex-col gap-6 p-4">
@@ -156,9 +147,5 @@
         />
       {/if}
     </div>
-
-    {#if useInternalNoise}
-      <Toggle colored={true} bind:checked={isPlaying}>Play Noise</Toggle>
-    {/if}
   </div>
 </div>

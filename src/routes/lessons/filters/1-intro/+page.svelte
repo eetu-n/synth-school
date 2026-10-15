@@ -1,12 +1,14 @@
 <script lang="ts">
     import VSplitDiv from "$lib/components/ui/layout/VSplitDiv.svelte";
     import FilterDemo from "$lib/components/audio/FilterDemo.svelte";
+    import Noise from "$lib/components/audio/Noise.svelte";
     import { audioState } from "$lib/audio/framework/audioState.svelte";
     import RouterNode from "$lib/audio/framework/RouterNode";
     import AudioOverlay from "$lib/components/ui/layout/AudioOverlay.svelte";
     import Frequency from "$lib/components/ui/viz/Frequency.svelte";
-    import ResponsiveText from "$lib/components/ui/text/ResponsiveText.svelte";
+    import type FaustNode from "$lib/audio/framework/FaustNode";
 
+    let noiseNode = $state<FaustNode | null>(null);
 </script>
 
 <AudioOverlay> <VSplitDiv {leftSide} {rightSide} /> </AudioOverlay>
@@ -35,6 +37,7 @@
 {/snippet}
 
 {#snippet rightSide()}
-    <FilterDemo outputNode={audioState.preMasterNode as RouterNode} enableCutoff={true} />
+    <Noise bind:noiseNode />
+    <FilterDemo inputNode={noiseNode} outputNode={audioState.preMasterNode as RouterNode} enableCutoff={true} />
     <Frequency inputNode={audioState.preMasterNode as RouterNode} />
 {/snippet}

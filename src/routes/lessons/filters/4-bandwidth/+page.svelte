@@ -1,14 +1,17 @@
 <script lang="ts">
     import VSplitDiv from "$lib/components/ui/layout/VSplitDiv.svelte";
     import FilterDemo from "$lib/components/audio/FilterDemo.svelte";
+    import Noise from "$lib/components/audio/Noise.svelte";
     import { audioState } from "$lib/audio/framework/audioState.svelte";
     import RouterNode from "$lib/audio/framework/RouterNode";
     import AudioOverlay from "$lib/components/ui/layout/AudioOverlay.svelte";
     import Frequency from "$lib/components/ui/viz/Frequency.svelte";
-    import ResponsiveText from "$lib/components/ui/text/ResponsiveText.svelte";
+    import type FaustNode from "$lib/audio/framework/FaustNode";
+    import type { BandRegion } from "$lib/audio/nodes/FilterResponseAnalyzer";
 
     let lineData = $state<{ f: number, value: number }[]>([]);
-    let bandRegions = $state<{ startF: number, endF: number, label: string, color?: string }[]>([]);
+    let bandRegions = $state<BandRegion[]>([]);
+    let noiseNode = $state<FaustNode | null>(null);
 </script>
 
 <AudioOverlay><VSplitDiv {leftSide} {rightSide} /></AudioOverlay>
@@ -27,6 +30,7 @@
 {/snippet}
 
 {#snippet rightSide()}
-    <FilterDemo outputNode={audioState.preMasterNode as RouterNode} enableCutoff={true} enableSlope={true} showBands={true} bind:bandRegions bind:lineData />
+    <Noise bind:noiseNode />
+    <FilterDemo inputNode={noiseNode} outputNode={audioState.preMasterNode as RouterNode} enableCutoff={true} enableSlope={true} showBands={true} bind:bandRegions bind:lineData />
     <Frequency inputNode={audioState.preMasterNode as RouterNode} {lineData} {bandRegions} />
 {/snippet}
