@@ -3,185 +3,138 @@
   import type RoutedAudioNode from "$lib/audio/framework/RoutedAudioNode";
   import Knob from "$lib/components/ui/inputs/Knob.svelte";
   import Toggle from "$lib/components/ui/inputs/Toggle.svelte";
-  
-  import Noise from "$lib/components/audio/Noise.svelte";
   import Radio from "$lib/components/ui/inputs/Radio.svelte";
-  import CascadingFilterNode from "$lib/audio/dsp/CascadingFilterNode";
+  import CascadingFilterNode from "$lib/audio/nodes/CascadingFilterNode";
+  import NoiseNode from "$lib/audio/nodes/NoiseNode";
+  import { FilterResponseAnalyzer, type BandRegion, type FilterType } from "$lib/audio/nodes/FilterResponseAnalyzer";
 
   let {
     inputNode,
     outputNode = null,
-    filterNode = $bindable(null),
-    lineData = $bindable(),
-    enableCutoff = $bindable(false),
-    enableResonance = $bindable(false),
-    enableSlope = $bindable(false),
-    showBands = $bindable(false),
-    bandRegions = $bindable([])
-  }: { 
-    inputNode?: RoutedAudioNode<any> | null,
-    outputNode?: RoutedAudioNode<any> | null,
-    filterNode?: CascadingFilterNode | null,
-    lineData?: { f: number, value: number }[],
-    enableCutoff?: boolean,
-    enableResonance?: boolean,
-    enableSlope?: boolean,
-    showBands?: boolean,
-    bandRegions?: { startF: number, endF: number, label: string }[]
+    filterNode = $bindable<CascadingFilterNode | null>(null),
+    lineData = $bindable<{ f: number; value: number }[]>(),
+    enableCutoff = false,
+    enableResonance = false,
+    enableSlope = false,
+    showBands = false,
+    bandRegions = $bindable<BandRegion[]>([]),
+  }: {
+    inputNode?: RoutedAudioNode<any> | null;
+    outputNode?: RoutedAudioNode<any> | null;
+    filterNode?: CascadingFilterNode | null;
+    lineData?: { f: number; value: number }[];
+    enableCutoff?: boolean;
+    enableResonance?: boolean;
+    enableSlope?: boolean;
+    showBands?: boolean;
+    bandRegions?: BandRegion[];
   } = $props();
 
+  // — UI state —
   let isPlaying = $state(false);
   let cutoffFreq = $state(500);
   let qValue = $state(1);
-  let filtSelect = $state(0); // 0 = LP, 1 = HP, 2 = BP
+  let filtSelect = $state<FilterType>("lowpass");
+  let slopeSelect = $state(1); // 1 = 12dB, 2 = 24dB, 4 = 48dB
+  let noise = $state<NoiseNode | null>(null);
 
-  let minCutoff = 20;
-  let slopeSelect = $state(1); // 1 = 12dB (2-pole), 2 = 24dB (4-pole), 4 = 48dB (8-pole)
+  const MIN_CUTOFF = 20;
 
-  let internalFilter = $state<CascadingFilterNode | null>(null);
+  // Only use internal noise when no inputNode prop was provided at all
+  const useInternalNoise = inputNode === undefined;
 
-  // If inputNode was omitted, use noise as default
-  let useInternalNoise = $derived(inputNode === undefined);
+  // — Band region computation —
+  $effect(() => {
+    bandRegions = showBands
+      ? FilterResponseAnalyzer.getBandRegions(filtSelect, cutoffFreq, qValue, slopeSelect)
+      : [];
+  });
 
+  // — Audio node lifecycle —
   $effect(() => {
     let active = true;
-    let createdFilter: CascadingFilterNode | null = null;
+    let filter: CascadingFilterNode | null = null;
 
-    async function init() {
-      const audioCtx = await getAudioContext();
+    (async () => {
+      const ctx = await getAudioContext();
       if (!active) return;
 
-      createdFilter = new CascadingFilterNode("filterDemo", audioCtx);
-      internalFilter = createdFilter;
-      filterNode = createdFilter;
-    }
+      filter = new CascadingFilterNode("filterDemo", ctx);
+      filterNode = filter;
 
-    init();
+      // Wire up input
+      if (inputNode) inputNode.connect(filter);
+
+      // Wire up internal noise if no external input
+      if (useInternalNoise) {
+        const created = await NoiseNode.create("noise", ctx);
+        if (active && created) {
+          noise = created;
+          noise.setPlaying(isPlaying);
+          noise.connect(filter);
+        } else {
+          created?.destroy();
+        }
+      }
+
+      // Wire up output
+      if (outputNode) filter.connect(outputNode);
+    })();
 
     return () => {
       active = false;
-      createdFilter?.destroy();
-      internalFilter = null;
-      filterNode = null;
+      if (filter) {
+        if (inputNode) inputNode.disconnect(filter);
+        if (outputNode) filter.disconnect(outputNode);
+        filter.destroy();
+        filterNode = null;
+      }
+      noise?.destroy();
+      noise = null;
     };
   });
 
+  // — Sync filter params whenever UI state changes —
   $effect(() => {
-    if (cutoffFreq < minCutoff) {
-      cutoffFreq = minCutoff;
-    }
+    if (!filterNode) return;
+    filterNode.setParams({ cutoff: cutoffFreq, q: qValue, type: filtSelect, slope: slopeSelect });
+    lineData = filterNode.getLineData();
   });
 
-  $effect(() => {
-    if (!showBands) {
-      bandRegions = [];
-      return;
-    }
-
-    const regions: { startF: number, endF: number, label: string }[] = [];
-
-    switch (filtSelect) {
-      case 0: { // LP
-        const stopMultiplier = Math.pow(2, 2 / slopeSelect);
-        const stopF = cutoffFreq * stopMultiplier;
-        
-        regions.push({ startF: 0.1, endF: cutoffFreq, label: "Passband" });
-        regions.push({ startF: cutoffFreq, endF: stopF, label: "Transition Band" });
-        regions.push({ startF: stopF, endF: 100000, label: "Stopband" });
-        break;
-      }
-      case 1: { // HP
-        const stopDivisor = Math.pow(2, 2 / slopeSelect);
-        const stopF = cutoffFreq / stopDivisor;
-        
-        regions.push({ startF: 0.1, endF: stopF, label: "Stopband" });
-        regions.push({ startF: stopF, endF: cutoffFreq, label: "Transition Band" });
-        regions.push({ startF: cutoffFreq, endF: 100000, label: "Passband" });
-        break;
-      }
-      case 2: { // BP
-        const actualQ = qValue + 1;
-        const bw = cutoffFreq / actualQ;
-        const f1 = cutoffFreq - bw / 2;
-        const f2 = cutoffFreq + bw / 2;
-        
-        const transMult = Math.pow(2, 1.5 / slopeSelect);
-        const stop1 = f1 / transMult;
-        const stop2 = f2 * transMult;
-        
-        regions.push({ startF: 0.1, endF: stop1, label: "Stopband" });
-        regions.push({ startF: stop1, endF: f1, label: "Transition Band" });
-        regions.push({ startF: f1, endF: f2, label: "Passband" });
-        regions.push({ startF: f2, endF: stop2, label: "Transition Band" });
-        regions.push({ startF: stop2, endF: 100000, label: "Stopband" });
-        break;
-      }
-    }
-
-    bandRegions = regions;
-  });
-
-  $effect(() => {
-    if (!internalFilter) return;
-    internalFilter.setParams({
-      cutoff: cutoffFreq,
-      q: qValue,
-      type: filtSelect,
-      slope: slopeSelect
-    });
-    lineData = internalFilter.getLineData();
-  });
-
-  $effect(() => {
-    if (internalFilter && outputNode) {
-      internalFilter.connect(outputNode);
-      return () => internalFilter?.disconnect(outputNode);
-    }
-  });
-
-  $effect(() => {
-    if (internalFilter && inputNode) {
-      inputNode.connect(internalFilter);
-      return () => inputNode?.disconnect(internalFilter);
-    }
-  });
-
+  // — Sync noise play state —
+  $effect(() => { noise?.setPlaying(isPlaying); });
 </script>
-
-{#if useInternalNoise}
-  <Noise outputNode={internalFilter} bind:isPlaying />
-{/if}
 
 <div class="flex flex-col gap-6 p-4">
   <div class="flex flex-col md:flex-row gap-8 items-center justify-center p-4 bg-base-200/50 rounded-xl">
     <Radio
       label="Filter Type"
       options={[
-        { label: "Lowpass", value: 0 },
-        { label: "Highpass", value: 1 },
-        { label: "Bandpass", value: 2 }
+        { label: "Lowpass",  value: "lowpass"  satisfies FilterType },
+        { label: "Highpass", value: "highpass" satisfies FilterType },
+        { label: "Bandpass", value: "bandpass" satisfies FilterType },
       ]}
       bind:value={filtSelect}
     />
-    
+
     {#if enableSlope}
       <Radio
         label="Slope"
         options={[
           { label: "12dB/oct", value: 1 },
           { label: "24dB/oct", value: 2 },
-          { label: "48dB/oct", value: 4 }
+          { label: "48dB/oct", value: 4 },
         ]}
         bind:value={slopeSelect}
       />
     {/if}
 
+    <!-- TODO: change to an h-slider that corresponds to the spectrograph -->
     <div class="flex flex-row gap-4 items-center">
-    <!-- TODO: change to a h-slider that corresponds to the spectrograph -->
       {#if enableCutoff}
         <Knob
           bind:value={cutoffFreq}
-          min={minCutoff}
+          min={MIN_CUTOFF}
           max={20000}
           step={1}
           label="Cutoff"
@@ -203,6 +156,7 @@
         />
       {/if}
     </div>
+
     {#if useInternalNoise}
       <Toggle colored={true} bind:checked={isPlaying}>Play Noise</Toggle>
     {/if}
