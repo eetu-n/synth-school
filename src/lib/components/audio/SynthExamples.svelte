@@ -4,15 +4,40 @@
   import { getAudioContext } from "$lib/audio/framework/audioContextManager";
 
   let {
-    outputNode,
-  }: { outputNode: RoutedAudioNode | null } = $props();
-
-  let faustNode = await FaustNode.create(
-    "synthExamples",
-    await getAudioContext(),
-  );
+    outputNode = null,
+    faustNode = $bindable(null),
+  }: { 
+    outputNode?: RoutedAudioNode | null;
+    faustNode?: FaustNode | null;
+  } = $props();
 
   let tempo = $state(90);
+
+  $effect(() => {
+    let activeNode: FaustNode | null = null;
+    let isDestroyed = false;
+
+    async function init() {
+      const context = await getAudioContext();
+      if (isDestroyed) return;
+
+      const node = await FaustNode.create("synthExamples", context);
+      if (isDestroyed) {
+        node?.destroy();
+        return;
+      }
+      faustNode = node;
+      activeNode = node;
+    }
+
+    init();
+
+    return () => {
+      isDestroyed = true;
+      activeNode?.destroy();
+      faustNode = null;
+    };
+  });
 
   $effect(() => {
     if (faustNode && outputNode) {
@@ -25,10 +50,6 @@
     if (faustNode) {
       faustNode.setParamValue("Tempo", tempo);
     }
-  });
-
-  $effect(() => {
-    return () => faustNode?.destroy();
   });
 
   function handleGate(param: string, input: boolean) {
