@@ -3,6 +3,9 @@
 ## General Instructions
 - You can be less verbose than in general, the generated code is most important. I'll ask for clarification if needed.
 - Edit this file whenever I give general instructions on how to behave
+- Maintain a README.md:
+    - Before reading source files, check README.md for the general structure and what to expect.
+    - Whenever making or discovering changes, update README.md accordingly.
 
 ## Commands
 - **Check Project**: Use `bun check` to run Svelte and TypeScript checks. 
