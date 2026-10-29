@@ -8,7 +8,8 @@
     - Whenever making or discovering changes, update README.md accordingly.
 
 ## Commands
-- **Check Project**: Use `bun check` to run Svelte and TypeScript checks. 
+- **Environment**: There's a nix-shell environment, see `shell.nix` (e.g. `nix-shell --run "bun check"` or `nix-shell -p <pkg>`).
+- **Check Project**: Use `nix-shell --run "bun check"` (or `bun check` in nix-shell) to run Svelte and TypeScript checks. 
 - **Usage**: It is not necessary to run the check after every single change, but only on request or with large changes
 
 ## Architectural Notes
