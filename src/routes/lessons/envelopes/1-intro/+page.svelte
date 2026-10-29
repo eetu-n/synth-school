@@ -14,10 +14,10 @@
         Envelopes control the volume of a sound over time, relative to e.g. when a midi key is pressed.
     </p>
     <ul>
-        <li><b>Attack</b> controls how quickly or slowly a sound gets to full volume.
-        <li><b>Decay</b> controls how quickly the sound reduces to the <b>sustain</b> volume.
-        <li><b>Sustain</b> is the level the sound is held at until the key is released.
-        <li><b>Release</b> controls how quickly the sound reduces from the sustain level to zero.
+        <li><b>Attack</b> controls how quickly or slowly a sound gets to full volume. </li>
+        <li><b>Decay</b> controls how quickly the sound reduces to the <b>sustain</b> volume. </li>
+        <li><b>Sustain</b> is the level the sound is held at until the key is released. </li>
+        <li><b>Release</b> controls how quickly the sound reduces from the sustain level to zero. </li>
     </ul>
     <p>
         So attack, decay, and release are all time variables, while sustain is a volume level.
