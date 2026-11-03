@@ -5,7 +5,6 @@
     import RouterNode from "$lib/audio/framework/RouterNode";
     import AudioOverlay from "$lib/components/ui/layout/AudioOverlay.svelte";
     import Frequency from "$lib/components/ui/viz/Frequency.svelte";
-    import ResponsiveText from "$lib/components/ui/text/ResponsiveText.svelte";
 
 </script>
 
@@ -14,7 +13,10 @@
 {#snippet leftSide()}
     <h1>Attack</h1>
     <p>
-        TODO: Attack + quiz
+        A longer attack makes the sound "start" slower.
+        A shorter attack, especially accompanied by a short decay and low sustain, can make a sound start percussive, whereas a longer attack often sounds softer.
+        <br/>
+        A guitar or piano can typically thought of as having a "short" attack, whereas something like a slowly bowed violin has a longer attack.
     </p>
 {/snippet}
 
