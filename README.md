@@ -10,14 +10,14 @@ An interactive web-based synthesizer education platform built with SvelteKit, Sv
   - `nodes/`: Custom audio nodes and analysis utilities (e.g., `CascadingFilterNode`, `FilterResponseAnalyzer`).
 - **`src/lib/components/audio/`**: High-level synthesizer and audio components:
   - `SubtractiveSynth.svelte`: Full subtractive synthesizer UI (waveform selection, frequency, gain, filter cutoff/resonance, ADSR envelope, gate button).
-  - `AdsrSynth.svelte`: ADSR-focused envelope synthesizer UI based on SubtractiveSynth with sensible defaults for oscillator and filter parameters.
+  - `AdsrDemo.svelte`: ADSR-focused envelope synthesizer UI based on SubtractiveSynth with built-in `AdsrVis` envelope graph visualization (toggleable via `showVisualization`, true by default).
   - `StaticSubtractiveSynth.svelte`: Non-interactive/display preset synthesizer node with gate/hold trigger.
   - `FilterDemo.svelte`: Interactive filter demonstration and frequency response visualization.
   - `SinSynth.svelte`, `AdditiveSaw.svelte`, `AdditiveSquare.svelte`, `AdditiveTriangle.svelte`, `Noise.svelte`, `MockResample.svelte`: Targeted demonstration synths and oscillators.
 - **`src/lib/components/ui/`**: Reusable UI widgets:
   - `inputs/`: Audio controls (`Knob.svelte`, `Radio.svelte`, `HSlider.svelte`).
   - `layout/`: Presentation containers (`VSplitDiv.svelte`, `AudioOverlay.svelte`, `QuizLayout.svelte`).
-  - `viz/`: Visualizers such as spectrum analyzer (`Frequency.svelte`).
+  - `viz/`: Visualizers such as spectrum analyzer (`Frequency.svelte`), oscilloscope (`Scope.svelte`), and envelope curve (`AdsrVis.svelte`).
 - **`src/routes/`**: Lesson paths and interactive tutorials:
   - `lessons/oscillators/`: Harmonic generation and waveform synthesis.
   - `lessons/filters/`: Cutoff, resonance, band types, and filter slopes.

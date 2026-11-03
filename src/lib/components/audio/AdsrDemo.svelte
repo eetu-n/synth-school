@@ -3,13 +3,14 @@
   import type RoutedAudioNode from "$lib/audio/framework/RoutedAudioNode";
   import { getAudioContext } from "$lib/audio/framework/audioContextManager";
   import Knob from "$lib/components/ui/inputs/Knob.svelte";
+  import AdsrVis from "$lib/components/ui/viz/AdsrVis.svelte";
 
   let {
     outputNode,
-    attack = $bindable(10),
-    decay = $bindable(100),
+    attack = $bindable(500),
+    decay = $bindable(500),
     sustain = $bindable(0.7),
-    release = $bindable(100),
+    release = $bindable(500),
     waveSelect = 0,
     freq = 440,
     gain = 0.5,
@@ -17,6 +18,7 @@
     resonance = 0.5,
     buttonLabel = "GATE",
     gate = $bindable(false),
+    showVisualization = true,
   }: {
     outputNode: RoutedAudioNode | null;
     attack?: number;
@@ -30,6 +32,7 @@
     resonance?: number;
     buttonLabel?: string;
     gate?: boolean;
+    showVisualization?: boolean;
   } = $props();
 
   // --- States ---
@@ -91,7 +94,11 @@
   });
 </script>
 
-<div class="flex flex-col gap-6 p-6 bg-base-200 rounded-2xl shadow-xl border border-base-300 max-w-xl mx-auto w-full">
+<div class="flex flex-col gap-6 p-6 bg-base-200 rounded-2xl shadow-xl border border-base-300 max-w-2xl mx-auto w-full">
+  {#if showVisualization}
+    <AdsrVis {attack} {decay} {sustain} {release} {gate} />
+  {/if}
+
   <!-- Envelope Section (ADSR) -->
   <section class="flex flex-col gap-4 p-4 bg-base-100 rounded-xl border border-base-300 shadow-sm">
     <h3 class="text-[11px] font-black uppercase tracking-widest text-base-content/40 border-b border-base-200 leading-none pb-1">
