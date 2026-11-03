@@ -8,7 +8,7 @@
 
 </script>
 
-<VSplitDiv {leftSide} {rightSide} />
+<AudioOverlay><VSplitDiv {leftSide} {rightSide} /></AudioOverlay>
 
 {#snippet leftSide()}
     <h1>Attack</h1>
@@ -21,8 +21,5 @@
 {/snippet}
 
 {#snippet rightSide()}
-    <AudioOverlay>
-        <FilterDemo outputNode={audioState.preMasterNode as RouterNode} />
-        <Frequency inputNode={audioState.preMasterNode as RouterNode} />
-    </AudioOverlay>
+    <FilterDemo outputNode={audioState.preMasterNode as RouterNode} />
 {/snippet}

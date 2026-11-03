@@ -5,22 +5,21 @@
     import RouterNode from "$lib/audio/framework/RouterNode";
     import AudioOverlay from "$lib/components/ui/layout/AudioOverlay.svelte";
     import Frequency from "$lib/components/ui/viz/Frequency.svelte";
-    import ResponsiveText from "$lib/components/ui/text/ResponsiveText.svelte";
 
 </script>
 
-<VSplitDiv {leftSide} {rightSide} />
+<AudioOverlay> <VSplitDiv {leftSide} {rightSide} /> </AudioOverlay>
 
 {#snippet leftSide()}
     <h1>Decay</h1>
     <p>
-        TODO
+        The decay of a sound is how quickly it moves from the loudest part to the sustain level.
+        A short decay (again with a short attack) can sound percussive, whereas a longer decay usually sounds softer.
+        <br/>
+        Many acoustic instruments are slightly more difficult to describe by 
     </p>
 {/snippet}
 
 {#snippet rightSide()}
-    <AudioOverlay>
-        <FilterDemo outputNode={audioState.preMasterNode as RouterNode} />
-        <Frequency inputNode={audioState.preMasterNode as RouterNode} />
-    </AudioOverlay>
+    <FilterDemo outputNode={audioState.preMasterNode as RouterNode} />
 {/snippet}
