@@ -3,7 +3,6 @@
     import { audioState } from "$lib/audio/framework/audioState.svelte";
     import RouterNode from "$lib/audio/framework/RouterNode";
     import AudioOverlay from "$lib/components/ui/layout/AudioOverlay.svelte";
-    import Frequency from "$lib/components/ui/viz/Frequency.svelte";
     import AdsrDemo from "$lib/components/audio/AdsrDemo.svelte";
 </script>
 
@@ -27,6 +26,5 @@
 {/snippet}
 
 {#snippet rightSide()}
-    <AdsrDemo outputNode={audioState.preMasterNode as RouterNode}/>
-    <Frequency inputNode={audioState.preMasterNode as RouterNode} />
+    <AdsrDemo outputNode={audioState.preMasterNode as RouterNode} />
 {/snippet}
