@@ -95,10 +95,6 @@
 </script>
 
 <div class="flex flex-col gap-6 p-6 bg-base-200 rounded-2xl shadow-xl border border-base-300 max-w-2xl mx-auto w-full">
-  {#if showVisualization}
-    <AdsrVis {attack} {decay} {sustain} {release} {gate} />
-  {/if}
-
   <!-- Envelope Section (ADSR) -->
   <section class="flex flex-col gap-4 p-4 bg-base-100 rounded-xl border border-base-300 shadow-sm">
     <h3 class="text-[11px] font-black uppercase tracking-widest text-base-content/40 border-b border-base-200 leading-none pb-1">
@@ -110,17 +106,19 @@
       <Knob label="Sustain" bind:value={sustain} min={0} max={1} step={0.01} size={70} />
       <Knob label="Release" bind:value={release} min={0} max={5000} step={1} size={70} scale="exp" exponent={2.32} unit="ms" />
     </div>
+    {#if showVisualization}
+      <AdsrVis {attack} {decay} {sustain} {release} {gate} class="bg-transparent border-0 shadow-none p-0" />
+    {/if}
   </section>
 
-  <!-- Control Section -->
-  <section class="flex flex-col items-center justify-center p-4 bg-primary/5 rounded-xl border-2 border-primary/20">
-    <button
-      class="btn btn-primary btn-lg w-full h-24 text-2xl font-black tracking-tighter shadow-lg transition-all active:scale-95"
-      onpointerdown={() => (gate = true)}
-      onpointerup={() => (gate = false)}
-      onpointerleave={() => (gate = false)}
-    >
-      {gate ? "HOLD" : buttonLabel}
-    </button>
-  </section>
+  <button
+    class="btn btn-primary btn-lg w-full h-24 text-2xl font-black tracking-tighter shadow-lg transition-all active:scale-95 select-none"
+    style="touch-action: none; -webkit-touch-callout: none;"
+    onpointerdown={() => (gate = true)}
+    onpointerup={() => (gate = false)}
+    onpointerleave={() => (gate = false)}
+    oncontextmenu={(e) => e.preventDefault()}
+  >
+    {gate ? "HOLD" : buttonLabel}
+  </button>
 </div>
