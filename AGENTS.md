@@ -6,6 +6,7 @@
 - Maintain a README.md:
     - Before reading source files, check README.md for the general structure and what to expect.
     - Whenever making or discovering changes, update README.md accordingly.
+    - Subfolders may have their own README.md
 
 ## Commands
 - **Environment**: There's a nix-shell environment, see `shell.nix` (e.g. `nix-shell --run "bun check"` or `nix-shell -p <pkg>`).
