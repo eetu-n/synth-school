@@ -19,11 +19,29 @@ An interactive web-based synthesizer education platform built with SvelteKit, Sv
   - `layout/`: Presentation containers (`VSplitDiv.svelte`, `AudioOverlay.svelte`, `QuizLayout.svelte`).
   - `viz/`: Visualizers such as spectrum analyzer (`Frequency.svelte`), oscilloscope (`Scope.svelte`), and envelope curve (`AdsrVis.svelte`).
 - **`src/routes/`**: Lesson paths and interactive tutorials:
-  - `lessons/oscillators/`: Harmonic generation and waveform synthesis.
-  - `lessons/filters/`: Cutoff, resonance, band types, and filter slopes.
-  - `lessons/envelopes/`: Attack, Decay, Sustain, and Release (ADSR) dynamics.
-  - `lessons/aliasing/`: Digital sampling and aliasing effects.
-  - `lessons/synthQuiz/`: Interactive ear-training synth parameter matching quiz.
+  - `lessons/`: Lesson modules
+
+## Theming & Color System
+
+Colors are defined in [`src/app.css`](src/app.css) using a single-tier CSS custom property system:
+
+- **Light-mode values** live in the Tailwind `@theme` block as `--color-*` tokens (e.g. `--color-primary`, `--color-surface`, `--color-grid`).
+- **Dark-mode overrides** are set via `:root.dark { --color-*: ... }`, toggled by adding/removing the `dark` class on `<html>` in [`+layout.svelte`](src/routes/+layout.svelte).
+- Tailwind utilities (`bg-primary`, `text-text-secondary`, etc.) reference these tokens automatically.
+- Canvas-based components (`Frequency.svelte`, `Scope.svelte`) read colors at draw time via `getComputedStyle(...).getPropertyValue('--color-*')`.
+- SVG components (`AdsrVis.svelte`, `SignalAddition.svelte`) use `var(--color-*)` directly in attributes.
+
+| Token | Usage |
+|---|---|
+| `--color-primary` | Main accent (teal) |
+| `--color-secondary` | Highlight accent (orange) |
+| `--color-surface` | Card/panel background |
+| `--color-background` | Page background |
+| `--color-border` | Borders and slider tracks |
+| `--color-grid` | Chart grid lines |
+| `--color-text-primary` / `--color-text-secondary` | Body text |
+| `--color-signal-actual` / `--color-signal-aliased` | Aliasing lesson signal colors |
+| `--color-passband` / `--color-stopband` / `--color-transitionband` | Filter band region colors |
 
 ## Development
 
