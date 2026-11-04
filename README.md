@@ -6,8 +6,8 @@ An interactive web-based synthesizer education platform built with SvelteKit, Sv
 
 - **`src/lib/audio/`**: Core audio engine.
   - `dsp/`: Faust DSP scripts (`.dsp` and `.lib` files compiled to WebAssembly via `vite-plugin-faust`).
-  - `framework/`: Audio graph abstractions and lifecycle management (`FaustNode`, `useFaustNode`, `RoutedAudioNode`, `RouterNode`, `AudioContextManager`, `audioState`).
-  - `nodes/`: Custom audio nodes and analysis utilities (e.g., `CascadingFilterNode`, `FilterResponseAnalyzer`).
+  - `framework/`: Audio graph abstractions and lifecycle management (see [`src/lib/audio/framework/README.md`](src/lib/audio/framework/README.md)).
+  - `nodes/`: Custom audio nodes and analysis utilities (see [`src/lib/audio/nodes/README.md`](src/lib/audio/nodes/README.md)).
 - **`src/lib/components/audio/`**: High-level synthesizer and audio components:
   - `SubtractiveSynth.svelte`: Full subtractive synthesizer UI (waveform selection, frequency, gain, filter cutoff/resonance, ADSR envelope, gate button).
   - `AdsrDemo.svelte`: ADSR-focused envelope synthesizer UI based on SubtractiveSynth with built-in `AdsrVis` envelope graph visualization (toggleable via `showVisualization`, true by default).
@@ -17,7 +17,7 @@ An interactive web-based synthesizer education platform built with SvelteKit, Sv
 - **`src/lib/components/ui/`**: Reusable UI widgets:
   - `inputs/`: Audio controls (`Knob.svelte`, `Radio.svelte`, `HSlider.svelte`, `GateButton.svelte`).
   - `layout/`: Presentation containers (`VSplitDiv.svelte`, `AudioOverlay.svelte`, `QuizLayout.svelte`).
-  - `viz/`: Visualizers such as spectrum analyzer (`Frequency.svelte`), oscilloscope (`Scope.svelte`), and envelope curve (`AdsrVis.svelte`).
+  - `viz/`: Visualizers such as spectrum analyzer, oscilloscope, and envelope curves (see [`src/lib/components/ui/viz/README.md`](src/lib/components/ui/viz/README.md)).
 - **`src/routes/`**: Lesson paths and interactive tutorials:
   - `lessons/`: Lesson modules
 
