@@ -164,7 +164,7 @@
   });
 </script>
 
-<div class="bg-surface dark:bg-dark-surface rounded-xl shadow-sm border border-border dark:border-dark-border p-6 my-4 w-full max-w-3xl mx-auto flex flex-col" bind:this={chartContainer}>
+<div class="bg-surface rounded-xl shadow-sm border border-border p-6 my-4 w-full max-w-3xl mx-auto flex flex-col" bind:this={chartContainer}>
   {#if showLabels}
     <div class="flex justify-center items-start space-x-8 mb-6">
       {#if showSamples}

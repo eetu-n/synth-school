@@ -175,7 +175,7 @@
     });
 </script>
 
-<div bind:this={container} class="bg-surface dark:bg-dark-surface rounded-xl shadow-sm border border-border dark:border-dark-border p-6 my-4 w-full max-w-3xl mx-auto flex flex-col">
+<div bind:this={container} class="bg-surface rounded-xl shadow-sm border border-border p-6 my-4 w-full max-w-3xl mx-auto flex flex-col">
     <div class="w-full aspect-[2/1] relative" bind:clientWidth={w} bind:clientHeight={h}>
         <canvas
             bind:this={canvas}
