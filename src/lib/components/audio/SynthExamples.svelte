@@ -61,7 +61,9 @@
 <div class="flex flex-col gap-8">
   <div class="flex flex-wrap gap-4 justify-center">
     <button
-      class="btn"
+      class="btn btn-primary shadow-md active:scale-95 select-none"
+      style="touch-action: none; -webkit-touch-callout: none;"
+      oncontextmenu={(e) => e.preventDefault()}
       onpointerdown={() => handleGate("Sawtooth", true)}
       onpointerup={() => handleGate("Sawtooth", false)}
       onpointerleave={() => handleGate("Sawtooth", false)}
@@ -70,7 +72,9 @@
     </button>
 
     <button
-      class="btn"
+      class="btn btn-primary shadow-md active:scale-95 select-none"
+      style="touch-action: none; -webkit-touch-callout: none;"
+      oncontextmenu={(e) => e.preventDefault()}
       onpointerdown={() => handleGate("Square", true)}
       onpointerup={() => handleGate("Square", false)}
       onpointerleave={() => handleGate("Square", false)}
@@ -79,7 +83,9 @@
     </button>
 
     <button
-      class="btn"
+      class="btn btn-primary shadow-md active:scale-95 select-none"
+      style="touch-action: none; -webkit-touch-callout: none;"
+      oncontextmenu={(e) => e.preventDefault()}
       onpointerdown={() => handleGate("Triangle", true)}
       onpointerup={() => handleGate("Triangle", false)}
       onpointerleave={() => handleGate("Triangle", false)}
@@ -88,7 +94,9 @@
     </button>
     
     <button
-      class="btn"
+      class="btn btn-primary shadow-md active:scale-95 select-none"
+      style="touch-action: none; -webkit-touch-callout: none;"
+      oncontextmenu={(e) => e.preventDefault()}
       onpointerdown={() => handleGate("Sine", true)}
       onpointerup={() => handleGate("Sine", false)}
       onpointerleave={() => handleGate("Sine", false)}

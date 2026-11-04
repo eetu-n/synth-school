@@ -51,9 +51,11 @@
   });
 </script>
 
-<div>
+<div class="flex gap-4 justify-center">
   <button
-    class="btn"
+    class="btn btn-primary shadow-md active:scale-95 select-none"
+    style="touch-action: none; -webkit-touch-callout: none;"
+    oncontextmenu={(e) => e.preventDefault()}
     onpointerdown={() => handleGateA(true)}
     onpointerup={() => handleGateA(false)}
     onpointerleave={() => handleGateA(false)}
@@ -62,7 +64,9 @@
   </button>
 
   <button
-    class="btn"
+    class="btn btn-primary shadow-md active:scale-95 select-none"
+    style="touch-action: none; -webkit-touch-callout: none;"
+    oncontextmenu={(e) => e.preventDefault()}
     onpointerdown={() => handleGateB(true)}
     onpointerup={() => handleGateB(false)}
     onpointerleave={() => handleGateB(false)}

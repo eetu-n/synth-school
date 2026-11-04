@@ -42,9 +42,9 @@
     {:else}
         Wrong!
     {/if}
-    <div class="mt-4">
-        <button class="btn" onclick={() => setSelected('A')}>A</button>
-        <button class="btn" onclick={() => setSelected('B')}>B</button>
+    <div class="mt-4 flex gap-3">
+        <button class="btn btn-primary px-6" onclick={() => setSelected('A')}>A</button>
+        <button class="btn btn-primary px-6" onclick={() => setSelected('B')}>B</button>
     </div>
 {/snippet}
 
