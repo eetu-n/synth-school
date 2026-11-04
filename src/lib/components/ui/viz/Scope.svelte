@@ -1,6 +1,7 @@
 <script lang="ts">
-    import { audioState } from '$lib/audio/framework/audioState.svelte';
-    import RoutedAudioNode from '$lib/audio/framework/RoutedAudioNode';
+    import type RoutedAudioNode from '$lib/audio/framework/RoutedAudioNode';
+    import { useAudioAnalyser } from '$lib/audio/framework/useAudioAnalyser.svelte';
+    import { useDpr } from '$lib/utils/dpr.svelte';
 
     let { inputNode }: { inputNode: RoutedAudioNode<any> } = $props();
 
@@ -9,16 +10,9 @@
 
     let w = $state(800);
     let h = $state(400);
-    let dpr = $state(1);
+    const dpr = useDpr();
 
-    $effect(() => {
-        if (typeof window !== 'undefined') {
-            dpr = window.devicePixelRatio || 1;
-        }
-    });
-    
-    let analyser: RoutedAudioNode<AnalyserNode> | null = null;
-    let dataArray: Uint8Array<any> | null = null;
+    const audio = useAudioAnalyser(() => inputNode, { name: "scope", fftSize: 2048 });
     let drawVisual: number;
 
     function findTriggerPointWithAutocorellation(data: Uint8Array): number {
@@ -88,18 +82,20 @@
     }
 
     function draw(){
-        if (!canvas || !analyser || !dataArray) return;
+        if (!canvas) return;
+        const dataArray = audio.getTimeDomainData();
+        if (!dataArray) return;
+
         const context = canvas.getContext('2d');
         if (!context) return;
 
         drawVisual = requestAnimationFrame(draw);
-        analyser.audioNode?.getByteTimeDomainData(dataArray);
 
         const width = w;
         const height = h;
 
         context.save();
-        context.scale(dpr, dpr);
+        context.scale(dpr.current, dpr.current);
 
         // Get current colors from CSS variables
         const style = getComputedStyle(canvas);
@@ -169,26 +165,12 @@
     }
 
     $effect(() => {
-        if (audioState.context && inputNode) {
-            analyser = new RoutedAudioNode<AnalyserNode>(
-                "scope",
-                audioState.context,
-                audioState.context.createAnalyser()
-            );
-            if (analyser.audioNode) {
-                analyser.audioNode.fftSize = 2048;
-                dataArray = new Uint8Array(analyser.audioNode.frequencyBinCount);
-                inputNode.connect(analyser);
-            };
-
+        if (audio.analyser) {
             draw();
         }
         
         return () => {
             cancelAnimationFrame(drawVisual);
-            if (analyser && inputNode) {
-                inputNode.disconnect(analyser);
-            }
         };
     });
 </script>
@@ -197,8 +179,8 @@
     <div class="w-full aspect-[2/1] relative" bind:clientWidth={w} bind:clientHeight={h}>
         <canvas
             bind:this={canvas}
-            width={Math.floor(w * dpr)}
-            height={Math.floor(h * dpr)}
+            width={Math.floor(w * dpr.current)}
+            height={Math.floor(h * dpr.current)}
             style="width: 100%; height: 100%;"
             class="block"
         ></canvas>

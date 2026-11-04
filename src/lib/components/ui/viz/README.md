@@ -16,7 +16,8 @@ Interactive SVG visualization of an ADSR (Attack, Decay, Sustain, Release) envel
 ### [`Scope.svelte`](Scope.svelte)
 Real-time audio oscilloscope rendering the time-domain waveform onto an HTML5 Canvas:
 - **Autocorrelation Pitch Tracking**: Uses zero-crossing and autocorrelation to find stable trigger points, preventing jitter and keeping periodic waveforms stationary on screen.
-- **High-DPI Retina Support**: Automatically scales internal canvas dimensions by `window.devicePixelRatio` for sharp rendering on mobile and desktop screens.
+- **High-DPI Retina Support**: Automatically scales internal canvas dimensions using `useDpr()` for sharp rendering on mobile and desktop screens.
+- **Audio Lifecycle**: Connects to the audio graph via `useAudioAnalyser()`, pulling time-domain data via `getTimeDomainData()`.
 - **60 FPS Loop**: Runs via `requestAnimationFrame` drawing from a Web Audio `AnalyserNode`.
 
 ### [`Frequency.svelte`](Frequency.svelte)
@@ -24,7 +25,7 @@ Logarithmic real-time spectrum analyzer and filter curve visualizer:
 - **Logarithmic FFT Display**: Translates linear FFT bins ($2^{14}$ FFT size) into 20 Hz – 20 kHz logarithmic decades with major grid lines at 100 Hz, 1 kHz, and 10 kHz.
 - **Filter Curve Overlay**: Accepts optional `lineData` points (from `CascadingFilterNode`) to overlay theoretical filter response curves and a 0 dB reference line.
 - **Band Region Highlighting**: Accepts optional `bandRegions` (from `FilterResponseAnalyzer`) to highlight passband, transition band, and stopband regions with fading labels.
-- **High-DPI Retina Support**: Uses DPR scaling and dynamic client dimension bindings.
+- **Audio Lifecycle & High-DPI**: Uses `useAudioAnalyser()` for automated node routing/frequency data retrieval and `useDpr()` for Retina scaling.
 
 ### [`SignalAddition.svelte`](SignalAddition.svelte)
 Interactive educational SVG diagram demonstrating additive synthesis:

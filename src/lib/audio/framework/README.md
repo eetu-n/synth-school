@@ -53,6 +53,12 @@ Svelte 5 composable rune for easy Faust node usage inside components:
 - Automatically connects to an output node via a dynamic getter: `useFaustNode('dspName', () => outputNode)`.
 - Exposes `faust.current` (reactive getter) and `faust.setParam(name, value)` with automatic `boolean` $\to$ `0 | 1` normalization.
 
+### [`useAudioAnalyser.svelte.ts`](useAudioAnalyser.svelte.ts)
+Svelte 5 composable rune for audio visualizers (`Scope.svelte`, `Frequency.svelte`):
+- Connects an `AnalyserNode` wrapped in `RoutedAudioNode` to any dynamic input node.
+- Manages buffer allocation (`dataArray`) and automatic disconnects on unmount or input changes.
+- Provides `getTimeDomainData()` and `getFrequencyData()` helper methods.
+
 ---
 
 ## Architecture Flow
