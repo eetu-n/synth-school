@@ -2,6 +2,7 @@
   import FaustNode from "$lib/audio/framework/FaustNode";
   import type RoutedAudioNode from "$lib/audio/framework/RoutedAudioNode";
   import { getAudioContext } from "$lib/audio/framework/audioContextManager";
+  import GateButton from "$lib/components/ui/inputs/GateButton.svelte";
 
   let {
     outputNode,
@@ -89,11 +90,10 @@
   });
 </script>
   
-  <button 
-    class="btn btn-primary btn-lg w-full h-32 text-2xl font-black tracking-tighter shadow-xl transition-all active:scale-95 group relative overflow-hidden"
-    onpointerdown={() => gate = true}
-    onpointerup={() => gate = false}
-    onpointerleave={() => gate = false}
+  <GateButton
+    bind:gate
+    pad
+    class="h-32 shadow-xl group relative overflow-hidden"
   >
     <!-- Simple visual feedback glow -->
     {#if gate}
@@ -101,6 +101,6 @@
     {/if}
     
     <div class="flex flex-col items-center gap-1">
-      <span class="relative z-10">{gate ? 'HOLDING' : buttonLabel }</span>
+      <span class="relative z-10">{gate ? 'HOLDING' : buttonLabel}</span>
     </div>
-  </button>
+  </GateButton>

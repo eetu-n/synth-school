@@ -2,6 +2,7 @@
   import FaustNode from "$lib/audio/framework/FaustNode";
   import type RoutedAudioNode from "$lib/audio/framework/RoutedAudioNode";
   import { getAudioContext } from "$lib/audio/framework/audioContextManager";
+  import GateButton from "$lib/components/ui/inputs/GateButton.svelte";
 
   let {
     outputNode,
@@ -52,25 +53,11 @@
 </script>
 
 <div class="flex gap-4 justify-center">
-  <button
-    class="btn btn-primary shadow-md active:scale-95 select-none"
-    style="touch-action: none; -webkit-touch-callout: none;"
-    oncontextmenu={(e) => e.preventDefault()}
-    onpointerdown={() => handleGateA(true)}
-    onpointerup={() => handleGateA(false)}
-    onpointerleave={() => handleGateA(false)}
-  >
+  <GateButton onGate={handleGateA}>
     Test A
-  </button>
+  </GateButton>
 
-  <button
-    class="btn btn-primary shadow-md active:scale-95 select-none"
-    style="touch-action: none; -webkit-touch-callout: none;"
-    oncontextmenu={(e) => e.preventDefault()}
-    onpointerdown={() => handleGateB(true)}
-    onpointerup={() => handleGateB(false)}
-    onpointerleave={() => handleGateB(false)}
-  >
+  <GateButton onGate={handleGateB}>
     Test B
-  </button>
+  </GateButton>
 </div>

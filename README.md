@@ -15,7 +15,7 @@ An interactive web-based synthesizer education platform built with SvelteKit, Sv
   - `FilterDemo.svelte`: Interactive filter demonstration and frequency response visualization.
   - `SinSynth.svelte`, `AdditiveSaw.svelte`, `AdditiveSquare.svelte`, `AdditiveTriangle.svelte`, `Noise.svelte`, `MockResample.svelte`: Targeted demonstration synths and oscillators.
 - **`src/lib/components/ui/`**: Reusable UI widgets:
-  - `inputs/`: Audio controls (`Knob.svelte`, `Radio.svelte`, `HSlider.svelte`).
+  - `inputs/`: Audio controls (`Knob.svelte`, `Radio.svelte`, `HSlider.svelte`, `GateButton.svelte`).
   - `layout/`: Presentation containers (`VSplitDiv.svelte`, `AudioOverlay.svelte`, `QuizLayout.svelte`).
   - `viz/`: Visualizers such as spectrum analyzer (`Frequency.svelte`), oscilloscope (`Scope.svelte`), and envelope curve (`AdsrVis.svelte`).
 - **`src/routes/`**: Lesson paths and interactive tutorials:

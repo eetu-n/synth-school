@@ -4,6 +4,7 @@
   import { getAudioContext } from "$lib/audio/framework/audioContextManager";
   import Knob from "$lib/components/ui/inputs/Knob.svelte";
   import Radio from "$lib/components/ui/inputs/Radio.svelte";
+  import GateButton from "$lib/components/ui/inputs/GateButton.svelte";
 
   let {
     outputNode,
@@ -132,14 +133,12 @@
 
       <!-- Control Section -->
       <section class="flex flex-col items-center justify-center p-4 bg-primary/5 rounded-xl border-2 border-primary/20">
-        <button 
-          class="btn btn-primary btn-lg w-full h-24 text-2xl font-black tracking-tighter shadow-lg transition-all active:scale-95"
-          onpointerdown={() => gate = true}
-          onpointerup={() => gate = false}
-          onpointerleave={() => gate = false}
-        >
-          {gate ? 'HOLD' : 'GATE'}
-        </button>
+        <GateButton
+          bind:gate
+          pad
+          label="GATE"
+          activeLabel="HOLD"
+        />
       </section>
     </div>
 

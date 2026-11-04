@@ -2,6 +2,7 @@
   import FaustNode from "$lib/audio/framework/FaustNode";
   import type RoutedAudioNode from "$lib/audio/framework/RoutedAudioNode";
   import { getAudioContext } from "$lib/audio/framework/audioContextManager";
+  import GateButton from "$lib/components/ui/inputs/GateButton.svelte";
 
   let {
     outputNode = null,
@@ -60,48 +61,20 @@
 
 <div class="flex flex-col gap-8">
   <div class="flex flex-wrap gap-4 justify-center">
-    <button
-      class="btn btn-primary shadow-md active:scale-95 select-none"
-      style="touch-action: none; -webkit-touch-callout: none;"
-      oncontextmenu={(e) => e.preventDefault()}
-      onpointerdown={() => handleGate("Sawtooth", true)}
-      onpointerup={() => handleGate("Sawtooth", false)}
-      onpointerleave={() => handleGate("Sawtooth", false)}
-    >
+    <GateButton onGate={(active) => handleGate("Sawtooth", active)}>
       Sawtooth
-    </button>
+    </GateButton>
 
-    <button
-      class="btn btn-primary shadow-md active:scale-95 select-none"
-      style="touch-action: none; -webkit-touch-callout: none;"
-      oncontextmenu={(e) => e.preventDefault()}
-      onpointerdown={() => handleGate("Square", true)}
-      onpointerup={() => handleGate("Square", false)}
-      onpointerleave={() => handleGate("Square", false)}
-    >
+    <GateButton onGate={(active) => handleGate("Square", active)}>
       Square
-    </button>
+    </GateButton>
 
-    <button
-      class="btn btn-primary shadow-md active:scale-95 select-none"
-      style="touch-action: none; -webkit-touch-callout: none;"
-      oncontextmenu={(e) => e.preventDefault()}
-      onpointerdown={() => handleGate("Triangle", true)}
-      onpointerup={() => handleGate("Triangle", false)}
-      onpointerleave={() => handleGate("Triangle", false)}
-    >
+    <GateButton onGate={(active) => handleGate("Triangle", active)}>
       Triangle
-    </button>
-    
-    <button
-      class="btn btn-primary shadow-md active:scale-95 select-none"
-      style="touch-action: none; -webkit-touch-callout: none;"
-      oncontextmenu={(e) => e.preventDefault()}
-      onpointerdown={() => handleGate("Sine", true)}
-      onpointerup={() => handleGate("Sine", false)}
-      onpointerleave={() => handleGate("Sine", false)}
-    >
+    </GateButton>
+
+    <GateButton onGate={(active) => handleGate("Sine", active)}>
       Sine
-    </button>
+    </GateButton>
   </div>
 </div>

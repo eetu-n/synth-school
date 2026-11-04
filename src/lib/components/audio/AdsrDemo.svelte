@@ -3,6 +3,7 @@
   import type RoutedAudioNode from "$lib/audio/framework/RoutedAudioNode";
   import { getAudioContext } from "$lib/audio/framework/audioContextManager";
   import Knob from "$lib/components/ui/inputs/Knob.svelte";
+  import GateButton from "$lib/components/ui/inputs/GateButton.svelte";
   import AdsrVis from "$lib/components/ui/viz/AdsrVis.svelte";
 
   let {
@@ -111,14 +112,10 @@
     {/if}
   </section>
 
-  <button
-    class="btn btn-primary btn-lg w-full h-24 text-2xl font-black tracking-tighter shadow-lg transition-all active:scale-95 select-none"
-    style="touch-action: none; -webkit-touch-callout: none;"
-    onpointerdown={() => (gate = true)}
-    onpointerup={() => (gate = false)}
-    onpointerleave={() => (gate = false)}
-    oncontextmenu={(e) => e.preventDefault()}
-  >
-    {gate ? "HOLD" : buttonLabel}
-  </button>
+  <GateButton
+    bind:gate
+    pad
+    label={buttonLabel}
+    activeLabel="HOLD"
+  />
 </div>
