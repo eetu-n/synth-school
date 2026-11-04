@@ -403,13 +403,13 @@
       <defs>
         <!-- Gradient fill under envelope curve -->
         <linearGradient id="adsrGradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="var(--color-primary-val, #1fb0a8)" stop-opacity="0.25" />
-          <stop offset="100%" stop-color="var(--color-primary-val, #1fb0a8)" stop-opacity="0.02" />
+          <stop offset="0%" stop-color="var(--color-primary, #1fb0a8)" stop-opacity="0.25" />
+          <stop offset="100%" stop-color="var(--color-primary, #1fb0a8)" stop-opacity="0.02" />
         </linearGradient>
 
         <linearGradient id="playheadGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="var(--color-secondary-val, #e87953)" stop-opacity="0.9" />
-          <stop offset="100%" stop-color="var(--color-secondary-val, #e87953)" stop-opacity="0.3" />
+          <stop offset="0%" stop-color="var(--color-secondary, #e87953)" stop-opacity="0.9" />
+          <stop offset="100%" stop-color="var(--color-secondary, #e87953)" stop-opacity="0.3" />
         </linearGradient>
 
         <!-- Clip path for the sustain capsule -->
@@ -467,10 +467,10 @@
       </defs>
 
       <!-- Baseline -->
-      <line x1={x0} y1={y0} x2={x4} y2={y0} stroke="var(--color-grid-val, #cbd5e1)" stroke-width="1" opacity="0.5" />
+      <line x1={x0} y1={y0} x2={x4} y2={y0} stroke="var(--color-grid, #cbd5e1)" stroke-width="1" opacity="0.5" />
 
       <!-- 1.0 grid line -->
-      <line x1={x0} y1={y1} x2={x4} y2={y1} stroke="var(--color-grid-val, #cbd5e1)" stroke-width="1" stroke-dasharray="3 3" opacity="0.25" />
+      <line x1={x0} y1={y1} x2={x4} y2={y1} stroke="var(--color-grid, #cbd5e1)" stroke-width="1" stroke-dasharray="3 3" opacity="0.25" />
 
       <!-- Area Under Curve -->
       <path d={areaPath} fill="url(#adsrGradient)" />
@@ -479,7 +479,7 @@
       <path
         d={curvePath}
         fill="none"
-        stroke="var(--color-primary-val, #1fb0a8)"
+        stroke="var(--color-primary, #1fb0a8)"
         stroke-width="2.5"
         stroke-linecap="round"
         stroke-linejoin="round"
@@ -497,8 +497,8 @@
             width={sustainWidth}
             height="12"
             rx="6"
-            fill="var(--color-secondary-val, #e87953)"
-            stroke="var(--color-surface-val, #ffffff)"
+            fill="var(--color-secondary, #e87953)"
+            stroke="var(--color-surface, #ffffff)"
             stroke-width="2"
           />
           <g clip-path="url(#sustainClip)" mask="url(#sustainMask)">
@@ -529,8 +529,8 @@
           cx={cursorX}
           cy={cursorY}
           r="9"
-          fill="var(--color-secondary-val, #e87953)"
-          stroke="var(--color-surface-val, #ffffff)"
+          fill="var(--color-secondary, #e87953)"
+          stroke="var(--color-surface, #ffffff)"
           stroke-width="2"
         />
       {/if}

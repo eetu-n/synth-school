@@ -56,12 +56,12 @@
   $effect(() => {
     if (chartContainer) {
       const styles = window.getComputedStyle(chartContainer);
-      primaryTextColor = styles.getPropertyValue('--primary-text-color').trim();
-      secondaryTextColor = styles.getPropertyValue('--secondary-text-color').trim();
-      secondaryColor = styles.getPropertyValue('--primary-color').trim();
-      signalActualColor = styles.getPropertyValue('--signal-actual-color').trim();
-      signalAliasedColor = styles.getPropertyValue('--signal-aliased-color').trim();
-      gridColor = styles.getPropertyValue('--color-grid-val').trim() || styles.getPropertyValue('--border-color').trim();
+      primaryTextColor = styles.getPropertyValue('--color-text-primary').trim();
+      secondaryTextColor = styles.getPropertyValue('--color-text-secondary').trim();
+      secondaryColor = styles.getPropertyValue('--color-primary').trim();
+      signalActualColor = styles.getPropertyValue('--color-signal-actual').trim();
+      signalAliasedColor = styles.getPropertyValue('--color-signal-aliased').trim();
+      gridColor = styles.getPropertyValue('--color-grid').trim() || styles.getPropertyValue('--color-border').trim();
     }
   });
 

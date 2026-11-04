@@ -60,9 +60,9 @@
 
         // Get current colors from CSS variables
         const style = getComputedStyle(canvas);
-        const surfaceColor = style.getPropertyValue('--color-surface-val').trim() || '#1e293b';
-        const gridColor = style.getPropertyValue('--color-grid-val').trim() || '#475569';
-        const signalColor = style.getPropertyValue('--color-primary-val').trim() || '#2dd4bf';
+        const surfaceColor = style.getPropertyValue('--color-surface').trim() || '#1e293b';
+        const gridColor = style.getPropertyValue('--color-grid').trim() || '#475569';
+        const signalColor = style.getPropertyValue('--color-primary').trim() || '#2dd4bf';
 
         // Background
         context.fillStyle = surfaceColor;
@@ -129,13 +129,13 @@
 
         context.shadowBlur = 0;
 
-        const lineColor = style.getPropertyValue('--color-secondary-val').trim() || style.getPropertyValue('--color-signal-actual-val').trim() || '#f43f5e';
+        const lineColor = style.getPropertyValue('--color-secondary').trim() || style.getPropertyValue('--color-signal-actual').trim() || '#f43f5e';
 
         if (lineData && lineData.length > 0) {
             // Draw 0dB Reference Line
             const y0dB = height - ((40 / 60) * height * 0.85);
             context.beginPath();
-            context.strokeStyle = style.getPropertyValue('--color-text-secondary-val').trim() || '#64748b';
+            context.strokeStyle = style.getPropertyValue('--color-text-secondary').trim() || '#64748b';
             context.lineWidth = 1.5;
             context.globalAlpha = 1.0;
             context.setLineDash([6, 4]);
@@ -178,11 +178,11 @@
                 let regionColor = "rgba(255, 255, 255, 0.6)";
                 const lowerLabel = region.label.toLowerCase();
                 if (lowerLabel.includes('passband')) {
-                    regionColor = style.getPropertyValue('--color-passband-val').trim() || "rgba(16, 185, 129, 0.8)";
+                    regionColor = style.getPropertyValue('--color-passband').trim() || "rgba(16, 185, 129, 0.8)";
                 } else if (lowerLabel.includes('stopband')) {
-                    regionColor = style.getPropertyValue('--color-stopband-val').trim() || "rgba(239, 68, 68, 0.8)";
+                    regionColor = style.getPropertyValue('--color-stopband').trim() || "rgba(239, 68, 68, 0.8)";
                 } else if (lowerLabel.includes('transition')) {
-                    regionColor = style.getPropertyValue('--color-transitionband-val').trim() || "rgba(234, 179, 8, 0.8)";
+                    regionColor = style.getPropertyValue('--color-transitionband').trim() || "rgba(234, 179, 8, 0.8)";
                 }
 
                 // Draw separator lines at the boundaries (if not at edges)

@@ -90,9 +90,9 @@
 
         // Get current colors from CSS variables
         const style = getComputedStyle(canvas);
-        const surfaceColor = style.getPropertyValue('--color-surface-val').trim() || '#1e293b';
-        const gridColor = style.getPropertyValue('--color-grid-val').trim() || '#475569';
-        const signalColor = style.getPropertyValue('--color-primary-val').trim() || '#2dd4bf';
+        const surfaceColor = style.getPropertyValue('--color-surface').trim() || '#1e293b';
+        const gridColor = style.getPropertyValue('--color-grid').trim() || '#475569';
+        const signalColor = style.getPropertyValue('--color-primary').trim() || '#2dd4bf';
 
         // Background
         context.fillStyle = surfaceColor;

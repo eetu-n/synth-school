@@ -99,14 +99,14 @@
 {#if showHelp}
     <div 
         transition:slide={{ axis: 'y' }}
-        class="fixed bottom-24 lg:bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[var(--color-surface-val)] border border-[var(--color-border-val)] shadow-2xl rounded-full py-2 px-5 flex items-center gap-3 w-fit max-w-[calc(100%-2rem)]"
+        class="fixed bottom-24 lg:bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[var(--color-surface)] border border-[var(--color-border)] shadow-2xl rounded-full py-2 px-5 flex items-center gap-3 w-fit max-w-[calc(100%-2rem)]"
     >
-        <div class="text-xs sm:text-sm text-[var(--color-text-secondary-val)] whitespace-nowrap">
-            <span class="font-bold text-[var(--color-primary-val)]">Tip:</span> <ResponsiveText mobileText="Tap" desktopText="Hover over" /> most math symbols for definitions
+        <div class="text-xs sm:text-sm text-[var(--color-text-secondary)] whitespace-nowrap">
+            <span class="font-bold text-[var(--color-primary)]">Tip:</span> <ResponsiveText mobileText="Tap" desktopText="Hover over" /> most math symbols for definitions
         </div>
         <button 
             onclick={dismissHelp}
-            class="!bg-transparent !p-0 !text-[var(--color-text-secondary-val)] hover:!text-[var(--color-text-primary-val)] transition-colors flex items-center justify-center -mr-1"
+            class="!bg-transparent !p-0 !text-[var(--color-text-secondary)] hover:!text-[var(--color-text-primary)] transition-colors flex items-center justify-center -mr-1"
             aria-label="Dismiss"
         >
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>

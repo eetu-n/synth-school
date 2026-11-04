@@ -79,7 +79,7 @@
     position: absolute;
     height: 4px;
     width: 100%;
-    background-color: var(--color-border-val);
+    background-color: var(--color-border);
     border-radius: 2px;
     z-index: 1;
   }
@@ -87,7 +87,7 @@
   .slider-range {
     position: absolute;
     height: 4px;
-    background-color: var(--color-primary-val);
+    background-color: var(--color-primary);
     border-radius: 2px;
     z-index: 2;
   }
@@ -110,7 +110,7 @@
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    background: var(--color-primary-val);
+    background: var(--color-primary);
     cursor: pointer;
     border: none;
     box-shadow: 0 1px 2px rgba(0,0,0,0.1);
@@ -122,7 +122,7 @@
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    background: var(--color-primary-val);
+    background: var(--color-primary);
     cursor: pointer;
     border: none;
     box-shadow: 0 1px 2px rgba(0,0,0,0.1);

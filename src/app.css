@@ -2,63 +2,28 @@
 
 @layer base {
   :root {
-    --color-background-val: #f0f2f5; 
-    --color-text-primary-val: #1e293b;
-    --color-text-secondary-val: #64748b;
-    --color-primary-val: #1fb0a8;
-    --color-primary-variant-val: #1a9b93; 
-    --color-secondary-val: #e87953;
-    --color-surface-val: #ffffff; 
-    --color-border-val: #e2e8f0; 
-    --color-grid-val: #cbd5e1; 
-    --color-slider-track-val: #cbd5e1; 
-    --color-flow-background-val: #f0f2f5;
-    --color-node-background-val: #ffffff;
-    --color-node-border-val: #e2e8f0;
-    --color-signal-actual-val: #e87953; 
-    --color-signal-aliased-val: #3b82f6; 
-    --color-passband-val: rgba(16, 185, 129, 0.8);
-    --color-stopband-val: rgba(239, 68, 68, 0.8);
-    --color-transitionband-val: rgba(234, 179, 8, 0.8);
-
-    /* Legacy variables for components */
-    --background-color: var(--color-background-val);
-    --primary-text-color: var(--color-text-primary-val);
-    --secondary-text-color: var(--color-text-secondary-val);
-    --primary-color: var(--color-primary-val);
-    --primary-variant-color: var(--color-primary-variant-val);
-    --secondary-color: var(--color-secondary-val);
-    --surface-color: var(--color-surface-val);
-    --border-color: var(--color-border-val);
-    --slider-track-color: var(--color-slider-track-val);
-    --flow-background-color: var(--color-flow-background-val);
-    --node-background-color: var(--color-node-background-val);
-    --node-border-color: var(--color-node-border-val);
-    --signal-actual-color: var(--color-signal-actual-val);
-    --signal-aliased-color: var(--color-signal-aliased-val);
-    
     transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   :root.dark {
     /* Dark Mode - Deep Slate & Teal Palette */
-    --color-background-val: #0f172a; 
-    --color-text-primary-val: #f1f5f9; 
-    --color-text-secondary-val: #94a3b8; 
-    --color-primary-val: #2dd4bf;
-    --color-primary-variant-val: #14b8a6; 
-    --color-surface-val: #1e293b; 
-    --color-border-val: #334155; 
-    --color-grid-val: #475569; 
-    --color-slider-track-val: #475569; 
-    --color-flow-background-val: #0f172a;
-    --color-node-background-val: #1e293b;
-    --color-node-border-val: #334155;
-    --color-signal-actual-val: #fb923c; 
-    --color-signal-aliased-val: #60a5fa; 
-    --color-passband-val: rgba(45, 212, 191, 0.8);
-    --color-stopband-val: rgba(248, 113, 113, 0.8);
-    --color-transitionband-val: rgba(250, 204, 21, 0.8);
+    --color-background: #0f172a;
+    --color-text-primary: #f1f5f9;
+    --color-text-secondary: #94a3b8;
+    --color-primary: #2dd4bf;
+    --color-primary-variant: #14b8a6;
+    --color-surface: #1e293b;
+    --color-border: #334155;
+    --color-grid: #475569;
+    --color-slider-track: #475569;
+    --color-flow-background: #0f172a;
+    --color-node-background: #1e293b;
+    --color-node-border: #334155;
+    --color-signal-actual: #fb923c;
+    --color-signal-aliased: #60a5fa;
+    --color-passband: rgba(45, 212, 191, 0.8);
+    --color-stopband: rgba(248, 113, 113, 0.8);
+    --color-transitionband: rgba(250, 204, 21, 0.8);
   }
 
   html, body {
@@ -70,37 +35,13 @@
   }
 
   body {
-    background-color: var(--color-background-val);
-    color: var(--color-text-primary-val);
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
     font-family: 'Inter', system-ui, sans-serif;
   }
 
-  button {
-    background-color: var(--color-primary-val);
-    color: #ffffff;
-    border: none;
-    padding: 0.5rem 1.25rem;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.875rem;
-    font-weight: 600;
-    transition: all 0.15s ease-in-out;
-  }
-  button:hover:not(:disabled) {
-    filter: brightness(1.05);
-  }
-  button:active:not(:disabled) {
-    transform: scale(0.98);
-  }
-  button:disabled {
-    background-color: var(--color-slider-track-val);
-    color: var(--color-text-secondary-val);
-    cursor: not-allowed;
-    opacity: 0.5;
-  }
-
   a {
-    color: var(--color-primary-val);
+    color: var(--color-primary);
     transition: color 0.15s ease-in-out;
     text-decoration: none;
     font-weight: 500;
@@ -133,32 +74,34 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: var(--color-slider-track-val);
+    background: var(--color-slider-track);
     border-radius: 4px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-text-secondary-val);
+    background: var(--color-text-secondary);
   }
 }
 
 @theme {
-  --color-background: var(--color-background-val);
-  --color-text-primary: var(--color-text-primary-val);
-  --color-text-secondary: var(--color-text-secondary-val);
-  --color-primary: var(--color-primary-val);
-  --color-primary-variant: var(--color-primary-variant-val);
-  --color-secondary: var(--color-secondary-val);
-  --color-surface: var(--color-surface-val);
-  --color-grid: var(--color-grid-val);
-  --color-slider-track: var(--color-slider-track-val);
-  --color-flow-background: var(--color-flow-background-val);
-  --color-node-background: var(--color-node-background-val);
-  --color-node-border: var(--color-node-border-val);
-  --color-signal-actual: var(--color-signal-actual-val);
-  --color-signal-aliased: var(--color-signal-aliased-val);
-  --color-passband: var(--color-passband-val);
-  --color-stopband: var(--color-stopband-val);
-  --color-transitionband: var(--color-transitionband-val);
+  /* Light mode design tokens */
+  --color-background: #f0f2f5;
+  --color-text-primary: #1e293b;
+  --color-text-secondary: #64748b;
+  --color-primary: #1fb0a8;
+  --color-primary-variant: #1a9b93;
+  --color-secondary: #e87953;
+  --color-surface: #ffffff;
+  --color-border: #e2e8f0;
+  --color-grid: #cbd5e1;
+  --color-slider-track: #cbd5e1;
+  --color-flow-background: #f0f2f5;
+  --color-node-background: #ffffff;
+  --color-node-border: #e2e8f0;
+  --color-signal-actual: #e87953;
+  --color-signal-aliased: #3b82f6;
+  --color-passband: rgba(16, 185, 129, 0.8);
+  --color-stopband: rgba(239, 68, 68, 0.8);
+  --color-transitionband: rgba(234, 179, 8, 0.8);
 
   @keyframes bounce-horizontal {
     0%, 100% { transform: translateX(0); }
@@ -180,13 +123,13 @@ input[type="range"] {
 }
 
 input[type="range"]::-webkit-slider-runnable-track {
-    background: var(--color-border-val);
+    background: var(--color-border);
     height: 4px;
     border-radius: 2px;
 }
 
 input[type="range"]::-moz-range-track {
-    background: var(--color-border-val);
+    background: var(--color-border);
     height: 4px;
     border-radius: 2px;
 }
@@ -195,7 +138,7 @@ input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
     margin-top: -6px;
-    background-color: var(--color-primary-val);
+    background-color: var(--color-primary);
     height: 16px;
     width: 16px;
     border-radius: 9999px;
@@ -204,7 +147,7 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 input[type="range"]::-moz-range-thumb {
-    background-color: var(--color-primary-val);
+    background-color: var(--color-primary);
     height: 16px;
     width: 16px;
     border-radius: 9999px;
@@ -230,13 +173,13 @@ input[type="range"]::-moz-range-thumb {
 
 /* Routing Graph Styles (xyflow) */
 .svelte-flow__background {
-    background-color: var(--color-flow-background-val);
+    background-color: var(--color-flow-background);
 }
 
 .svelte-flow__node {
-    background-color: var(--color-node-background-val);
-    color: var(--color-text-primary-val);
-    border: 1px solid var(--color-node-border-val);
+    background-color: var(--color-node-background);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-node-border);
     border-radius: 8px;
     font-size: 12px;
     padding: 8px;
@@ -244,7 +187,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .svelte-flow__edge-path {
-    stroke: var(--color-primary-val);
+    stroke: var(--color-primary);
     stroke-width: 2;
 }
 
