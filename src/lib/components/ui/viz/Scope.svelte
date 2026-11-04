@@ -6,6 +6,16 @@
 
     let canvas = $state<HTMLCanvasElement | null>(null);
     let container = $state<HTMLDivElement | null>(null);
+
+    let w = $state(800);
+    let h = $state(400);
+    let dpr = $state(1);
+
+    $effect(() => {
+        if (typeof window !== 'undefined') {
+            dpr = window.devicePixelRatio || 1;
+        }
+    });
     
     let analyser: RoutedAudioNode<AnalyserNode> | null = null;
     let dataArray: Uint8Array<any> | null = null;
@@ -85,8 +95,11 @@
         drawVisual = requestAnimationFrame(draw);
         analyser.audioNode?.getByteTimeDomainData(dataArray);
 
-        const width = canvas.width;
-        const height = canvas.height;
+        const width = w;
+        const height = h;
+
+        context.save();
+        context.scale(dpr, dpr);
 
         // Get current colors from CSS variables
         const style = getComputedStyle(canvas);
@@ -152,6 +165,7 @@
         
         // Reset shadow
         context.shadowBlur = 0;
+        context.restore();
     }
 
     $effect(() => {
@@ -180,12 +194,13 @@
 </script>
 
 <div bind:this={container} class="bg-surface dark:bg-dark-surface rounded-xl shadow-sm border border-border dark:border-dark-border p-6 my-4 w-full max-w-3xl mx-auto flex flex-col">
-    <div class="w-full aspect-[2/1] relative">
-        <canvas 
-            bind:this={canvas} 
-            width="800" 
-            height="400"
-            class="w-full h-full block"
+    <div class="w-full aspect-[2/1] relative" bind:clientWidth={w} bind:clientHeight={h}>
+        <canvas
+            bind:this={canvas}
+            width={Math.floor(w * dpr)}
+            height={Math.floor(h * dpr)}
+            style="width: 100%; height: 100%;"
+            class="block"
         ></canvas>
     </div>
 </div>
