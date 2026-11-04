@@ -1,24 +1,7 @@
 <script lang="ts">
   import { Line } from 'svelte-chartjs';
-  import {
-    Chart as ChartJS,
-    Title,
-    Tooltip,
-    Legend,
-    LineElement,
-    LinearScale,
-    PointElement,
-  } from 'chart.js';
+  import '$lib/utils/chartSetup';
   import { browser } from '$app/environment';
-
-  ChartJS.register(
-    Title,
-    Tooltip,
-    Legend,
-    LineElement,
-    LinearScale,
-    PointElement
-  );
 
   interface Props {
     frequency?: number;
