@@ -6,7 +6,7 @@ An interactive web-based synthesizer education platform built with SvelteKit, Sv
 
 - **`src/lib/audio/`**: Core audio engine.
   - `dsp/`: Faust DSP scripts (`.dsp` and `.lib` files compiled to WebAssembly via `vite-plugin-faust`).
-  - `framework/`: Audio graph abstractions and lifecycle management (`FaustNode`, `RoutedAudioNode`, `RouterNode`, `AudioContextManager`, `audioState`).
+  - `framework/`: Audio graph abstractions and lifecycle management (`FaustNode`, `useFaustNode`, `RoutedAudioNode`, `RouterNode`, `AudioContextManager`, `audioState`).
   - `nodes/`: Custom audio nodes and analysis utilities (e.g., `CascadingFilterNode`, `FilterResponseAnalyzer`).
 - **`src/lib/components/audio/`**: High-level synthesizer and audio components:
   - `SubtractiveSynth.svelte`: Full subtractive synthesizer UI (waveform selection, frequency, gain, filter cutoff/resonance, ADSR envelope, gate button).

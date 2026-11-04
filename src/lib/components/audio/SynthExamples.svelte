@@ -1,7 +1,7 @@
 <script lang="ts">
-  import FaustNode from "$lib/audio/framework/FaustNode";
+  import type FaustNode from "$lib/audio/framework/FaustNode";
   import type RoutedAudioNode from "$lib/audio/framework/RoutedAudioNode";
-  import { getAudioContext } from "$lib/audio/framework/audioContextManager";
+  import { useFaustNode } from "$lib/audio/framework/useFaustNode.svelte";
   import GateButton from "$lib/components/ui/inputs/GateButton.svelte";
 
   let {
@@ -14,48 +14,18 @@
 
   let tempo = $state(90);
 
+  const faust = useFaustNode("synthExamples", () => outputNode);
+
   $effect(() => {
-    let activeNode: FaustNode | null = null;
-    let isDestroyed = false;
-
-    async function init() {
-      const context = await getAudioContext();
-      if (isDestroyed) return;
-
-      const node = await FaustNode.create("synthExamples", context);
-      if (isDestroyed) {
-        node?.destroy();
-        return;
-      }
-      faustNode = node;
-      activeNode = node;
-    }
-
-    init();
-
-    return () => {
-      isDestroyed = true;
-      activeNode?.destroy();
-      faustNode = null;
-    };
+    faustNode = faust.current;
   });
 
   $effect(() => {
-    if (faustNode && outputNode) {
-      faustNode.connect(outputNode);
-      return () => faustNode?.disconnect(outputNode);
-    }
-  });
-
-  $effect(() => {
-    if (faustNode) {
-      faustNode.setParamValue("Tempo", tempo);
-    }
+    faust.setParam("Tempo", tempo);
   });
 
   function handleGate(param: string, input: boolean) {
-    if (!faustNode) return;
-    faustNode.setParamValue(param, input ? 1 : 0);
+    faust.setParam(param, input);
   }
 </script>
 

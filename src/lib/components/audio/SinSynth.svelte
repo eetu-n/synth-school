@@ -1,7 +1,6 @@
 <script lang="ts">
-  import FaustNode from "$lib/audio/framework/FaustNode";
   import type RoutedAudioNode from "$lib/audio/framework/RoutedAudioNode";
-  import { getAudioContext } from "$lib/audio/framework/audioContextManager";
+  import { useFaustNode } from "$lib/audio/framework/useFaustNode.svelte";
   import HSlider from "$lib/components/ui/inputs/HSlider.svelte";
 
   let {
@@ -11,32 +10,14 @@
   let frequency = $state(500);
   let isPlaying = $state(false);
 
-  let faustNode = await FaustNode.create(
-    "sinSynth",
-    await getAudioContext(),
-  );
+  const faust = useFaustNode("sinSynth", () => outputNode);
 
   $effect(() => {
-    if (faustNode && outputNode) {
-      faustNode.connect(outputNode);
-      return () => faustNode?.disconnect(outputNode);
-    }
+    faust.setParam("frequency", frequency);
   });
 
   $effect(() => {
-    if (faustNode) {
-      faustNode.setParamValue("frequency", frequency);
-    }
-  });
-
-  $effect(() => {
-    if (faustNode) {
-      faustNode.setParamValue("play", isPlaying ? 1 : 0);
-    }
-  });
-
-  $effect(() => {
-    return () => faustNode?.destroy();
+    faust.setParam("play", isPlaying);
   });
 </script>
 

@@ -1,7 +1,6 @@
 <script lang="ts">
-  import FaustNode from "$lib/audio/framework/FaustNode";
-  import { getAudioContext } from "$lib/audio/framework/audioContextManager";
   import type RoutedAudioNode from "$lib/audio/framework/RoutedAudioNode";
+  import { useFaustNode } from "$lib/audio/framework/useFaustNode.svelte";
 
   let {
     outputNode,
@@ -15,34 +14,18 @@
     play?: boolean;
   } = $props();
 
-  const faustNode = await FaustNode.create(
-    "mockResample",
-    await getAudioContext(),
-  );
+  const faust = useFaustNode("mockResample", () => (play ? outputNode : null));
 
   $effect(() => {
-    if (faustNode && outputNode && play) {
-      faustNode.connect(outputNode);
-      return () => {
-        faustNode.disconnect(outputNode);
-      };
-    }
+    faust.setParam("frequency", frequency);
   });
 
   $effect(() => {
-    faustNode?.setParamValue("frequency", frequency);
+    faust.setParam("sampleRate", sampleRate);
   });
 
   $effect(() => {
-    faustNode?.setParamValue("sampleRate", sampleRate);
-  });
-
-  $effect(() => {
-    faustNode?.setParamValue("play", play ? 1 : 0);
-  });
-
-  $effect(() => {
-    return () => faustNode?.destroy();
+    faust.setParam("play", play);
   });
 </script>
 

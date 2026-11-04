@@ -1,7 +1,6 @@
 <script lang="ts">
-  import FaustNode from "$lib/audio/framework/FaustNode";
   import type RoutedAudioNode from "$lib/audio/framework/RoutedAudioNode";
-  import { getAudioContext } from "$lib/audio/framework/audioContextManager";
+  import { useFaustNode } from "$lib/audio/framework/useFaustNode.svelte";
   import Knob from "$lib/components/ui/inputs/Knob.svelte";
   import Radio from "$lib/components/ui/inputs/Radio.svelte";
   import GateButton from "$lib/components/ui/inputs/GateButton.svelte";
@@ -32,56 +31,21 @@
 
   // --- States ---
   let gate = $state(false);
-  let faustNode = $state<FaustNode | null>(null);
 
-  // Initialize FaustNode reactively when context is ready
-  $effect(() => {
-    let activeNode: FaustNode | null = null;
-    let isDestroyed = false;
-
-    async function init() {
-      const context = await getAudioContext();
-      if (isDestroyed) return;
-      
-      const node = await FaustNode.create("subtractiveSynth", context);
-      if (isDestroyed) {
-        node?.destroy();
-        return;
-      }
-      faustNode = node;
-      activeNode = node;
-    }
-
-    init();
-
-    return () => {
-      isDestroyed = true;
-      activeNode?.destroy();
-      faustNode = null;
-    };
-  });
-
-  $effect(() => {
-    if (faustNode && outputNode) {
-      faustNode.connect(outputNode);
-      return () => faustNode?.disconnect(outputNode);
-    }
-  });
+  const faust = useFaustNode("subtractiveSynth", () => outputNode);
 
   // --- Parameter Updates ---
   $effect(() => {
-    if (faustNode) {
-      faustNode.setParamValue("Waveform", waveSelect);
-      faustNode.setParamValue("freq", freq);
-      faustNode.setParamValue("gain", gain);
-      faustNode.setParamValue("gate", gate ? 1 : 0);
-      faustNode.setParamValue("Cutoff", cutoff);
-      faustNode.setParamValue("Resonance", resonance);
-      faustNode.setParamValue("Attack", attack);
-      faustNode.setParamValue("Decay", decay);
-      faustNode.setParamValue("Sustain", sustain);
-      faustNode.setParamValue("Release", release);
-    }
+    faust.setParam("Waveform", waveSelect);
+    faust.setParam("freq", freq);
+    faust.setParam("gain", gain);
+    faust.setParam("gate", gate);
+    faust.setParam("Cutoff", cutoff);
+    faust.setParam("Resonance", resonance);
+    faust.setParam("Attack", attack);
+    faust.setParam("Decay", decay);
+    faust.setParam("Sustain", sustain);
+    faust.setParam("Release", release);
   });
 </script>
 

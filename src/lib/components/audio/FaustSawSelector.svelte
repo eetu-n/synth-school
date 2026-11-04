@@ -1,7 +1,6 @@
 <script lang="ts">
-  import FaustNode from "$lib/audio/framework/FaustNode";
   import type RoutedAudioNode from "$lib/audio/framework/RoutedAudioNode";
-  import { getAudioContext } from "$lib/audio/framework/audioContextManager";
+  import { useFaustNode } from "$lib/audio/framework/useFaustNode.svelte";
   import GateButton from "$lib/components/ui/inputs/GateButton.svelte";
 
   let {
@@ -9,55 +8,26 @@
     isRightAliasing = true,
   }: { outputNode: RoutedAudioNode; isRightAliasing?: boolean } = $props();
 
-  let faustNode = await FaustNode.create(
-    "saw_selector",
-    await getAudioContext(),
-  );
+  const faust = useFaustNode("saw_selector", () => outputNode);
 
-  let gateA: boolean = $state(false);
-  let gateB: boolean = $state(false);
-
-  function handleGateA(input: boolean) {
-    if (!faustNode) return;
-
-    gateA = input;
-
-    faustNode.setParamValue(isRightAliasing ? "gate2" : "gate1", gateA ? 1 : 0);
-  }
-
-  function handleGateB(input: boolean) {
-    if (!faustNode) return;
-
-    gateB = input;
-    faustNode.setParamValue(isRightAliasing ? "gate1" : "gate2", gateB ? 1 : 0);
-  }
+  let gateA = $state(false);
+  let gateB = $state(false);
 
   $effect(() => {
-    if (!faustNode || !outputNode) {
-      return;
-    }
-    faustNode.connect(outputNode);
+    faust.setParam(isRightAliasing ? "gate2" : "gate1", gateA);
   });
 
   $effect(() => {
-    handleGateA(gateA);
-  });
-
-  $effect(() => {
-    handleGateB(gateB);
-  });
-
-  $effect(() => {
-    return () => faustNode?.destroy();
+    faust.setParam(isRightAliasing ? "gate1" : "gate2", gateB);
   });
 </script>
 
 <div class="flex gap-4 justify-center">
-  <GateButton onGate={handleGateA}>
+  <GateButton bind:gate={gateA}>
     Test A
   </GateButton>
 
-  <GateButton onGate={handleGateB}>
+  <GateButton bind:gate={gateB}>
     Test B
   </GateButton>
 </div>

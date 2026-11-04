@@ -1,7 +1,6 @@
 <script lang="ts">
-  import FaustNode from "$lib/audio/framework/FaustNode";
   import type RoutedAudioNode from "$lib/audio/framework/RoutedAudioNode";
-  import { getAudioContext } from "$lib/audio/framework/audioContextManager";
+  import { useFaustNode } from "$lib/audio/framework/useFaustNode.svelte";
   import HSlider from "$lib/components/ui/inputs/HSlider.svelte";
   import Toggle from "$lib/components/ui/inputs/Toggle.svelte";
 
@@ -12,28 +11,12 @@
   let harmonicsEnd = $state(1);
   let isPlaying = $state(false);
 
-  let faustNode = await FaustNode.create(
-    "additiveHarmonics",
-    await getAudioContext(),
-  );
+  const faust = useFaustNode("additiveHarmonics", () => outputNode);
 
   $effect(() => {
-    if (faustNode && outputNode) {
-      faustNode.connect(outputNode);
-      return () => faustNode?.disconnect(outputNode);
-    }
-  });
-
-  $effect(() => {
-    if (faustNode) {
-      faustNode.setParamValue("harmonics_end", harmonicsEnd);
-      faustNode.setParamValue("wave_type", 1); // Square
-      faustNode.setParamValue("gate", isPlaying ? 1 : 0);
-    }
-  });
-
-  $effect(() => {
-    return () => faustNode?.destroy();
+    faust.setParam("harmonics_end", harmonicsEnd);
+    faust.setParam("wave_type", 1);
+    faust.setParam("gate", isPlaying);
   });
 </script>
 
