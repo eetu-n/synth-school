@@ -3,6 +3,8 @@
 ## General Instructions
 - You can be less verbose than in general, the generated code is most important. I'll ask for clarification if needed.
 - Edit this file whenever I give general instructions on how to behave
+- Do not assume the user wants more than explicitly asked for; keep implementations strictly minimal to what was requested.
+- Do not write or invent description fields, explanatory text, or similar content unless explicitly asked.
 - Maintain a README.md:
     - Before reading source files, check README.md for the general structure and what to expect.
     - Whenever making or discovering changes, update README.md accordingly.
