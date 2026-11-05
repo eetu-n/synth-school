@@ -4,30 +4,43 @@
 
   const nodes: ModuleNode[] = [
     {
+      id: 'aliasing',
+      phase: 1,
+      data: {
+        title: 'Aliasing',
+        href: '/lessons/aliasing/1-intro'
+      }
+    },
+    {
       id: 'oscillators',
-      position: { x: 0, y: 0 },
+      phase: 2,
       data: {
         title: 'Oscillators',
-        href: '/lessons/oscillators/1-intro',
-        allowedTargets: ['filters']
+        href: '/lessons/oscillators/1-intro'
       }
     },
     {
       id: 'filters',
-      position: { x: 250, y: 0 },
+      phase: 3,
       data: {
         title: 'Filters',
-        href: '/lessons/filters/1-intro',
-        allowedTargets: ['envelopes']
+        href: '/lessons/filters/1-intro'
       }
     },
     {
       id: 'envelopes',
-      position: { x: 500, y: 0 },
+      phase: 4,
       data: {
         title: 'Envelopes',
-        href: '/lessons/envelopes/1-intro',
-        allowedTargets: []
+        href: '/lessons/envelopes/1-intro'
+      }
+    },
+    {
+      id: 'synthQuiz',
+      phase: 5,
+      data: {
+        title: 'Synth Match',
+        href: '/lessons/synthQuiz'
       }
     }
   ];
@@ -35,8 +48,8 @@
   const edges: CableEdge[] = [
     { id: 'e-alias-osc', source: 'aliasing', target: 'oscillators' },
     { id: 'e-osc-filters', source: 'oscillators', target: 'filters' },
-    { id: 'e-env-filters', source: 'envelopes', target: 'filters' },
-    { id: 'e-filters-quiz', source: 'filters', target: 'synthQuiz' }
+    { id: 'e-filters-env', source: 'filters', target: 'envelopes' },
+    { id: 'e-env-quiz', source: 'envelopes', target: 'synthQuiz' }
   ];
 </script>
 
@@ -45,5 +58,5 @@
 </svelte:head>
 
 <div class="h-full w-full flex flex-col min-h-0">
-  <ModularRack {nodes} />
+  <ModularRack {nodes} {edges} />
 </div>

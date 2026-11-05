@@ -8,14 +8,7 @@ An interactive web-based synthesizer education platform built with SvelteKit, Sv
   - `dsp/`: Faust DSP scripts (`.dsp` and `.lib` files compiled to WebAssembly via `vite-plugin-faust`).
   - `framework/`: Audio graph abstractions and lifecycle management (see [`src/lib/audio/framework/README.md`](src/lib/audio/framework/README.md)).
   - `nodes/`: Custom audio nodes and analysis utilities (see [`src/lib/audio/nodes/README.md`](src/lib/audio/nodes/README.md)).
-- **`src/lib/modular/`**: Modular learning path & droopy patch cable system (see [`src/lib/modular/README.md`](src/lib/modular/README.md)):
-  - `types.ts`: Lightweight definitions for modular nodes and cables.
-  - `cablePhysics.ts`: Physics engine for gravity-drooped Bézier curves and spring-damper cable oscillation.
-- **`src/lib/components/modular/`**: Modular UI components:
-  - `ModularRack.svelte`: SvelteFlow canvas presenting the modules and cables.
-  - `SynthModuleNode.svelte`: Simple rounded-rectangle module card linking directly to lesson part 1.
-  - `PatchCableEdge.svelte`: Physically animated droopy Bézier curve patch cable with interactive twang.
-  - `PatchConnectionLine.svelte`: Real-time droopy cable preview while dragging out new patch connections.
+- **`src/lib/modular/`**: Modular learning path & droopy patch cable system (see [`src/lib/modular/README.md`](src/lib/modular/README.md)).
 - **`src/lib/components/audio/`**: High-level synthesizer and audio components:
   - `SubtractiveSynth.svelte`: Full subtractive synthesizer UI (waveform selection, frequency, gain, filter cutoff/resonance, ADSR envelope, gate button).
   - `AdsrDemo.svelte`: ADSR-focused envelope synthesizer UI based on SubtractiveSynth with built-in `AdsrVis` envelope graph visualization (toggleable via `showVisualization`, true by default).

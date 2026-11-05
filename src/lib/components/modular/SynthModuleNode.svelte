@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { Handle, Position, type NodeProps } from '@xyflow/svelte';
-  import type { ModuleNode } from '$lib/modular/types';
+  import { Handle, Position, type NodeProps, type Node } from '@xyflow/svelte';
+  import type { ModuleNodeData } from '$lib/modular/types';
 
-  let { data, selected }: NodeProps<ModuleNode> = $props();
+  let { data, selected }: NodeProps<Node<ModuleNodeData>> = $props();
 </script>
 
 <div
