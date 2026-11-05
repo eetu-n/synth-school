@@ -23,12 +23,14 @@ export function useAudioAnalyser(
 
   let analyser = $state<RoutedAudioNode<AnalyserNode> | null>(null);
   let dataArray = $state<Uint8Array<ArrayBuffer> | null>(null);
+  let floatDataArray = $state<Float32Array<ArrayBuffer> | null>(null);
 
   $effect(() => {
     const inputNode = getInputNode();
     if (!audioState.context || !inputNode) {
       analyser = null;
       dataArray = null;
+      floatDataArray = null;
       return;
     }
 
@@ -42,15 +44,18 @@ export function useAudioAnalyser(
 
     const routed = new RoutedAudioNode(name, audioState.context, rawAnalyser);
     const buffer = new Uint8Array(new ArrayBuffer(rawAnalyser.frequencyBinCount));
+    const floatBuffer = new Float32Array(new ArrayBuffer(rawAnalyser.fftSize * 4));
 
     inputNode.connect(routed);
     analyser = routed;
     dataArray = buffer;
+    floatDataArray = floatBuffer;
 
     return () => {
       inputNode.disconnect(routed);
       analyser = null;
       dataArray = null;
+      floatDataArray = null;
     };
   });
 
@@ -64,8 +69,18 @@ export function useAudioAnalyser(
     get dataArray(): Uint8Array<ArrayBuffer> | null {
       return dataArray;
     },
+    get floatDataArray(): Float32Array<ArrayBuffer> | null {
+      return floatDataArray;
+    },
     get sampleRate(): number {
       return audioState.context?.sampleRate ?? 44100;
+    },
+    getFloatTimeDomainData(): Float32Array<ArrayBuffer> | null {
+      if (analyser?.audioNode && floatDataArray) {
+        analyser.audioNode.getFloatTimeDomainData(floatDataArray);
+        return floatDataArray;
+      }
+      return null;
     },
     getTimeDomainData(): Uint8Array<ArrayBuffer> | null {
       if (analyser?.audioNode && dataArray) {

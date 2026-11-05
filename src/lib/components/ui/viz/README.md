@@ -16,6 +16,7 @@ Interactive SVG visualization of an ADSR (Attack, Decay, Sustain, Release) envel
 ### [`Scope.svelte`](Scope.svelte)
 Real-time audio oscilloscope rendering the time-domain waveform onto an HTML5 Canvas:
 - **Autocorrelation Pitch Tracking**: Uses zero-crossing and autocorrelation to find stable trigger points, preventing jitter and keeping periodic waveforms stationary on screen.
+- **Dynamic Auto-Gain**: Automatically and smoothly scales low-amplitude synthesizer signals (which are typically normalized to $0.2 \dots 0.4$ peak) so they comfortably fill ~70–75% of the display height, while leaving silent signals flat. Supports `autoGain?: boolean` and manual `gain?: number`.
 - **High-DPI Retina Support**: Automatically scales internal canvas dimensions using `useDpr()` for sharp rendering on mobile and desktop screens.
 - **Audio Lifecycle**: Connects to the audio graph via `useAudioAnalyser()`, pulling time-domain data via `getTimeDomainData()`.
 - **60 FPS Loop**: Runs via `requestAnimationFrame` drawing from a Web Audio `AnalyserNode`.

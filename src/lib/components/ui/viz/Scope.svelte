@@ -3,7 +3,17 @@
     import { useAudioAnalyser } from '$lib/audio/framework/useAudioAnalyser.svelte';
     import { useDpr } from '$lib/utils/dpr.svelte';
 
-    let { inputNode }: { inputNode: RoutedAudioNode<any> } = $props();
+    interface Props {
+        inputNode: RoutedAudioNode<any>;
+        autoGain?: boolean;
+        gain?: number;
+    }
+
+    let { 
+        inputNode,
+        autoGain = true,
+        gain = 1.0,
+    }: Props = $props();
 
     let canvas = $state<HTMLCanvasElement | null>(null);
     let container = $state<HTMLDivElement | null>(null);
@@ -14,8 +24,9 @@
 
     const audio = useAudioAnalyser(() => inputNode, { name: "scope", fftSize: 2048 });
     let drawVisual: number;
+    let currentScale = 2.5;
 
-    function findTriggerPointWithAutocorellation(data: Uint8Array): number {
+    function findTriggerPointWithAutocorellation(data: Float32Array): number {
         // Find the mean to remove DC offset
         let sum = 0;
         for (let i = 0; i < data.length; i++) {
@@ -54,11 +65,15 @@
         }
 
         // Find min and max in the first period to determine the midpoint
-        let min = 255;
-        let max = 0;
+        let min = 1.0;
+        let max = -1.0;
         for (let i = 0; i < period; i++) {
             if (data[i] < min) min = data[i];
             if (data[i] > max) max = data[i];
+        }
+
+        if (max - min < 0.02) {
+            return 0;
         }
 
         const mid = (min + max) / 2;
@@ -83,7 +98,7 @@
 
     function draw(){
         if (!canvas) return;
-        const dataArray = audio.getTimeDomainData();
+        const dataArray = audio.getFloatTimeDomainData();
         if (!dataArray) return;
 
         const context = canvas.getContext('2d');
@@ -131,6 +146,25 @@
         const triggerIndex = findTriggerPointWithAutocorellation(dataArray);
         const drawLength = dataArray.length / 2;
         const sliceWidth = width / drawLength;
+
+        // Auto-scale vertical gain so waveform fills ~70-75% of view without clipping
+        let maxAbs = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+            const abs = Math.abs(dataArray[i]);
+            if (abs > maxAbs) maxAbs = abs;
+        }
+
+        if (autoGain) {
+            if (maxAbs > 0.02) {
+                // Target peak amplitude at ~75% of available vertical height (0.75)
+                const targetScale = Math.min(8.0, 0.75 / Math.max(maxAbs, 0.08));
+                currentScale += (targetScale - currentScale) * 0.1;
+            } else {
+                currentScale += (2.5 - currentScale) * 0.05;
+            }
+        } else {
+            currentScale = gain;
+        }
         
         context.lineWidth = 3;
         context.strokeStyle = signalColor;
@@ -147,8 +181,9 @@
             const sampleIndex = triggerIndex + i;
             if (sampleIndex >= dataArray.length) break;
 
-            const v = (dataArray[sampleIndex] - 128) / 128.0;
-            const y = (height / 2) - (v * (height * 0.45));
+            const rawV = dataArray[sampleIndex];
+            const scaledV = Math.max(-1.05, Math.min(1.05, rawV * currentScale));
+            const y = (height / 2) - (scaledV * (height * 0.45));
 
             if (i === 0) {
                 context.moveTo(x, y);
