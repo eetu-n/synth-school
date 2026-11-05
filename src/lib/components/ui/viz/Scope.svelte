@@ -5,15 +5,17 @@
 
     interface Props {
         inputNode: RoutedAudioNode<any>;
-        autoGain?: boolean;
-        gain?: number;
+        scale?: number;
+        scaleFactor?: number;
     }
 
     let { 
         inputNode,
-        autoGain = true,
-        gain = 1.0,
+        scale = 2,
+        scaleFactor,
     }: Props = $props();
+
+    const effectiveScale = $derived(scaleFactor ?? scale);
 
     let canvas = $state<HTMLCanvasElement | null>(null);
     let container = $state<HTMLDivElement | null>(null);
@@ -24,7 +26,6 @@
 
     const audio = useAudioAnalyser(() => inputNode, { name: "scope", fftSize: 2048 });
     let drawVisual: number;
-    let currentScale = 2.5;
 
     function findTriggerPointWithAutocorellation(data: Float32Array): number {
         // Find the mean to remove DC offset
@@ -147,25 +148,6 @@
         const drawLength = dataArray.length / 2;
         const sliceWidth = width / drawLength;
 
-        // Auto-scale vertical gain so waveform fills ~70-75% of view without clipping
-        let maxAbs = 0;
-        for (let i = 0; i < dataArray.length; i++) {
-            const abs = Math.abs(dataArray[i]);
-            if (abs > maxAbs) maxAbs = abs;
-        }
-
-        if (autoGain) {
-            if (maxAbs > 0.02) {
-                // Target peak amplitude at ~75% of available vertical height (0.75)
-                const targetScale = Math.min(8.0, 0.75 / Math.max(maxAbs, 0.08));
-                currentScale += (targetScale - currentScale) * 0.1;
-            } else {
-                currentScale += (2.5 - currentScale) * 0.05;
-            }
-        } else {
-            currentScale = gain;
-        }
-        
         context.lineWidth = 3;
         context.strokeStyle = signalColor;
         context.lineJoin = 'round';
@@ -182,7 +164,7 @@
             if (sampleIndex >= dataArray.length) break;
 
             const rawV = dataArray[sampleIndex];
-            const scaledV = Math.max(-1.05, Math.min(1.05, rawV * currentScale));
+            const scaledV = Math.max(-1.05, Math.min(1.05, rawV * effectiveScale));
             const y = (height / 2) - (scaledV * (height * 0.45));
 
             if (i === 0) {
