@@ -10,15 +10,15 @@ Real-time audio visualizers, envelope diagrams, and signal plotting components.
 Interactive SVG visualization of an ADSR (Attack, Decay, Sustain, Release) envelope:
 - **Continuous Logarithmic Scaling**: Accurately shows 0 ms attacks as vertical jumps while scaling smoothly across 1 ms – 5000 ms.
 - **Real-Time Playhead Tracking**: Animated playhead dot tracks through Attack $\to$ Decay $\to$ Sustain $\to$ Release phases in sync with gate triggers.
-- **Sustain Capsule**: Animated moving diagonal stripes with soft edge fading representing held sustain time.
+- **Sustain Capsule & Stretch/Collapse Animation**: Symmetrical easing transitions that stretch the cursor ball into the sustain capsule upon entering sustain, and collapse the capsule back into the cursor ball at the release point upon gate release. Moving diagonal stripes smoothly fade in/out accordingly.
 - **Theming**: Directly reads `--color-primary`, `--color-secondary`, and `--color-grid` tokens.
 
 ### [`Scope.svelte`](Scope.svelte)
 Real-time audio oscilloscope rendering the time-domain waveform onto an HTML5 Canvas:
 - **Autocorrelation Pitch Tracking**: Uses zero-crossing and autocorrelation to find stable trigger points, preventing jitter and keeping periodic waveforms stationary on screen.
-- **Dynamic Auto-Gain**: Automatically and smoothly scales low-amplitude synthesizer signals (which are typically normalized to $0.2 \dots 0.4$ peak) so they comfortably fill ~70–75% of the display height, while leaving silent signals flat. Supports `autoGain?: boolean` and manual `gain?: number`.
+- **Amplitude Scaling**: Scales waveform display with a configurable `scale` (or `scaleFactor`) prop, defaulting to `2x` for clear visibility of normalized synthesizer signals without clipping.
 - **High-DPI Retina Support**: Automatically scales internal canvas dimensions using `useDpr()` for sharp rendering on mobile and desktop screens.
-- **Audio Lifecycle**: Connects to the audio graph via `useAudioAnalyser()`, pulling time-domain data via `getTimeDomainData()`.
+- **Audio Lifecycle**: Connects to the audio graph via `useAudioAnalyser()`, pulling time-domain data via `getFloatTimeDomainData()`.
 - **60 FPS Loop**: Runs via `requestAnimationFrame` drawing from a Web Audio `AnalyserNode`.
 
 ### [`Frequency.svelte`](Frequency.svelte)
