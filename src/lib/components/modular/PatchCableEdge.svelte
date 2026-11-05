@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import type { EdgeProps } from '@xyflow/svelte';
-  import { calculateDroopPath, stepSpring, type SpringState } from '$lib/modular/cablePhysics';
+  import { calculateDroopPath, CableSpringAnimation } from '$lib/modular/cablePhysics';
   import type { CableEdgeData } from '$lib/modular/types';
 
   let {
@@ -18,27 +18,14 @@
   const cableColor = $derived(cableData.color ?? 'var(--color-primary)');
   const slack = $derived(cableData.slack ?? 1.0);
 
-  let spring = $state<SpringState>({ displacement: 0, velocity: 0 });
-  let animFrameId: number | null = null;
-
-  function startPhysics() {
-    if (animFrameId !== null) return;
-    const tick = () => {
-      if (Math.abs(spring.displacement) > 0.05 || Math.abs(spring.velocity) > 0.05) {
-        spring = stepSpring(spring);
-        animFrameId = requestAnimationFrame(tick);
-      } else {
-        spring = { displacement: 0, velocity: 0 };
-        animFrameId = null;
-      }
-    };
-    animFrameId = requestAnimationFrame(tick);
-  }
+  let dynamicOffset = $state(0);
+  const springAnim = new CableSpringAnimation((d) => {
+    dynamicOffset = d;
+  });
 
   // Settle animation when cable is created
   onMount(() => {
-    spring = { displacement: 3, velocity: 0 };
-    startPhysics();
+    springAnim.settle(3);
   });
 
   // React subtly when the connected modules are moved
@@ -53,30 +40,19 @@
       const dx = (sx - prevCoords.sx) + (tx - prevCoords.tx);
       const dy = (sy - prevCoords.sy) + (ty - prevCoords.ty);
       const movement = Math.sqrt(dx * dx + dy * dy);
-
-      if (movement > 2) {
-        const impulse = Math.min(1.2, movement * 0.04);
-        spring = {
-          displacement: spring.displacement,
-          velocity: spring.velocity + (dy < 0 ? -impulse : impulse)
-        };
-        startPhysics();
-      }
+      springAnim.applyImpulse(dy, movement);
     }
     prevCoords = { sx, sy, tx, ty };
   });
 
   onDestroy(() => {
-    if (animFrameId !== null) {
-      cancelAnimationFrame(animFrameId);
-      animFrameId = null;
-    }
+    springAnim.destroy();
   });
 
   const curve = $derived(
     calculateDroopPath(sourceX, sourceY, targetX, targetY, {
       slack,
-      dynamicOffset: spring.displacement
+      dynamicOffset
     })
   );
 </script>

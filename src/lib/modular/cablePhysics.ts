@@ -39,18 +39,15 @@ export function calculateDroopPath(
   const totalSag = (50 * slack + dist * 0.28 * slack + dynamicOffset);
   const lowestY = Math.max(y1, y2);
 
-  let xSpread = dx * 0.15;
-  if (Math.abs(dx) < 30) {
-    xSpread += 20;
-  }
+  const horizontalSpread = Math.max(20, Math.abs(dx) * 0.15);
 
   const cp1 = {
-    x: x1 + xSpread,
+    x: x1 + horizontalSpread,
     y: Math.max(lowestY + 25 * slack, y1 + totalSag + Math.max(0, dy * 0.25))
   };
 
   const cp2 = {
-    x: x2 - xSpread,
+    x: x2 - horizontalSpread,
     y: Math.max(lowestY + 25 * slack, y2 + totalSag + Math.max(0, -dy * 0.25))
   };
 
@@ -76,4 +73,54 @@ export function stepSpring(state: SpringState, stiffness = 0.08, damping = 0.35)
   }
 
   return { displacement, velocity };
+}
+
+export class CableSpringAnimation {
+  private state: SpringState = { displacement: 0, velocity: 0 };
+  private animFrameId: number | null = null;
+  private onChange: (displacement: number) => void;
+
+  constructor(onChange: (displacement: number) => void) {
+    this.onChange = onChange;
+  }
+
+  settle(displacement = 3) {
+    this.state = { displacement, velocity: 0 };
+    this.onChange(this.state.displacement);
+    this.start();
+  }
+
+  applyImpulse(dy: number, movement: number) {
+    if (movement > 2) {
+      const impulse = Math.min(1.2, movement * 0.04);
+      this.state = {
+        displacement: this.state.displacement,
+        velocity: this.state.velocity + (dy < 0 ? -impulse : impulse)
+      };
+      this.start();
+    }
+  }
+
+  private start() {
+    if (typeof requestAnimationFrame === 'undefined' || this.animFrameId !== null) return;
+    const tick = () => {
+      if (Math.abs(this.state.displacement) > 0.05 || Math.abs(this.state.velocity) > 0.05) {
+        this.state = stepSpring(this.state);
+        this.onChange(this.state.displacement);
+        this.animFrameId = requestAnimationFrame(tick);
+      } else {
+        this.state = { displacement: 0, velocity: 0 };
+        this.onChange(0);
+        this.animFrameId = null;
+      }
+    };
+    this.animFrameId = requestAnimationFrame(tick);
+  }
+
+  destroy() {
+    if (typeof cancelAnimationFrame !== 'undefined' && this.animFrameId !== null) {
+      cancelAnimationFrame(this.animFrameId);
+      this.animFrameId = null;
+    }
+  }
 }

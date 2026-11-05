@@ -1,56 +1,32 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
   import { useStore } from '@xyflow/svelte';
-  import { calculateDroopPath, stepSpring, type SpringState } from '$lib/modular/cablePhysics';
+  import { calculateDroopPath, CableSpringAnimation } from '$lib/modular/cablePhysics';
 
   const store = useStore();
 
-  let spring = $state<SpringState>({ displacement: 0, velocity: 0 });
-  let animFrameId: number | null = null;
-
-  function startPhysics() {
-    if (animFrameId !== null) return;
-    const tick = () => {
-      if (Math.abs(spring.displacement) > 0.05 || Math.abs(spring.velocity) > 0.05) {
-        spring = stepSpring(spring);
-        animFrameId = requestAnimationFrame(tick);
-      } else {
-        spring = { displacement: 0, velocity: 0 };
-        animFrameId = null;
-      }
-    };
-    animFrameId = requestAnimationFrame(tick);
-  }
+  let dynamicOffset = $state(0);
+  const springAnim = new CableSpringAnimation((d) => {
+    dynamicOffset = d;
+  });
 
   // Subtle physics reaction while dragging the cable endpoint
-  let prevX = 0;
-  let prevY = 0;
+  let prevPos: { x: number; y: number } | null = null;
   $effect(() => {
     if (!store.connection.to) return;
     const toX = store.connection.to.x;
     const toY = store.connection.to.y;
-    if (prevX !== 0 && prevY !== 0) {
-      const dx = toX - prevX;
-      const dy = toY - prevY;
+    if (prevPos !== null) {
+      const dx = toX - prevPos.x;
+      const dy = toY - prevPos.y;
       const movement = Math.sqrt(dx * dx + dy * dy);
-      if (movement > 2) {
-        const impulse = Math.min(1.2, movement * 0.04);
-        spring = {
-          displacement: spring.displacement,
-          velocity: spring.velocity + (dy < 0 ? -impulse : impulse)
-        };
-        startPhysics();
-      }
+      springAnim.applyImpulse(dy, movement);
     }
-    prevX = toX;
-    prevY = toY;
+    prevPos = { x: toX, y: toY };
   });
 
   onDestroy(() => {
-    if (animFrameId !== null) {
-      cancelAnimationFrame(animFrameId);
-      animFrameId = null;
-    }
+    springAnim.destroy();
   });
 
   const curve = $derived.by(() => {
@@ -65,7 +41,7 @@
         store.connection.to.y,
         {
           slack: 1.0,
-          dynamicOffset: spring.displacement
+          dynamicOffset
         }
       ),
       from: store.connection.from,
