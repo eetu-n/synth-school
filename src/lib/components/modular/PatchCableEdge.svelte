@@ -2,7 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import type { EdgeProps } from '@xyflow/svelte';
   import { calculateDroopPath, CableSpringAnimation } from '$lib/modular/cablePhysics';
-  import type { CableEdgeData } from '$lib/modular/types';
+  import type { CableEdge } from '$lib/modular/types';
 
   let {
     id,
@@ -12,11 +12,10 @@
     targetY,
     data,
     selected
-  }: EdgeProps = $props();
+  }: EdgeProps<CableEdge> = $props();
 
-  const cableData = $derived((data ?? {}) as CableEdgeData);
-  const cableColor = $derived(cableData.color ?? 'var(--color-primary)');
-  const slack = $derived(cableData.slack ?? 1.0);
+  const cableColor = $derived(data?.color ?? 'var(--color-primary)');
+  const slack = $derived(data?.slack ?? 1.0);
 
   let dynamicOffset = $state(0);
   const springAnim = new CableSpringAnimation((d) => {

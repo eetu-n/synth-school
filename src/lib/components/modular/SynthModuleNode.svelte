@@ -1,9 +1,8 @@
 <script lang="ts">
   import { Handle, Position, type NodeProps } from '@xyflow/svelte';
-  import type { ModuleNodeData } from '$lib/modular/types';
+  import type { ModuleNode } from '$lib/modular/types';
 
-  let { data, selected }: NodeProps = $props();
-  const moduleData = $derived(data as unknown as ModuleNodeData);
+  let { data, selected }: NodeProps<ModuleNode> = $props();
 </script>
 
 <div
@@ -17,8 +16,8 @@
     class="!w-3 !h-3 !rounded-full !bg-primary !border-2 !border-surface cursor-pointer"
   />
 
-  <a href={moduleData.href} class="text-sm font-semibold hover:underline">
-    {moduleData.title}
+  <a href={data.href} class="nodrag text-sm font-semibold hover:underline">
+    {data.title}
   </a>
 
   <Handle

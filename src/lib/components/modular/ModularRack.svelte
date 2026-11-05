@@ -17,11 +17,11 @@
   import type { ModuleNode, CableEdge } from '$lib/modular/types';
 
   const nodeTypes: NodeTypes = {
-    default: SynthModuleNode as any
+    default: SynthModuleNode
   };
 
   const edgeTypes: EdgeTypes = {
-    default: PatchCableEdge as any
+    default: PatchCableEdge
   };
 
   let {
@@ -45,6 +45,7 @@
     if (customIsValidConnection) {
       return customIsValidConnection(connection);
     }
+    if (!connection.source || !connection.target) return false;
     const sourceNode = nodes.find((n) => n.id === connection.source);
     if (!sourceNode?.data?.allowedTargets) return false;
     return sourceNode.data.allowedTargets.includes(connection.target);
