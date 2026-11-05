@@ -258,6 +258,13 @@ input[type="range"]::-moz-range-thumb {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
+.svelte-flow__node-default {
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+}
+
 .svelte-flow__edge-path {
     stroke: var(--color-primary);
     stroke-width: 2;
