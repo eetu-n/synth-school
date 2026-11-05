@@ -7,7 +7,8 @@
     type NodeTypes,
     type EdgeTypes,
     type Connection,
-    type IsValidConnection
+    type IsValidConnection,
+    type Edge
   } from '@xyflow/svelte';
   import '@xyflow/svelte/dist/style.css';
   import SynthModuleNode from './SynthModuleNode.svelte';
@@ -26,7 +27,7 @@
   let {
     nodes = [],
     edges: initialEdges = [],
-    isValidConnection
+    isValidConnection: customIsValidConnection
   }: {
     nodes: ModuleNode[];
     edges?: CableEdge[];
@@ -40,9 +41,18 @@
     edges = initialEdges;
   });
 
+  function validateConnection(connection: Edge | Connection): boolean {
+    if (customIsValidConnection) {
+      return customIsValidConnection(connection);
+    }
+    const sourceNode = nodes.find((n) => n.id === connection.source);
+    if (!sourceNode?.data?.allowedTargets) return false;
+    return sourceNode.data.allowedTargets.includes(connection.target);
+  }
+
   function handleConnect(connection: Connection) {
     if (!connection.source || !connection.target) return;
-    if (isValidConnection && !isValidConnection(connection)) return;
+    if (!validateConnection(connection)) return;
 
     const newEdge: CableEdge = {
       id: `cable-${connection.source}-${connection.target}-${Date.now()}`,
@@ -55,13 +65,14 @@
   }
 </script>
 
-<div class="w-full h-full min-h-[500px] flex-grow select-none">
+<div class="modular-rack w-full h-full min-h-[500px] flex-grow select-none">
   <SvelteFlow
     {nodes}
     {edges}
     {nodeTypes}
     {edgeTypes}
-    {isValidConnection}
+    isValidConnection={validateConnection}
+    elevateNodesOnSelect={false}
     connectionLineComponent={PatchConnectionLine}
     fitView
     fitViewOptions={{ padding: 0.3 }}

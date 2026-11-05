@@ -3,6 +3,7 @@ import type { Node, Edge } from '@xyflow/svelte';
 export interface ModuleNodeData extends Record<string, unknown> {
   title: string;
   href: string;
+  allowedTargets?: string[];
 }
 
 export interface CableEdgeData extends Record<string, unknown> {

@@ -4,7 +4,7 @@ Minimal modular synth learning path using `@xyflow/svelte`.
 
 ## Files
 
-- **[`types.ts`](types.ts)**: Minimal definitions for `ModuleNode` (title and href) and `CableEdge`.
+- **[`types.ts`](types.ts)**: Minimal definitions for `ModuleNode` (`title`, `href`, `allowedTargets`) and `CableEdge`.
 - **[`cablePhysics.ts`](cablePhysics.ts)**: Catenary droop Bézier curve calculation and spring-damper physics.
 
 ## Components (`src/lib/components/modular`)
