@@ -3,6 +3,7 @@
   import type { EdgeProps } from '@xyflow/svelte';
   import { calculateDroopPath, CableSpringAnimation } from '$lib/modular/cablePhysics';
   import type { CableEdge } from '$lib/modular/types';
+  import TsPlug from './TsPlug.svelte';
 
   let {
     id,
@@ -48,8 +49,12 @@
     springAnim.destroy();
   });
 
+  const plugInsertedLength = 22;
+  const cableEndX = $derived(targetX - plugInsertedLength);
+  const cableEndY = $derived(targetY);
+
   const curve = $derived(
-    calculateDroopPath(sourceX, sourceY, targetX, targetY, {
+    calculateDroopPath(sourceX, sourceY, cableEndX, cableEndY, {
       slack,
       dynamicOffset
     })
@@ -78,8 +83,21 @@
       class="transition-[stroke-width]"
     />
 
-    <!-- Jack plug points -->
-    <circle cx={sourceX} cy={sourceY} r="4" fill={cableColor} stroke="var(--color-surface, #ffffff)" stroke-width="1.5" />
-    <circle cx={targetX} cy={targetY} r="4" fill={cableColor} stroke="var(--color-surface, #ffffff)" stroke-width="1.5" />
+    <!-- Cable exit collar at source module -->
+    <rect
+      x={sourceX - 2}
+      y={sourceY - 4}
+      width="6"
+      height="8"
+      rx="1.5"
+      fill="#334155"
+      stroke="#1e293b"
+      stroke-width="0.8"
+    />
+
+    <!-- TS plug inserted into target TS jack -->
+    <g transform="translate({cableEndX}, {targetY - 8})">
+      <TsPlug color={cableColor} inserted={true} />
+    </g>
   </g>
 {/if}

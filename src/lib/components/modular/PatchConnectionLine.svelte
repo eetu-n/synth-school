@@ -2,6 +2,7 @@
   import { onDestroy } from 'svelte';
   import { useStore } from '@xyflow/svelte';
   import { calculateDroopPath, CableSpringAnimation } from '$lib/modular/cablePhysics';
+  import TsPlug from './TsPlug.svelte';
 
   const store = useStore();
 
@@ -29,6 +30,10 @@
     springAnim.destroy();
   });
 
+  const plugLength = 38;
+  const cableEndX = $derived(store.connection.to ? store.connection.to.x - plugLength : 0);
+  const cableEndY = $derived(store.connection.to ? store.connection.to.y : 0);
+
   const curve = $derived.by(() => {
     if (!store.connection.inProgress || !store.connection.from || !store.connection.to) {
       return null;
@@ -37,8 +42,8 @@
       ...calculateDroopPath(
         store.connection.from.x,
         store.connection.from.y,
-        store.connection.to.x,
-        store.connection.to.y,
+        cableEndX,
+        cableEndY,
         {
           slack: 1.0,
           dynamicOffset
@@ -70,22 +75,21 @@
       stroke-linecap="round"
     />
 
-    <!-- Jack plug endpoints -->
-    <circle
-      cx={curve.from.x}
-      cy={curve.from.y}
-      r="4"
-      fill="var(--color-primary)"
-      stroke="var(--color-surface, #ffffff)"
-      stroke-width="1.5"
+    <!-- Cable exit collar at source module -->
+    <rect
+      x={curve.from.x - 2}
+      y={curve.from.y - 4}
+      width="6"
+      height="8"
+      rx="1.5"
+      fill="#334155"
+      stroke="#1e293b"
+      stroke-width="0.8"
     />
-    <circle
-      cx={curve.to.x}
-      cy={curve.to.y}
-      r="4"
-      fill="var(--color-primary)"
-      stroke="var(--color-surface, #ffffff)"
-      stroke-width="1.5"
-    />
+
+    <!-- TS plug moving with cable as user drags -->
+    <g transform="translate({curve.to.x - plugLength}, {curve.to.y - 8})">
+      <TsPlug color="var(--color-primary)" inserted={false} />
+    </g>
   </g>
 {/if}

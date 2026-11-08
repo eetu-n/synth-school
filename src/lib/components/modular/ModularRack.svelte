@@ -27,7 +27,7 @@
     default: PatchCableEdge
   };
 
-  const zoom = 1;
+  const zoom = 2.5;
 
   let {
     nodes = [],
@@ -138,7 +138,7 @@
       target: connection.target,
       targetHandle: connection.targetHandle
     };
-    edges = [...edges, newEdge];
+    edges = [...edges.filter((e) => e.source !== connection.source), newEdge];
   }
 </script>
 
@@ -149,7 +149,7 @@
 >
   <SvelteFlow
     nodes={layoutedNodes}
-    {edges}
+    bind:edges
     {nodeTypes}
     {edgeTypes}
     {translateExtent}
@@ -172,3 +172,9 @@
     <Background variant={BackgroundVariant.Dots} gap={24} size={1.2} patternColor="var(--color-grid)" />
   </SvelteFlow>
 </div>
+
+<style>
+  :global(.modular-rack .svelte-flow__edges) {
+    z-index: 10;
+  }
+</style>
