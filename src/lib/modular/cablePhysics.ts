@@ -6,6 +6,10 @@ export interface DroopOptions {
 export interface CablePathResult {
   path: string;
   shadowPath: string;
+  endAngle: number;
+  endAngleDeg: number;
+  cp1: { x: number; y: number };
+  cp2: { x: number; y: number };
 }
 
 export function calculateDroopPath(
@@ -25,7 +29,14 @@ export function calculateDroopPath(
     isNaN(x2) ||
     isNaN(y2)
   ) {
-    return { path: '', shadowPath: '' };
+    return {
+      path: '',
+      shadowPath: '',
+      endAngle: 0,
+      endAngleDeg: 0,
+      cp1: { x: 0, y: 0 },
+      cp2: { x: 0, y: 0 }
+    };
   }
 
   const slack = options.slack ?? 1.0;
@@ -63,11 +74,23 @@ export function calculateDroopPath(
     cp2y = y2 + sag * Math.max(0.1, 1 - verticalRatio) + rise;
   }
 
+  const endDx = x2 - cp2x;
+  const endDy = y2 - cp2y;
+  const endAngle = Math.atan2(endDy, endDx);
+  const endAngleDeg = (endAngle * 180) / Math.PI;
+
   const path = `M ${x1.toFixed(1)} ${y1.toFixed(1)} C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${x2.toFixed(1)} ${y2.toFixed(1)}`;
   const shadowOffsetY = Math.min(18, Math.max(8, sag * 0.14));
   const shadowPath = `M ${x1.toFixed(1)} ${(y1 + shadowOffsetY).toFixed(1)} C ${cp1x.toFixed(1)} ${(cp1y + shadowOffsetY).toFixed(1)}, ${cp2x.toFixed(1)} ${(cp2y + shadowOffsetY).toFixed(1)}, ${x2.toFixed(1)} ${(y2 + shadowOffsetY).toFixed(1)}`;
 
-  return { path, shadowPath };
+  return {
+    path,
+    shadowPath,
+    endAngle,
+    endAngleDeg,
+    cp1: { x: cp1x, y: cp1y },
+    cp2: { x: cp2x, y: cp2y }
+  };
 }
 
 export interface SpringState {

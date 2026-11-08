@@ -31,26 +31,46 @@
   });
 
   const plugLength = 38;
-  const cableEndX = $derived(store.connection.to ? store.connection.to.x - plugLength : 0);
-  const cableEndY = $derived(store.connection.to ? store.connection.to.y : 0);
 
   const curve = $derived.by(() => {
     if (!store.connection.inProgress || !store.connection.from || !store.connection.to) {
       return null;
     }
+
+    const fromX = store.connection.from.x;
+    const fromY = store.connection.from.y;
+    const toX = store.connection.to.x;
+    const toY = store.connection.to.y;
+
+    // Iteratively align boot position with the end tangent angle
+    let est = calculateDroopPath(fromX, fromY, toX, toY, {
+      slack: 1.0,
+      dynamicOffset
+    });
+
+    let bootX = toX - plugLength * Math.cos(est.endAngle);
+    let bootY = toY - plugLength * Math.sin(est.endAngle);
+
+    est = calculateDroopPath(fromX, fromY, bootX, bootY, {
+      slack: 1.0,
+      dynamicOffset
+    });
+
+    bootX = toX - plugLength * Math.cos(est.endAngle);
+    bootY = toY - plugLength * Math.sin(est.endAngle);
+
+    const finalPath = calculateDroopPath(fromX, fromY, bootX, bootY, {
+      slack: 1.0,
+      dynamicOffset
+    });
+
     return {
-      ...calculateDroopPath(
-        store.connection.from.x,
-        store.connection.from.y,
-        cableEndX,
-        cableEndY,
-        {
-          slack: 1.0,
-          dynamicOffset
-        }
-      ),
+      ...finalPath,
       from: store.connection.from,
-      to: store.connection.to
+      to: store.connection.to,
+      bootX,
+      bootY,
+      angleDeg: finalPath.endAngleDeg
     };
   });
 </script>
@@ -87,8 +107,8 @@
       stroke-width="0.8"
     />
 
-    <!-- TS plug moving with cable as user drags -->
-    <g transform="translate({curve.to.x - plugLength}, {curve.to.y - 8})">
+    <!-- TS plug rotating with the end of the bezier curve as user drags -->
+    <g transform="translate({curve.bootX}, {curve.bootY}) rotate({curve.angleDeg}) translate(0, -8)">
       <TsPlug color="var(--color-primary)" inserted={false} />
     </g>
   </g>
