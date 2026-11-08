@@ -29,10 +29,18 @@
   <Handle
     type="target"
     position={Position.Left}
-    class="!w-14 !h-14 !bg-transparent !border-0 cursor-pointer flex items-center justify-center !pointer-events-auto"
+    class="!min-w-0 !w-0 !min-h-0 !h-0 !bg-transparent !border-0 !rounded-none !shadow-none !outline-none flex items-center justify-center overflow-visible"
     isConnectableStart={false}
   >
-    <TsJack size={55} />
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div
+      class="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-auto cursor-default"
+      onmousedown={(e) => e.stopPropagation()}
+      ontouchstart={(e) => e.stopPropagation()}
+      onpointerdown={(e) => e.stopPropagation()}
+    >
+      <TsJack size={55} />
+    </div>
   </Handle>
 
   <a href={data.href} class="nodrag text-2xl font-bold hover:underline tracking-tight">
@@ -42,14 +50,12 @@
   <Handle
     type="source"
     position={Position.Right}
-    class="!w-8 !h-10 !bg-transparent !border-0 !pointer-events-auto cursor-pointer flex items-center overflow-visible"
+    class="!min-w-0 !w-0 !min-h-0 !h-0 !bg-transparent !border-0 !rounded-none !shadow-none !outline-none !pointer-events-auto cursor-pointer flex items-center justify-center overflow-visible"
   >
     {#if hasPlugPokingOut}
-      <div class="absolute left-1/2 top-1/2 -translate-y-1/2 flex items-center pointer-events-auto cursor-grab hover:brightness-110 active:cursor-grabbing transition-[filter]">
+      <div class="absolute left-0 top-1/2 -translate-y-1/2 flex items-center pointer-events-auto cursor-grab hover:brightness-110 active:cursor-grabbing transition-[filter]">
         <TsPlug color="var(--color-primary)" scale={2.5} />
       </div>
-    {:else}
-      <div class="w-6 h-6 rounded-full bg-surface border-4 border-primary/60 shadow-inner"></div>
     {/if}
   </Handle>
 </div>

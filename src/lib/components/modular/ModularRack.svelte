@@ -10,7 +10,9 @@
     type IsValidConnection,
     type Edge,
     type Node,
-    type CoordinateExtent
+    type CoordinateExtent,
+    type OnReconnect,
+    type OnReconnectEnd
   } from '@xyflow/svelte';
   import '@xyflow/svelte/dist/style.css';
   import SynthModuleNode from './SynthModuleNode.svelte';
@@ -140,6 +142,32 @@
     };
     edges = [...edges.filter((e) => e.source !== connection.source), newEdge];
   }
+
+  const handleReconnect: OnReconnect<CableEdge> = (oldEdge, newConnection) => {
+    if (!validateConnection(newConnection)) return;
+    edges = edges.map((e) =>
+      e.id === oldEdge.id
+        ? {
+            ...e,
+            source: newConnection.source,
+            sourceHandle: newConnection.sourceHandle,
+            target: newConnection.target,
+            targetHandle: newConnection.targetHandle
+          }
+        : e
+    );
+  };
+
+  const handleReconnectEnd: OnReconnectEnd<CableEdge> = (
+    _event,
+    edge,
+    _handleType,
+    connectionState
+  ) => {
+    if (!connectionState.isValid) {
+      edges = edges.filter((e) => e.id !== edge.id);
+    }
+  };
 </script>
 
 <div
@@ -153,6 +181,7 @@
     {nodeTypes}
     {edgeTypes}
     {translateExtent}
+    connectionRadius={40}
     isValidConnection={validateConnection}
     elevateNodesOnSelect={false}
     connectionLineComponent={PatchConnectionLine}
@@ -167,6 +196,8 @@
     maxZoom={zoom}
     proOptions={{ hideAttribution: true }}
     onconnect={handleConnect}
+    onreconnect={handleReconnect}
+    onreconnectend={handleReconnectEnd}
   >
     <RackScrollMapper {rackWidth} {containerWidth} />
     <Background variant={BackgroundVariant.Dots} gap={60} size={3} patternColor="var(--color-grid)" />
@@ -176,5 +207,8 @@
 <style>
   :global(.modular-rack .svelte-flow__edges) {
     z-index: 10;
+  }
+  :global(.modular-rack .svelte-flow__edge-labels) {
+    z-index: 15;
   }
 </style>

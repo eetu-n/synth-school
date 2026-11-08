@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import type { EdgeProps } from '@xyflow/svelte';
+  import { EdgeReconnectAnchor, type EdgeProps } from '@xyflow/svelte';
   import { calculateDroopPath, CableSpringAnimation } from '$lib/modular/cablePhysics';
   import type { CableEdge } from '$lib/modular/types';
   import TsPlug from './TsPlug.svelte';
@@ -14,6 +14,8 @@
     data,
     selected
   }: EdgeProps<CableEdge> = $props();
+
+  let reconnecting = $state(false);
 
   const cableColor = $derived(data?.color ?? 'var(--color-primary)');
   const slack = $derived(data?.slack ?? 1.0);
@@ -61,7 +63,7 @@
   );
 </script>
 
-{#if curve.path}
+{#if curve.path && !reconnecting}
   <g class="patch-cable select-none pointer-events-none" role="group">
     <!-- Droop shadow -->
     <path
@@ -83,16 +85,16 @@
       class="transition-[stroke-width]"
     />
 
-    <!-- Cable exit collar at source module -->
+    <!-- Output connector on source module (rendered in front of cable) -->
     <rect
-      x={sourceX - 5}
-      y={sourceY - 10}
+      x={sourceX - 7.5}
+      y={sourceY - 11}
       width="15"
-      height="20"
+      height="22"
       rx="4"
       fill="#334155"
       stroke="#1e293b"
-      stroke-width="1.5"
+      stroke-width="2"
     />
 
     <!-- TS plug inserted into target TS jack -->
@@ -101,3 +103,11 @@
     </g>
   </g>
 {/if}
+
+<EdgeReconnectAnchor
+  type="target"
+  position={{ x: targetX - 20, y: targetY }}
+  size={70}
+  bind:reconnecting
+  class={reconnecting ? 'pointer-events-none' : 'cursor-grab active:cursor-grabbing rounded-full'}
+/>

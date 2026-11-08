@@ -95,16 +95,16 @@
       stroke-linecap="round"
     />
 
-    <!-- Cable exit collar at source module -->
+    <!-- Output connector on source module (rendered in front of cable) -->
     <rect
-      x={curve.from.x - 5}
-      y={curve.from.y - 10}
+      x={curve.from.x - 7.5}
+      y={curve.from.y - 11}
       width="15"
-      height="20"
+      height="22"
       rx="4"
       fill="#334155"
       stroke="#1e293b"
-      stroke-width="1.5"
+      stroke-width="2"
     />
 
     <!-- TS plug rotating with the end of the bezier curve as user drags -->
