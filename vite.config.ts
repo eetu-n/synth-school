@@ -6,6 +6,9 @@ import tailwindcss from '@tailwindcss/vite';
 import { faustPlugin } from './vite-plugin-faust';
 
 export default defineConfig({
+	server: {
+		allowedHosts: ['dev.eahs.xyz']
+	},
 	build: {
 		minify: false
 	},
