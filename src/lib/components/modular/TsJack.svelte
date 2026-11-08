@@ -1,6 +1,6 @@
 <script lang="ts">
   let {
-    size = 22,
+    size = 55,
     class: className = ''
   }: {
     size?: number;

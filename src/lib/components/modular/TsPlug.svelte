@@ -2,20 +2,24 @@
   let {
     color = 'var(--color-primary)',
     inserted = false,
+    scale = 2.5,
     class: className = ''
   }: {
     color?: string;
     inserted?: boolean;
+    scale?: number;
     class?: string;
   } = $props();
 
-  const width = $derived(inserted ? 22 : 38);
+  const baseWidth = $derived(inserted ? 22 : 38);
+  const width = $derived(baseWidth * scale);
+  const height = $derived(16 * scale);
   const viewBox = $derived(inserted ? '0 0 22 16' : '0 0 38 16');
 </script>
 
 <svg
   {width}
-  height="16"
+  {height}
   {viewBox}
   fill="none"
   xmlns="http://www.w3.org/2000/svg"

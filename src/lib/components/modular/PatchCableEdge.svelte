@@ -25,7 +25,7 @@
 
   // Settle animation when cable is created
   onMount(() => {
-    springAnim.settle(3);
+    springAnim.settle(8);
   });
 
   // React subtly when the connected modules are moved
@@ -49,7 +49,7 @@
     springAnim.destroy();
   });
 
-  const plugInsertedLength = 22;
+  const plugInsertedLength = 55; // 22 * 2.5
   const cableEndX = $derived(targetX - plugInsertedLength);
   const cableEndY = $derived(targetY);
 
@@ -68,7 +68,7 @@
       d={curve.shadowPath}
       fill="none"
       stroke="rgba(0, 0, 0, 0.1)"
-      stroke-width="5"
+      stroke-width="12"
       stroke-linecap="round"
     />
 
@@ -78,26 +78,26 @@
       d={curve.path}
       fill="none"
       stroke={cableColor}
-      stroke-width={selected ? '5' : '3.5'}
+      stroke-width={selected ? '13' : '9'}
       stroke-linecap="round"
       class="transition-[stroke-width]"
     />
 
     <!-- Cable exit collar at source module -->
     <rect
-      x={sourceX - 2}
-      y={sourceY - 4}
-      width="6"
-      height="8"
-      rx="1.5"
+      x={sourceX - 5}
+      y={sourceY - 10}
+      width="15"
+      height="20"
+      rx="4"
       fill="#334155"
       stroke="#1e293b"
-      stroke-width="0.8"
+      stroke-width="1.5"
     />
 
     <!-- TS plug inserted into target TS jack -->
-    <g transform="translate({cableEndX}, {targetY - 8})">
-      <TsPlug color={cableColor} inserted={true} />
+    <g transform="translate({cableEndX}, {targetY - 20})">
+      <TsPlug color={cableColor} inserted={true} scale={2.5} />
     </g>
   </g>
 {/if}

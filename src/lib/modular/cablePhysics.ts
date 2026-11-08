@@ -46,12 +46,12 @@ export function calculateDroopPath(
   const dy = y2 - y1;
   const dist = Math.sqrt(dx * dx + dy * dy);
 
-  const horizontalSpread = Math.min(220, Math.max(35, Math.abs(dx) * 0.4));
+  const horizontalSpread = Math.min(550, Math.max(90, Math.abs(dx) * 0.4));
   const cp1x = x1 + horizontalSpread;
   const cp2x = x2 - horizontalSpread;
 
   // Natural gravity droop
-  const sag = 35 * slack + Math.min(Math.abs(dx), 400) * 0.18 * slack + dynamicOffset;
+  const sag = 90 * slack + Math.min(Math.abs(dx), 1000) * 0.18 * slack + dynamicOffset;
   const verticalRatio = dist > 0 ? Math.abs(dy) / dist : 0;
 
   let cp1y: number;
@@ -59,18 +59,18 @@ export function calculateDroopPath(
 
   if (dy >= 0) {
     // Source above target (or same horizontal level)
-    const dyFactor = Math.min(dy * 0.3, 120);
+    const dyFactor = Math.min(dy * 0.3, 300);
     const grav1 = sag * Math.max(0.2, 1 - verticalRatio * 0.7);
     cp1y = y1 + dyFactor + grav1;
 
     // Cable only dips below target if vertical offset is small compared to horizontal
     const dip = sag * Math.max(0, 1 - verticalRatio * 1.25);
-    const lift = Math.min(dy * 0.25, 80) * verticalRatio;
+    const lift = Math.min(dy * 0.25, 200) * verticalRatio;
     cp2y = y2 + dip - lift;
   } else {
     // Target above source
     cp1y = y1 + sag * Math.max(0.3, 1 - verticalRatio * 0.5);
-    const rise = Math.min(Math.abs(dy) * 0.25, 80) * verticalRatio;
+    const rise = Math.min(Math.abs(dy) * 0.25, 200) * verticalRatio;
     cp2y = y2 + sag * Math.max(0.1, 1 - verticalRatio) + rise;
   }
 
@@ -80,7 +80,7 @@ export function calculateDroopPath(
   const endAngleDeg = (endAngle * 180) / Math.PI;
 
   const path = `M ${x1.toFixed(1)} ${y1.toFixed(1)} C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${x2.toFixed(1)} ${y2.toFixed(1)}`;
-  const shadowOffsetY = Math.min(18, Math.max(8, sag * 0.14));
+  const shadowOffsetY = Math.min(45, Math.max(20, sag * 0.14));
   const shadowPath = `M ${x1.toFixed(1)} ${(y1 + shadowOffsetY).toFixed(1)} C ${cp1x.toFixed(1)} ${(cp1y + shadowOffsetY).toFixed(1)}, ${cp2x.toFixed(1)} ${(cp2y + shadowOffsetY).toFixed(1)}, ${x2.toFixed(1)} ${(y2 + shadowOffsetY).toFixed(1)}`;
 
   return {

@@ -27,7 +27,7 @@
     default: PatchCableEdge
   };
 
-  const zoom = 2.5;
+  const zoom = 1;
 
   let {
     nodes = [],
@@ -60,7 +60,7 @@
 
     const sortedPhases = Array.from(nodesByPhase.keys()).sort((a, b) => a - b);
     const height = containerHeight > 0 ? containerHeight : 500;
-    const centerY = height / (2 * zoom) - 22;
+    const centerY = height / 2 - 55;
 
     return nodes.map((node) => {
       if (node.position) {
@@ -72,8 +72,8 @@
       const nodeIndex = siblings.indexOf(node);
       const count = siblings.length;
 
-      const x = 50 + phaseIndex * 280;
-      const y = centerY + (nodeIndex - (count - 1) / 2) * 110;
+      const x = 125 + phaseIndex * 700;
+      const y = centerY + (nodeIndex - (count - 1) / 2) * 275;
 
       return {
         ...node,
@@ -89,7 +89,7 @@
         maxX = node.position.x;
       }
     }
-    return Math.max(containerWidth, maxX + 260);
+    return Math.max(containerWidth, maxX + 650);
   });
 
   const translateExtent = $derived<CoordinateExtent>([
@@ -169,7 +169,7 @@
     onconnect={handleConnect}
   >
     <RackScrollMapper {rackWidth} {containerWidth} />
-    <Background variant={BackgroundVariant.Dots} gap={24} size={1.2} patternColor="var(--color-grid)" />
+    <Background variant={BackgroundVariant.Dots} gap={60} size={3} patternColor="var(--color-grid)" />
   </SvelteFlow>
 </div>
 

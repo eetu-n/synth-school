@@ -30,7 +30,7 @@
     springAnim.destroy();
   });
 
-  const plugLength = 38;
+  const plugLength = 95; // 38 * 2.5
 
   const curve = $derived.by(() => {
     if (!store.connection.inProgress || !store.connection.from || !store.connection.to) {
@@ -82,7 +82,7 @@
       d={curve.shadowPath}
       fill="none"
       stroke="rgba(0, 0, 0, 0.1)"
-      stroke-width="5"
+      stroke-width="12"
       stroke-linecap="round"
     />
 
@@ -91,25 +91,25 @@
       d={curve.path}
       fill="none"
       stroke="var(--color-primary)"
-      stroke-width="3.5"
+      stroke-width="9"
       stroke-linecap="round"
     />
 
     <!-- Cable exit collar at source module -->
     <rect
-      x={curve.from.x - 2}
-      y={curve.from.y - 4}
-      width="6"
-      height="8"
-      rx="1.5"
+      x={curve.from.x - 5}
+      y={curve.from.y - 10}
+      width="15"
+      height="20"
+      rx="4"
       fill="#334155"
       stroke="#1e293b"
-      stroke-width="0.8"
+      stroke-width="1.5"
     />
 
     <!-- TS plug rotating with the end of the bezier curve as user drags -->
-    <g transform="translate({curve.bootX}, {curve.bootY}) rotate({curve.angleDeg}) translate(0, -8)">
-      <TsPlug color="var(--color-primary)" inserted={false} />
+    <g transform="translate({curve.bootX}, {curve.bootY}) rotate({curve.angleDeg}) translate(0, -20)">
+      <TsPlug color="var(--color-primary)" inserted={false} scale={2.5} />
     </g>
   </g>
 {/if}
