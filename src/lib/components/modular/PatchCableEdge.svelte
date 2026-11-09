@@ -51,8 +51,7 @@
     springAnim.destroy();
   });
 
-  const plugInsertedLength = 55; // 22 * 2.5
-  const cableEndX = $derived(targetX - plugInsertedLength);
+  const cableEndX = $derived(targetX);
   const cableEndY = $derived(targetY);
 
   const curve = $derived(
@@ -73,6 +72,11 @@
       stroke-width="12"
       stroke-linecap="round"
     />
+
+    <!-- TS plug inserted into target TS jack (behind the cable in Z axis) -->
+    <g transform="translate({targetX}, {targetY})">
+      <TsPlug color={cableColor} inserted={true} scale={2.5} angle={curve.endAngleDeg} />
+    </g>
 
     <!-- Main droopy cable -->
     <path
@@ -96,17 +100,12 @@
       stroke="#1e293b"
       stroke-width="2"
     />
-
-    <!-- TS plug inserted into target TS jack -->
-    <g transform="translate({cableEndX}, {targetY - 20})">
-      <TsPlug color={cableColor} inserted={true} scale={2.5} />
-    </g>
   </g>
 {/if}
 
 <EdgeReconnectAnchor
   type="target"
-  position={{ x: targetX - 20, y: targetY }}
+  position={{ x: targetX, y: targetY }}
   size={70}
   bind:reconnecting
   class={reconnecting ? 'pointer-events-none' : 'cursor-grab active:cursor-grabbing rounded-full'}

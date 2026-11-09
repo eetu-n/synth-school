@@ -1,6 +1,7 @@
 export interface DroopOptions {
   slack?: number;
   dynamicOffset?: number;
+  vertical?: boolean;
 }
 
 export interface CablePathResult {
@@ -45,6 +46,49 @@ export function calculateDroopPath(
   const dx = x2 - x1;
   const dy = y2 - y1;
   const dist = Math.sqrt(dx * dx + dy * dy);
+
+  const isVertical = options.vertical ?? (Math.abs(dy) > Math.abs(dx) * 1.25);
+
+  if (isVertical) {
+    const h = Math.abs(dy);
+    const verticalSpread = Math.min(250, Math.max(50, h * 0.35));
+    const sag = 60 * slack + dynamicOffset;
+    const minX = Math.min(x1, x2);
+    const cp1x = minX - sag;
+    const cp2x = minX - sag;
+
+    let cp1y: number;
+    let cp2y: number;
+
+    if (dy <= 0) {
+      // Bottom-up (source below target)
+      cp1y = y1 - verticalSpread;
+      cp2y = y2 + verticalSpread;
+    } else {
+      // Top-down
+      cp1y = y1 + verticalSpread;
+      cp2y = y2 - verticalSpread;
+    }
+
+    const endDx = x2 - cp2x;
+    const endDy = y2 - cp2y;
+    const endAngle = Math.atan2(endDy, endDx);
+    const endAngleDeg = (endAngle * 180) / Math.PI;
+
+    const path = `M ${x1.toFixed(1)} ${y1.toFixed(1)} C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${x2.toFixed(1)} ${y2.toFixed(1)}`;
+    const shadowOffsetX = 12;
+    const shadowOffsetY = 15;
+    const shadowPath = `M ${(x1 + shadowOffsetX).toFixed(1)} ${(y1 + shadowOffsetY).toFixed(1)} C ${(cp1x + shadowOffsetX).toFixed(1)} ${(cp1y + shadowOffsetY).toFixed(1)}, ${(cp2x + shadowOffsetX).toFixed(1)} ${(cp2y + shadowOffsetY).toFixed(1)}, ${(x2 + shadowOffsetX).toFixed(1)} ${(y2 + shadowOffsetY).toFixed(1)}`;
+
+    return {
+      path,
+      shadowPath,
+      endAngle,
+      endAngleDeg,
+      cp1: { x: cp1x, y: cp1y },
+      cp2: { x: cp2x, y: cp2y }
+    };
+  }
 
   const horizontalSpread = Math.min(550, Math.max(90, Math.abs(dx) * 0.4));
   const cp1x = x1 + horizontalSpread;

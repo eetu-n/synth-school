@@ -5,6 +5,7 @@ export interface ModuleNodeData extends Record<string, unknown> {
   href: string;
   phase?: number;
   allowedTargets?: string[];
+  isMobile?: boolean;
 }
 
 export interface CableEdgeData extends Record<string, unknown> {

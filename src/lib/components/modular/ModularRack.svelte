@@ -44,6 +44,12 @@
   let containerWidth = $state(0);
   let containerHeight = $state(0);
 
+  const isMobile = $derived(
+    containerWidth > 0
+      ? containerWidth < 768
+      : (typeof window !== 'undefined' ? window.innerWidth < 768 : false)
+  );
+
   // svelte-ignore state_referenced_locally
   let edges = $state.raw<CableEdge[]>(initialEdges);
 
@@ -61,12 +67,19 @@
     }
 
     const sortedPhases = Array.from(nodesByPhase.keys()).sort((a, b) => a - b);
+    const numPhases = sortedPhases.length;
     const height = containerHeight > 0 ? containerHeight : 500;
     const centerY = height / 2 - 55;
 
     return nodes.map((node) => {
       if (node.position) {
-        return node as Node<ModuleNodeData>;
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            isMobile
+          }
+        } as Node<ModuleNodeData>;
       }
       const p = node.phase ?? node.data?.phase ?? 1;
       const phaseIndex = sortedPhases.indexOf(p);
@@ -74,17 +87,36 @@
       const nodeIndex = siblings.indexOf(node);
       const count = siblings.length;
 
-      const x = 125 + phaseIndex * 700;
-      const y = centerY + (nodeIndex - (count - 1) / 2) * 275;
+      let x: number;
+      let y: number;
+
+      if (isMobile) {
+        // Bottom-up layout: Phase 1 at the bottom, higher phases stacked above
+        const invertedPhaseIndex = (numPhases - 1) - phaseIndex;
+        const baseX = Math.max(55, (containerWidth - 280) / 2);
+        x = baseX + (nodeIndex - (count - 1) / 2) * 280;
+        y = 70 + invertedPhaseIndex * 240;
+      } else {
+        // Desktop left-to-right layout
+        x = 125 + phaseIndex * 700;
+        y = centerY + (nodeIndex - (count - 1) / 2) * 275;
+      }
 
       return {
         ...node,
-        position: { x, y }
+        position: { x, y },
+        data: {
+          ...node.data,
+          isMobile
+        }
       } as Node<ModuleNodeData>;
     });
   });
 
   const rackWidth = $derived.by(() => {
+    if (isMobile) {
+      return containerWidth;
+    }
     let maxX = 0;
     for (const node of layoutedNodes) {
       if (node.position.x > maxX) {
@@ -94,10 +126,24 @@
     return Math.max(containerWidth, maxX + 650);
   });
 
-  const translateExtent = $derived<CoordinateExtent>([
-    [0, -Infinity],
-    [rackWidth, Infinity]
-  ]);
+  const translateExtent = $derived<CoordinateExtent>(
+    isMobile
+      ? [[0, -Infinity], [0, Infinity]]
+      : [[0, -Infinity], [rackWidth, Infinity]]
+  );
+
+  const defaultViewport = $derived.by(() => {
+    if (isMobile && containerHeight > 0) {
+      let maxY = 0;
+      for (const node of layoutedNodes) {
+        if (node.position.y > maxY) {
+          maxY = node.position.y;
+        }
+      }
+      return { x: 0, y: Math.min(0, -(maxY - containerHeight + 150)), zoom: 1 };
+    }
+    return { x: 0, y: 0, zoom: 1 };
+  });
 
   function validateConnection(connection: Edge | Connection): boolean {
     if (customIsValidConnection) {
@@ -171,7 +217,7 @@
 </script>
 
 <div
-  class="modular-rack w-full h-full min-h-[500px] flex-grow select-none"
+  class="modular-rack w-full h-full min-h-[500px] flex-grow select-none overflow-x-hidden"
   bind:clientWidth={containerWidth}
   bind:clientHeight={containerHeight}
 >
@@ -181,12 +227,13 @@
     {nodeTypes}
     {edgeTypes}
     {translateExtent}
+    {defaultViewport}
     connectionRadius={40}
     isValidConnection={validateConnection}
     elevateNodesOnSelect={false}
     connectionLineComponent={PatchConnectionLine}
     panOnScroll={true}
-    panOnScrollMode={PanOnScrollMode.Horizontal}
+    panOnScrollMode={isMobile ? PanOnScrollMode.Vertical : PanOnScrollMode.Horizontal}
     panOnDrag={true}
     preventScrolling={false}
     zoomOnScroll={false}
@@ -199,7 +246,7 @@
     onreconnect={handleReconnect}
     onreconnectend={handleReconnectEnd}
   >
-    <RackScrollMapper {rackWidth} {containerWidth} />
+    <RackScrollMapper {rackWidth} {containerWidth} disabled={isMobile} />
     <Background variant={BackgroundVariant.Dots} gap={60} size={3} patternColor="var(--color-grid)" />
   </SvelteFlow>
 </div>
@@ -210,5 +257,10 @@
   }
   :global(.modular-rack .svelte-flow__edge-labels) {
     z-index: 15;
+  }
+  @media (max-width: 767px) {
+    :global(.modular-rack .svelte-flow__pane) {
+      touch-action: pan-y;
+    }
   }
 </style>

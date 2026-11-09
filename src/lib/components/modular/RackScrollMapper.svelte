@@ -4,31 +4,45 @@
 
   let {
     rackWidth = 0,
-    containerWidth = 0
+    containerWidth = 0,
+    disabled = false
   }: {
     rackWidth: number;
     containerWidth: number;
+    disabled?: boolean;
   } = $props();
 
   const store = useStore();
   let cleanup: (() => void) | null = null;
 
-  // Keep viewport vertically locked at 0
+  // Keep viewport horizontally locked at 0 on mobile, vertically locked at 0 on desktop
   $effect(() => {
-    if (store.viewport.y !== 0 && store.panZoom) {
-      store.panZoom.setViewport({
-        x: store.viewport.x,
-        y: 0,
-        zoom: 1
-      });
+    if (disabled) {
+      if (store.viewport.x !== 0 && store.panZoom) {
+        store.panZoom.setViewport({
+          x: 0,
+          y: store.viewport.y,
+          zoom: 1
+        });
+      }
+    } else {
+      if (store.viewport.y !== 0 && store.panZoom) {
+        store.panZoom.setViewport({
+          x: store.viewport.x,
+          y: 0,
+          zoom: 1
+        });
+      }
     }
   });
 
   onMount(() => {
+    if (disabled) return;
     const domNode = store.domNode;
     if (!domNode) return;
 
     function handleWheel(e: WheelEvent) {
+      if (disabled) return;
       if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && Math.abs(e.deltaY) > 2) {
         e.preventDefault();
         e.stopPropagation();
