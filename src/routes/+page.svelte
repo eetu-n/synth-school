@@ -28,6 +28,14 @@
       }
     },
     {
+      id: 'lfos',
+      phase: 3,
+      data: {
+        title: 'LFOs',
+        href: '/lessons/lfo/1-intro'
+      }
+    },
+    {
       id: 'synthQuiz',
       phase: 4,
       data: {
