@@ -1,8 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import { EdgeReconnectAnchor, type EdgeProps } from '@xyflow/svelte';
   import { calculateDroopPath, CableSpringAnimation } from '$lib/modular/cablePhysics';
-  import type { CableEdge } from '$lib/modular/types';
+  import type { CableEdgeData } from '$lib/modular/types';
   import TsPlug from './TsPlug.svelte';
 
   let {
@@ -12,10 +11,20 @@
     targetX,
     targetY,
     data,
-    selected
-  }: EdgeProps<CableEdge> = $props();
-
-  let reconnecting = $state(false);
+    selected = false,
+    reconnecting = false,
+    onStartReconnect
+  }: {
+    id: string;
+    sourceX: number;
+    sourceY: number;
+    targetX: number;
+    targetY: number;
+    data?: CableEdgeData;
+    selected?: boolean;
+    reconnecting?: boolean;
+    onStartReconnect?: (edgeId: string, event: PointerEvent) => void;
+  } = $props();
 
   const cableColor = $derived(data?.color ?? 'var(--color-primary)');
   const slack = $derived(data?.slack ?? 1.0);
@@ -51,11 +60,8 @@
     springAnim.destroy();
   });
 
-  const cableEndX = $derived(targetX);
-  const cableEndY = $derived(targetY);
-
   const curve = $derived(
-    calculateDroopPath(sourceX, sourceY, cableEndX, cableEndY, {
+    calculateDroopPath(sourceX, sourceY, targetX, targetY, {
       slack,
       dynamicOffset
     })
@@ -101,12 +107,17 @@
       stroke-width="2"
     />
   </g>
-{/if}
 
-<EdgeReconnectAnchor
-  type="target"
-  position={{ x: targetX, y: targetY }}
-  size={70}
-  bind:reconnecting
-  class={reconnecting ? 'pointer-events-none' : 'cursor-grab active:cursor-grabbing rounded-full'}
-/>
+  <!-- Interactive anchor at target jack allowing disconnection or reconnection -->
+  <circle
+    cx={targetX}
+    cy={targetY}
+    r="35"
+    fill="transparent"
+    class="pointer-events-auto cursor-grab active:cursor-grabbing"
+    onpointerdown={(e) => onStartReconnect?.(id, e)}
+    role="button"
+    tabindex="0"
+    aria-label="Disconnect or re-patch cable"
+  />
+{/if}

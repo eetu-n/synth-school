@@ -1,8 +1,8 @@
 # Modular Learning Path (`src/lib/modular`)
 
-Interactive module graph and patch cable physics built on `@xyflow/svelte`.
+Interactive module graph and droopy patch cable system with drag-and-drop patching, spring physics, and responsive layouts.
 
-- `types.ts`: Module graph types and connection definitions.
-- `cablePhysics.ts`: Catenary curve calculations and cable spring physics.
+- `types.ts`: Module graph types, node/edge definitions, and handle coordinates.
+- `cablePhysics.ts`: Catenary droop Bézier curve calculations and spring-damper physics animation.
 
-Related UI components (rack canvas, module nodes, patch cables) live in `src/lib/components/modular/`.
+UI components live in `src/lib/components/modular/` (`ModularRack.svelte`, `SynthModuleNode.svelte`, `PatchCableEdge.svelte`, `PatchConnectionLine.svelte`, `TsJack.svelte`, `TsPlug.svelte`).

@@ -1,48 +1,46 @@
 <script lang="ts">
-  import {
-    SvelteFlow,
-    Background,
-    BackgroundVariant,
-    PanOnScrollMode,
-    type NodeTypes,
-    type EdgeTypes,
-    type Connection,
-    type IsValidConnection,
-    type Edge,
-    type Node,
-    type CoordinateExtent,
-    type OnReconnect,
-    type OnReconnectEnd
-  } from '@xyflow/svelte';
-  import '@xyflow/svelte/dist/style.css';
   import SynthModuleNode from './SynthModuleNode.svelte';
   import PatchCableEdge from './PatchCableEdge.svelte';
   import PatchConnectionLine from './PatchConnectionLine.svelte';
-  import RackScrollMapper from './RackScrollMapper.svelte';
-  import type { ModuleNode, CableEdge, ModuleNodeData } from '$lib/modular/types';
-
-  const nodeTypes: NodeTypes = {
-    default: SynthModuleNode
-  };
-
-  const edgeTypes: EdgeTypes = {
-    default: PatchCableEdge
-  };
-
-  const zoom = 1;
+  import type {
+    ModuleNode,
+    CableEdge,
+    Connection,
+    HandlePositions,
+    XYPosition
+  } from '$lib/modular/types';
 
   let {
     nodes = [],
-    edges: initialEdges = [],
+    edges = $bindable([]),
     isValidConnection: customIsValidConnection
   }: {
     nodes: ModuleNode[];
     edges?: CableEdge[];
-    isValidConnection?: IsValidConnection;
+    isValidConnection?: (connection: Connection) => boolean;
   } = $props();
 
+  let containerEl = $state<HTMLElement | null>(null);
   let containerWidth = $state(0);
   let containerHeight = $state(0);
+
+  let panX = $state(0);
+  let panY = $state(0);
+  let isPanning = $state(false);
+  let panStart = $state({ x: 0, y: 0, panX: 0, panY: 0 });
+
+  let handlePositions = $state<Record<string, HandlePositions>>({});
+
+  interface DragState {
+    type: 'new' | 'reconnect';
+    sourceId: string;
+    from: XYPosition;
+    to: XYPosition;
+    hoveredTargetId: string | null;
+    edgeId?: string;
+  }
+
+  let activeDrag = $state<DragState | null>(null);
 
   const isMobile = $derived(
     containerWidth > 0
@@ -50,14 +48,7 @@
       : (typeof window !== 'undefined' ? window.innerWidth < 768 : false)
   );
 
-  // svelte-ignore state_referenced_locally
-  let edges = $state.raw<CableEdge[]>(initialEdges);
-
-  $effect(() => {
-    edges = initialEdges;
-  });
-
-  const layoutedNodes = $derived.by<Node<ModuleNodeData>[]>(() => {
+  const layoutedNodes = $derived.by<ModuleNode[]>(() => {
     const nodesByPhase = new Map<number, ModuleNode[]>();
     for (const node of nodes) {
       const p = node.phase ?? node.data?.phase ?? 1;
@@ -79,7 +70,7 @@
             ...node.data,
             isMobile
           }
-        } as Node<ModuleNodeData>;
+        };
       }
       const p = node.phase ?? node.data?.phase ?? 1;
       const phaseIndex = sortedPhases.indexOf(p);
@@ -109,7 +100,7 @@
           ...node.data,
           isMobile
         }
-      } as Node<ModuleNodeData>;
+      };
     });
   });
 
@@ -119,45 +110,97 @@
     }
     let maxX = 0;
     for (const node of layoutedNodes) {
-      if (node.position.x > maxX) {
+      if (node.position && node.position.x > maxX) {
         maxX = node.position.x;
       }
     }
     return Math.max(containerWidth, maxX + 650);
   });
 
-  const translateExtent = $derived<CoordinateExtent>(
-    isMobile
-      ? [[0, -Infinity], [0, Infinity]]
-      : [[0, -Infinity], [rackWidth, Infinity]]
-  );
-
-  const defaultViewport = $derived.by(() => {
-    if (isMobile && containerHeight > 0) {
+  const rackHeight = $derived.by(() => {
+    if (isMobile) {
       let maxY = 0;
       for (const node of layoutedNodes) {
-        if (node.position.y > maxY) {
+        if (node.position && node.position.y > maxY) {
           maxY = node.position.y;
         }
       }
-      return { x: 0, y: Math.min(0, -(maxY - containerHeight + 150)), zoom: 1 };
+      return Math.max(containerHeight, maxY + 240);
     }
-    return { x: 0, y: 0, zoom: 1 };
+    return Math.max(containerHeight, 500);
   });
 
-  function validateConnection(connection: Edge | Connection): boolean {
-    if (customIsValidConnection) {
-      return customIsValidConnection(connection);
+  // Clamp pan offsets when dimensions change
+  $effect(() => {
+    if (!isMobile) {
+      const maxScrollX = Math.max(0, rackWidth - containerWidth);
+      panX = Math.min(0, Math.max(-maxScrollX, panX));
+      panY = 0;
+    } else {
+      const maxScrollY = Math.max(0, rackHeight - containerHeight);
+      panY = Math.min(0, Math.max(-maxScrollY, panY));
+      panX = 0;
     }
-    if (!connection.source || !connection.target) return false;
-    if (connection.source === connection.target) return false;
+  });
 
-    const sourceNode = nodes.find((n) => n.id === connection.source);
-    const targetNode = nodes.find((n) => n.id === connection.target);
+  // Set initial vertical scroll position on mobile to show Phase 1 (bottom)
+  let initialMobileSet = $state(false);
+  $effect(() => {
+    if (isMobile && containerHeight > 0 && !initialMobileSet) {
+      let maxY = 0;
+      for (const node of layoutedNodes) {
+        if (node.position && node.position.y > maxY) {
+          maxY = node.position.y;
+        }
+      }
+      panY = Math.min(0, -(maxY - containerHeight + 150));
+      initialMobileSet = true;
+    }
+  });
+
+  function getSourceHandle(nodeId: string): XYPosition {
+    if (handlePositions[nodeId]?.source) {
+      return handlePositions[nodeId].source;
+    }
+    const node = layoutedNodes.find((n) => n.id === nodeId);
+    const posX = node?.position?.x ?? 0;
+    const posY = node?.position?.y ?? 0;
+    if (isMobile) {
+      return { x: posX + 48, y: posY };
+    }
+    return { x: posX + 325, y: posY + 55 };
+  }
+
+  function getTargetHandle(nodeId: string): XYPosition {
+    if (handlePositions[nodeId]?.target) {
+      return handlePositions[nodeId].target;
+    }
+    const node = layoutedNodes.find((n) => n.id === nodeId);
+    const posX = node?.position?.x ?? 0;
+    const posY = node?.position?.y ?? 0;
+    if (isMobile) {
+      return { x: posX + 48, y: posY + 110 };
+    }
+    return { x: posX, y: posY + 55 };
+  }
+
+  function handleUpdateHandles(id: string, handles: HandlePositions) {
+    handlePositions[id] = handles;
+  }
+
+  function validateConnection(sourceId: string, targetId: string): boolean {
+    if (customIsValidConnection) {
+      return customIsValidConnection({ source: sourceId, target: targetId });
+    }
+    if (!sourceId || !targetId) return false;
+    if (sourceId === targetId) return false;
+
+    const sourceNode = nodes.find((n) => n.id === sourceId);
+    const targetNode = nodes.find((n) => n.id === targetId);
     if (!sourceNode || !targetNode) return false;
 
     if (sourceNode.data?.allowedTargets !== undefined) {
-      return sourceNode.data.allowedTargets.includes(connection.target);
+      return sourceNode.data.allowedTargets.includes(targetId);
     }
 
     const sourcePhase = sourceNode.phase ?? sourceNode.data?.phase ?? 1;
@@ -175,92 +218,250 @@
     );
   }
 
-  function handleConnect(connection: Connection) {
-    if (!connection.source || !connection.target) return;
-    if (!validateConnection(connection)) return;
+  function handleStartDrag(sourceId: string, event: PointerEvent) {
+    event.stopPropagation();
+    event.preventDefault();
 
-    const newEdge: CableEdge = {
-      id: `cable-${connection.source}-${connection.target}-${Date.now()}`,
-      source: connection.source,
-      sourceHandle: connection.sourceHandle,
-      target: connection.target,
-      targetHandle: connection.targetHandle
+    const from = getSourceHandle(sourceId);
+    if (!containerEl) return;
+    const rect = containerEl.getBoundingClientRect();
+    const to = {
+      x: event.clientX - rect.left - panX,
+      y: event.clientY - rect.top - panY
     };
-    edges = [...edges.filter((e) => e.source !== connection.source), newEdge];
+
+    activeDrag = {
+      type: 'new',
+      sourceId,
+      from,
+      to,
+      hoveredTargetId: null
+    };
   }
 
-  const handleReconnect: OnReconnect<CableEdge> = (oldEdge, newConnection) => {
-    if (!validateConnection(newConnection)) return;
-    edges = edges.map((e) =>
-      e.id === oldEdge.id
-        ? {
-            ...e,
-            source: newConnection.source,
-            sourceHandle: newConnection.sourceHandle,
-            target: newConnection.target,
-            targetHandle: newConnection.targetHandle
-          }
-        : e
-    );
-  };
+  function handleStartReconnect(edgeId: string, event: PointerEvent) {
+    event.stopPropagation();
+    event.preventDefault();
 
-  const handleReconnectEnd: OnReconnectEnd<CableEdge> = (
-    _event,
-    edge,
-    _handleType,
-    connectionState
-  ) => {
-    if (!connectionState.isValid) {
-      edges = edges.filter((e) => e.id !== edge.id);
+    const edge = edges.find((e) => e.id === edgeId);
+    if (!edge || !containerEl) return;
+
+    const from = getSourceHandle(edge.source);
+    const rect = containerEl.getBoundingClientRect();
+    const to = {
+      x: event.clientX - rect.left - panX,
+      y: event.clientY - rect.top - panY
+    };
+
+    activeDrag = {
+      type: 'reconnect',
+      edgeId,
+      sourceId: edge.source,
+      from,
+      to,
+      hoveredTargetId: edge.target
+    };
+  }
+
+  function handleWindowPointerMove(event: PointerEvent) {
+    if (!containerEl) return;
+
+    if (activeDrag) {
+      const rect = containerEl.getBoundingClientRect();
+      const worldX = event.clientX - rect.left - panX;
+      const worldY = event.clientY - rect.top - panY;
+
+      const connectionRadius = 45;
+      let matchedTargetId: string | null = null;
+      let targetPos: XYPosition | null = null;
+
+      for (const node of layoutedNodes) {
+        if (node.id === activeDrag.sourceId) continue;
+        const candidatePos = getTargetHandle(node.id);
+        const dist = Math.hypot(worldX - candidatePos.x, worldY - candidatePos.y);
+
+        if (dist <= connectionRadius && validateConnection(activeDrag.sourceId, node.id)) {
+          matchedTargetId = node.id;
+          targetPos = candidatePos;
+          break;
+        }
+      }
+
+      if (matchedTargetId && targetPos) {
+        activeDrag.to = { x: targetPos.x, y: targetPos.y };
+        activeDrag.hoveredTargetId = matchedTargetId;
+      } else {
+        activeDrag.to = { x: worldX, y: worldY };
+        activeDrag.hoveredTargetId = null;
+      }
+    } else if (isPanning) {
+      if (!isMobile) {
+        const dx = event.clientX - panStart.x;
+        const maxScrollX = Math.max(0, rackWidth - containerWidth);
+        panX = Math.min(0, Math.max(-maxScrollX, panStart.panX + dx));
+      } else {
+        const dy = event.clientY - panStart.y;
+        const maxScrollY = Math.max(0, rackHeight - containerHeight);
+        panY = Math.min(0, Math.max(-maxScrollY, panStart.panY + dy));
+      }
     }
-  };
+  }
+
+  function handleWindowPointerUp() {
+    if (activeDrag) {
+      if (activeDrag.hoveredTargetId) {
+        if (activeDrag.type === 'new') {
+          const newEdge: CableEdge = {
+            id: `cable-${activeDrag.sourceId}-${activeDrag.hoveredTargetId}-${Date.now()}`,
+            source: activeDrag.sourceId,
+            target: activeDrag.hoveredTargetId
+          };
+          edges = [...edges.filter((e) => e.source !== activeDrag.sourceId), newEdge];
+        } else if (activeDrag.type === 'reconnect' && activeDrag.edgeId) {
+          edges = edges.map((e) =>
+            e.id === activeDrag!.edgeId ? { ...e, target: activeDrag!.hoveredTargetId! } : e
+          );
+        }
+      } else if (activeDrag.type === 'reconnect' && activeDrag.edgeId) {
+        // Disconnected / unplugged in empty space
+        edges = edges.filter((e) => e.id !== activeDrag!.edgeId);
+      }
+      activeDrag = null;
+    }
+
+    if (isPanning) {
+      isPanning = false;
+    }
+  }
+
+  function handleContainerPointerDown(event: PointerEvent) {
+    if (activeDrag) return;
+    // Only drag pan if clicking background/canvas directly
+    const target = event.target as HTMLElement | SVGElement | null;
+    if (
+      target &&
+      (target.classList.contains('modular-rack') ||
+        target.tagName === 'svg' ||
+        target.tagName === 'rect')
+    ) {
+      isPanning = true;
+      panStart = {
+        x: event.clientX,
+        y: event.clientY,
+        panX,
+        panY
+      };
+    }
+  }
+
+  function handleWheel(event: WheelEvent) {
+    if (!isMobile) {
+      const delta =
+        event.deltaMode === 1
+          ? event.deltaY * 20
+          : Math.abs(event.deltaY) > Math.abs(event.deltaX)
+            ? event.deltaY
+            : event.deltaX;
+
+      const maxScrollX = Math.max(0, rackWidth - containerWidth);
+      panX = Math.min(0, Math.max(-maxScrollX, panX - delta));
+      event.preventDefault();
+    } else {
+      const delta = event.deltaMode === 1 ? event.deltaY * 20 : event.deltaY;
+      const maxScrollY = Math.max(0, rackHeight - containerHeight);
+      panY = Math.min(0, Math.max(-maxScrollY, panY - delta));
+    }
+  }
 </script>
 
+<svelte:window
+  onpointermove={handleWindowPointerMove}
+  onpointerup={handleWindowPointerUp}
+  onpointercancel={handleWindowPointerUp}
+/>
+
 <div
-  class="modular-rack w-full h-full min-h-[500px] flex-grow select-none overflow-x-hidden"
+  bind:this={containerEl}
   bind:clientWidth={containerWidth}
   bind:clientHeight={containerHeight}
+  class="modular-rack relative w-full h-full min-h-[500px] flex-grow select-none overflow-hidden touch-none"
+  class:cursor-grab={!activeDrag && !isPanning}
+  class:cursor-grabbing={isPanning}
+  onwheel={handleWheel}
+  onpointerdown={handleContainerPointerDown}
+  role="region"
+  aria-label="Modular Synthesizer Learning Rack"
 >
-  <SvelteFlow
-    nodes={layoutedNodes}
-    bind:edges
-    {nodeTypes}
-    {edgeTypes}
-    {translateExtent}
-    {defaultViewport}
-    connectionRadius={40}
-    isValidConnection={validateConnection}
-    elevateNodesOnSelect={false}
-    connectionLineComponent={PatchConnectionLine}
-    panOnScroll={true}
-    panOnScrollMode={isMobile ? PanOnScrollMode.Vertical : PanOnScrollMode.Horizontal}
-    panOnDrag={true}
-    preventScrolling={false}
-    zoomOnScroll={false}
-    zoomOnPinch={false}
-    zoomOnDoubleClick={false}
-    minZoom={zoom}
-    maxZoom={zoom}
-    proOptions={{ hideAttribution: true }}
-    onconnect={handleConnect}
-    onreconnect={handleReconnect}
-    onreconnectend={handleReconnectEnd}
+  <div
+    class="world absolute left-0 top-0 will-change-transform"
+    style="width: {rackWidth}px; height: {rackHeight}px; transform: translate3d({panX}px, {panY}px, 0);"
   >
-    <RackScrollMapper {rackWidth} {containerWidth} disabled={isMobile} />
-    <Background variant={BackgroundVariant.Dots} gap={60} size={3} patternColor="var(--color-grid)" />
-  </SvelteFlow>
-</div>
+    <!-- Background dot grid layer (z-0) -->
+    <svg
+      class="absolute inset-0 w-full h-full pointer-events-none z-0"
+      style="width: {rackWidth}px; height: {rackHeight}px;"
+    >
+      <defs>
+        <pattern id="rack-dots" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+          <circle cx="30" cy="30" r="1.5" fill="var(--color-grid)" />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#rack-dots)" class="pointer-events-auto" />
+    </svg>
 
-<style>
-  :global(.modular-rack .svelte-flow__edges) {
-    z-index: 10;
-  }
-  :global(.modular-rack .svelte-flow__edge-labels) {
-    z-index: 15;
-  }
-  @media (max-width: 767px) {
-    :global(.modular-rack .svelte-flow__pane) {
-      touch-action: pan-y;
-    }
-  }
-</style>
+    <!-- HTML Nodes Layer (z-10) -->
+    <div class="absolute inset-0 pointer-events-none z-10">
+      {#each layoutedNodes as node (node.id)}
+        {#if node.position}
+          <div
+            class="absolute pointer-events-auto"
+            style="left: {node.position.x}px; top: {node.position.y}px;"
+          >
+            <SynthModuleNode
+              {node}
+              isConnectedAsSource={edges.some(
+                (e) => e.source === node.id && e.id !== activeDrag?.edgeId
+              )}
+              isDraggingFromThis={activeDrag?.sourceId === node.id}
+              selected={activeDrag?.hoveredTargetId === node.id}
+              onUpdateHandles={handleUpdateHandles}
+              onStartDrag={handleStartDrag}
+            />
+          </div>
+        {/if}
+      {/each}
+    </div>
+
+    <!-- Cables & Plugs SVG Layer (z-20, in front of nodes and jacks) -->
+    <svg
+      class="absolute inset-0 w-full h-full pointer-events-none overflow-visible z-20"
+      style="width: {rackWidth}px; height: {rackHeight}px;"
+    >
+      <!-- Render connected patch cables -->
+      {#each edges as edge (edge.id)}
+        {@const sourcePos = getSourceHandle(edge.source)}
+        {@const targetPos = getTargetHandle(edge.target)}
+        {#if sourcePos && targetPos}
+          <PatchCableEdge
+            id={edge.id}
+            sourceX={sourcePos.x}
+            sourceY={sourcePos.y}
+            targetX={targetPos.x}
+            targetY={targetPos.y}
+            data={edge.data}
+            reconnecting={activeDrag?.edgeId === edge.id}
+            onStartReconnect={handleStartReconnect}
+          />
+        {/if}
+      {/each}
+
+      <!-- Render live dragging cable connection preview -->
+      {#if activeDrag}
+        <PatchConnectionLine
+          from={activeDrag.from}
+          to={activeDrag.to}
+        />
+      {/if}
+    </svg>
+  </div>
+</div>

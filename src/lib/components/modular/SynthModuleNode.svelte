@@ -1,31 +1,68 @@
 <script lang="ts">
-  import { Handle, Position, useStore, type NodeProps, type Node } from '@xyflow/svelte';
-  import type { ModuleNodeData } from '$lib/modular/types';
+  import type { ModuleNode, HandlePositions } from '$lib/modular/types';
   import TsJack from './TsJack.svelte';
   import TsPlug from './TsPlug.svelte';
 
-  let { id, data, selected }: NodeProps<Node<ModuleNodeData>> = $props();
+  let {
+    node,
+    selected = false,
+    isConnectedAsSource = false,
+    isDraggingFromThis = false,
+    onUpdateHandles,
+    onStartDrag
+  }: {
+    node: ModuleNode;
+    selected?: boolean;
+    isConnectedAsSource?: boolean;
+    isDraggingFromThis?: boolean;
+    onUpdateHandles?: (id: string, handles: HandlePositions) => void;
+    onStartDrag?: (nodeId: string, event: PointerEvent) => void;
+  } = $props();
 
-  const store = useStore();
+  let nodeEl = $state<HTMLElement | null>(null);
 
-  const isMobile = $derived(
-    Boolean(data?.isMobile ?? (typeof window !== 'undefined' ? window.innerWidth < 768 : false))
-  );
-
-  const isConnectedAsSource = $derived(
-    store.edges.some((e) => e.source === id)
-  );
-
-  const isDraggingFromThis = $derived(
-    store.connection.inProgress &&
-      store.connection.fromHandle?.nodeId === id &&
-      store.connection.fromHandle?.type === 'source'
-  );
-
+  const isMobile = $derived(Boolean(node.data?.isMobile));
   const hasPlugPokingOut = $derived(!isConnectedAsSource && !isDraggingFromThis);
+
+  function updateHandles() {
+    if (!nodeEl) return;
+    const w = nodeEl.offsetWidth;
+    const h = nodeEl.offsetHeight;
+    const posX = node.position?.x ?? 0;
+    const posY = node.position?.y ?? 0;
+
+    if (isMobile) {
+      onUpdateHandles?.(node.id, {
+        source: { x: posX + 48, y: posY },
+        target: { x: posX + 48, y: posY + h }
+      });
+    } else {
+      onUpdateHandles?.(node.id, {
+        source: { x: posX + w, y: posY + h / 2 },
+        target: { x: posX, y: posY + h / 2 }
+      });
+    }
+  }
+
+  $effect(() => {
+    // Re-run whenever position or layout mode changes
+    node.position?.x;
+    node.position?.y;
+    isMobile;
+
+    updateHandles();
+
+    if (!nodeEl) return;
+    const observer = new ResizeObserver(() => {
+      updateHandles();
+    });
+    observer.observe(nodeEl);
+    return () => observer.disconnect();
+  });
 </script>
 
 <div
+  bind:this={nodeEl}
   class="rounded-3xl border-2 border-border bg-surface text-text-primary shadow-md select-none relative flex items-center justify-between gap-8"
   class:px-12={!isMobile}
   class:py-7={!isMobile}
@@ -38,76 +75,54 @@
 >
   {#if isMobile}
     <!-- Input connector on bottom left -->
-    <Handle
-      type="target"
-      position={Position.Bottom}
-      class="!min-w-0 !w-0 !min-h-0 !h-0 !bg-transparent !border-0 !rounded-none !shadow-none !outline-none flex items-center justify-center overflow-visible"
-      style="left: 48px;"
-      isConnectableStart={false}
+    <div
+      class="absolute left-[48px] bottom-0 -translate-x-1/2 translate-y-1/2 pointer-events-auto cursor-default z-10"
+      onpointerdown={(e) => e.stopPropagation()}
     >
-      <!-- svelte-ignore a11y_no_static_element_interactions -->
-      <div
-        class="absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2 pointer-events-auto cursor-default"
-        onmousedown={(e) => e.stopPropagation()}
-        ontouchstart={(e) => e.stopPropagation()}
-        onpointerdown={(e) => e.stopPropagation()}
-      >
-        <TsJack size={55} />
-      </div>
-    </Handle>
+      <TsJack size={55} />
+    </div>
 
-    <a href={data.href} class="nodrag text-xl font-bold hover:underline tracking-tight pl-8">
-      {data.title}
+    <a href={node.data.href} class="text-xl font-bold hover:underline tracking-tight pl-8">
+      {node.data.title}
     </a>
 
     <!-- Output plug on top left (pointing upwards) -->
-    <Handle
-      type="source"
-      position={Position.Top}
-      class="!min-w-0 !w-0 !min-h-0 !h-0 !bg-transparent !border-0 !rounded-none !shadow-none !outline-none !pointer-events-auto cursor-pointer flex items-center justify-center overflow-visible"
-      style="left: 48px;"
-    >
-      {#if hasPlugPokingOut}
-        <div
-          class="absolute left-0 top-0 pointer-events-auto cursor-grab hover:brightness-110 active:cursor-grabbing transition-[filter]"
-          style="transform: rotate(-90deg); transform-origin: 0px 20px;"
-        >
-          <TsPlug color="var(--color-primary)" scale={2.5} />
-        </div>
-      {/if}
-    </Handle>
-  {:else}
-    <Handle
-      type="target"
-      position={Position.Left}
-      class="!min-w-0 !w-0 !min-h-0 !h-0 !bg-transparent !border-0 !rounded-none !shadow-none !outline-none flex items-center justify-center overflow-visible"
-      isConnectableStart={false}
-    >
-      <!-- svelte-ignore a11y_no_static_element_interactions -->
+    {#if hasPlugPokingOut}
       <div
-        class="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-auto cursor-default"
-        onmousedown={(e) => e.stopPropagation()}
-        ontouchstart={(e) => e.stopPropagation()}
-        onpointerdown={(e) => e.stopPropagation()}
+        class="absolute left-[48px] top-0 pointer-events-auto cursor-grab hover:brightness-110 active:cursor-grabbing transition-[filter] z-10"
+        style="transform: rotate(-90deg); transform-origin: 0px 20px;"
+        onpointerdown={(e) => onStartDrag?.(node.id, e)}
+        role="button"
+        tabindex="0"
+        aria-label="Drag patch cable from {node.data.title}"
       >
-        <TsJack size={55} />
+        <TsPlug color="var(--color-primary)" scale={2.5} />
       </div>
-    </Handle>
+    {/if}
+  {:else}
+    <!-- Input connector on left -->
+    <div
+      class="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-auto cursor-default z-10"
+      onpointerdown={(e) => e.stopPropagation()}
+    >
+      <TsJack size={55} />
+    </div>
 
-    <a href={data.href} class="nodrag text-2xl font-bold hover:underline tracking-tight">
-      {data.title}
+    <a href={node.data.href} class="text-2xl font-bold hover:underline tracking-tight">
+      {node.data.title}
     </a>
 
-    <Handle
-      type="source"
-      position={Position.Right}
-      class="!min-w-0 !w-0 !min-h-0 !h-0 !bg-transparent !border-0 !rounded-none !shadow-none !outline-none !pointer-events-auto cursor-pointer flex items-center justify-center overflow-visible"
-    >
-      {#if hasPlugPokingOut}
-        <div class="absolute left-0 top-1/2 -translate-y-1/2 flex items-center pointer-events-auto cursor-grab hover:brightness-110 active:cursor-grabbing transition-[filter]">
-          <TsPlug color="var(--color-primary)" scale={2.5} />
-        </div>
-      {/if}
-    </Handle>
+    <!-- Output plug on right poking out -->
+    {#if hasPlugPokingOut}
+      <div
+        class="absolute left-full top-1/2 -translate-y-1/2 flex items-center pointer-events-auto cursor-grab hover:brightness-110 active:cursor-grabbing transition-[filter] z-10"
+        onpointerdown={(e) => onStartDrag?.(node.id, e)}
+        role="button"
+        tabindex="0"
+        aria-label="Drag patch cable from {node.data.title}"
+      >
+        <TsPlug color="var(--color-primary)" scale={2.5} />
+      </div>
+    {/if}
   {/if}
 </div>

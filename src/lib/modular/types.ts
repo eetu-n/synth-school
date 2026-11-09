@@ -1,4 +1,7 @@
-import type { Node, Edge, XYPosition } from '@xyflow/svelte';
+export interface XYPosition {
+  x: number;
+  y: number;
+}
 
 export interface ModuleNodeData extends Record<string, unknown> {
   title: string;
@@ -13,8 +16,30 @@ export interface CableEdgeData extends Record<string, unknown> {
   slack?: number;
 }
 
-export type ModuleNode = Omit<Node<ModuleNodeData>, 'position'> & {
-  position?: XYPosition;
+export interface ModuleNode {
+  id: string;
   phase?: number;
-};
-export type CableEdge = Edge<CableEdgeData>;
+  position?: XYPosition;
+  data: ModuleNodeData;
+}
+
+export interface CableEdge {
+  id: string;
+  source: string;
+  target: string;
+  sourceHandle?: string | null;
+  targetHandle?: string | null;
+  data?: CableEdgeData;
+}
+
+export interface Connection {
+  source: string;
+  target: string;
+  sourceHandle?: string | null;
+  targetHandle?: string | null;
+}
+
+export interface HandlePositions {
+  source: XYPosition;
+  target: XYPosition;
+}
