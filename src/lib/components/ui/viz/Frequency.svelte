@@ -1,6 +1,7 @@
 <script lang="ts">
-    import { audioState } from '$lib/audio/framework/audioState.svelte';
-    import RoutedAudioNode from '$lib/audio/framework/RoutedAudioNode';
+    import type RoutedAudioNode from '$lib/audio/framework/RoutedAudioNode';
+    import { useAudioAnalyser } from '$lib/audio/framework/useAudioAnalyser.svelte';
+    import { useDpr } from '$lib/utils/dpr.svelte';
 
     let { 
         inputNode,
@@ -16,16 +17,13 @@
 
     let w = $state(800);
     let h = $state(400);
-    let dpr = $state(1);
+    const dpr = useDpr();
 
-    $effect(() => {
-        if (typeof window !== 'undefined') {
-            dpr = window.devicePixelRatio || 1;
-        }
+    const audio = useAudioAnalyser(() => inputNode, {
+        name: "frequency_analyzer",
+        fftSize: 2 ** 14,
+        smoothingTimeConstant: 0.8
     });
-
-    let analyser: RoutedAudioNode<AnalyserNode> | null = null;
-    let dataArray: Uint8Array<any> | null = null;
     let drawVisual: number;
 
     const fMin = 20;
@@ -42,21 +40,22 @@
     }
 
     function draw(){
-        if (!canvas || !analyser || !dataArray || !audioState.context) return;
+        if (!canvas) return;
+        const dataArray = audio.getFrequencyData();
+        if (!dataArray) return;
         const context = canvas.getContext('2d');
         if (!context) return;
 
         drawVisual = requestAnimationFrame(draw);
-        analyser.audioNode?.getByteFrequencyData(dataArray);
 
         const width = w;
         const height = h;
-        const sampleRate = audioState.context.sampleRate;
+        const sampleRate = audio.sampleRate;
         const bufferLength = dataArray.length;
 
         context.clearRect(0, 0, canvas.width, canvas.height);
         context.save();
-        context.scale(dpr, dpr);
+        context.scale(dpr.current, dpr.current);
 
         // Get current colors from CSS variables
         const style = getComputedStyle(canvas);
@@ -110,8 +109,8 @@
             const f1 = fMin * Math.pow(fMax / fMin, x / width);
             const f2 = fMin * Math.pow(fMax / fMin, (x + 1) / width);
             
-            const i1 = Math.floor(f1 * (analyser.audioNode!.fftSize / sampleRate));
-            const i2 = Math.ceil(f2 * (analyser.audioNode!.fftSize / sampleRate));
+            const i1 = Math.floor(f1 * (audio.audioNode!.fftSize / sampleRate));
+            const i2 = Math.ceil(f2 * (audio.audioNode!.fftSize / sampleRate));
             
             let max = 0;
             const start = i1;
@@ -223,39 +222,22 @@
         context.restore();
     }
     $effect(() => {
-        if (audioState.context && inputNode) {
-            analyser = new RoutedAudioNode(
-                "frequency_analyzer",
-                audioState.context,
-                audioState.context.createAnalyser()
-            );
-            if (analyser.audioNode){
-                analyser.audioNode.fftSize = 2 ** 14; 
-                analyser.audioNode.smoothingTimeConstant = 0.8;
-                dataArray = new Uint8Array(analyser.audioNode.frequencyBinCount);
-                inputNode.connect(analyser);
-            };
-
+        if (audio.analyser) {
             drawVisual = requestAnimationFrame(draw);
-        } else {
-            analyser = null;
         }
 
         return () => {
             cancelAnimationFrame(drawVisual);
-            if (analyser && inputNode) {
-                inputNode.disconnect(analyser);
-            }
         };
     });
 </script>
 
-<div class="bg-surface dark:bg-dark-surface rounded-xl shadow-sm border border-border dark:border-dark-border p-6 my-4 w-full max-w-3xl mx-auto flex flex-col">
+<div class="bg-surface rounded-xl shadow-sm border border-border p-6 my-4 w-full max-w-3xl mx-auto flex flex-col">
     <div class="w-full aspect-[2/1] relative mb-2" bind:clientWidth={w} bind:clientHeight={h}>
         <canvas 
             bind:this={canvas} 
-            width={Math.floor(w * dpr)} 
-            height={Math.floor(h * dpr)}
+            width={Math.floor(w * dpr.current)} 
+            height={Math.floor(h * dpr.current)}
             style="width: 100%; height: 100%;"
             class="block"
         ></canvas>

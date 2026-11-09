@@ -21,6 +21,12 @@
     showStageCards = false,
   }: Props = $props();
 
+  // --- Configuration & Timing ---
+  /** Duration (in ms) to stretch the cursor ball into the sustain bar on entry (~3-6 frames) */
+  const SUSTAIN_STRETCH_DURATION_MS = 100;
+  /** Duration (in ms) to collapse the sustain bar back into the cursor ball on release (~3-6 frames) */
+  const SUSTAIN_COLLAPSE_DURATION_MS = 75;
+
   // --- Visualizer Dimensions ---
   const width = 800;
   const height = 220;
@@ -131,12 +137,54 @@
   let currentLevel = $state(0);
   let cursorX = $state(padL);
   let cursorY = $state(y0);
+  let sustainProgress = $state(1);
+  let isCollapsingFromSustain = $state(false);
+  let collapseProgress = $state(0);
 
   let animFrameId: number | null = null;
   let resetTimeoutId: number | null = null;
   let phaseStartTime = 0;
+  let sustainStartTime = 0;
+  let collapseStartTime = 0;
   let releaseStartLevel = 0;
   let releaseStartX = padL;
+
+  // Capsule geometry (stretches from circle of r=9 at (x2, yS) on entry, collapses into circle at (x3, yS) on release)
+  let stretchT = $derived(1 - Math.pow(1 - sustainProgress, 2));
+  let collapseT = $derived(1 - Math.pow(1 - collapseProgress, 2));
+
+  let capsuleLeft = $derived.by(() => {
+    if (isCollapsingFromSustain) {
+      return x2 + collapseT * (x3 - 9 - x2);
+    }
+    return (x2 - 9) + stretchT * 9;
+  });
+
+  let capsuleRight = $derived.by(() => {
+    if (isCollapsingFromSustain) {
+      return x3 + collapseT * 9;
+    }
+    return (x2 + 9) + stretchT * (x3 - (x2 + 9));
+  });
+
+  let capsuleW = $derived(Math.max(18, capsuleRight - capsuleLeft));
+
+  let capsuleH = $derived.by(() => {
+    if (isCollapsingFromSustain) {
+      return 12 + collapseT * 6;
+    }
+    return 18 - stretchT * 6;
+  });
+
+  let capsuleY = $derived(yS - capsuleH / 2);
+  let capsuleRx = $derived(capsuleH / 2);
+
+  let stripesOpacity = $derived.by(() => {
+    if (isCollapsingFromSustain) {
+      return (1 - collapseProgress) * 0.7;
+    }
+    return sustainProgress * 0.7;
+  });
 
   function formatTime(ms: number): string {
     if (ms < 1000) {
@@ -156,6 +204,10 @@
           currentLevel = decay <= 0 ? sustain : 1.0;
           cursorX = x1;
           cursorY = getY(currentLevel);
+          if (decay <= 0) {
+            sustainStartTime = now;
+            sustainProgress = 0;
+          }
         } else {
           const elapsed = now - phaseStartTime;
           const progress = Math.min(1, elapsed / attack);
@@ -167,6 +219,10 @@
           if (progress >= 1) {
             activePhase = decay <= 0 ? "sustain" : "decay";
             phaseStartTime = now;
+            if (decay <= 0) {
+              sustainStartTime = now;
+              sustainProgress = 0;
+            }
           }
         }
       } else if (activePhase === "decay") {
@@ -175,6 +231,8 @@
           currentLevel = sustain;
           cursorX = x2;
           cursorY = yS;
+          sustainStartTime = now;
+          sustainProgress = 0;
         } else {
           const elapsed = now - phaseStartTime;
           const progress = Math.min(1, elapsed / decay);
@@ -186,39 +244,57 @@
 
           if (progress >= 1) {
             activePhase = "sustain";
+            sustainStartTime = now;
+            sustainProgress = 0;
           }
         }
       } else if (activePhase === "sustain") {
         currentLevel = sustain;
         cursorY = getY(sustain);
+        if (sustainProgress < 1) {
+          const elapsed = now - sustainStartTime;
+          sustainProgress =
+            SUSTAIN_STRETCH_DURATION_MS > 0
+              ? Math.min(1, elapsed / SUSTAIN_STRETCH_DURATION_MS)
+              : 1;
+        }
       } else if (activePhase === "release") {
-        if (release <= 0) {
-          cursorX = x4;
-          cursorY = y0;
-          currentLevel = 0;
-          activePhase = "idle";
-          if (animFrameId !== null) {
-            cancelAnimationFrame(animFrameId);
-            animFrameId = null;
-          }
+        if (isCollapsingFromSustain) {
+          const collapseElapsed = now - collapseStartTime;
+          collapseProgress =
+            SUSTAIN_COLLAPSE_DURATION_MS > 0
+              ? Math.min(1, collapseElapsed / SUSTAIN_COLLAPSE_DURATION_MS)
+              : 1;
+          currentLevel = sustain;
+          cursorX = x3;
+          cursorY = yS;
 
-          resetTimeoutId = window.setTimeout(() => {
-            if (activePhase === "idle" && !gate) {
-              cursorX = x0;
+          if (collapseProgress >= 1) {
+            isCollapsingFromSustain = false;
+            sustainProgress = 1;
+            phaseStartTime = now;
+
+            if (release <= 0) {
+              cursorX = x4;
               cursorY = y0;
+              currentLevel = 0;
+              activePhase = "idle";
+              if (animFrameId !== null) {
+                cancelAnimationFrame(animFrameId);
+                animFrameId = null;
+              }
+
+              resetTimeoutId = window.setTimeout(() => {
+                if (activePhase === "idle" && !gate) {
+                  cursorX = x0;
+                  cursorY = y0;
+                }
+              }, 350);
+              return;
             }
-          }, 350);
+          }
         } else {
-          const elapsed = now - phaseStartTime;
-          const progress = Math.min(1, elapsed / release);
-
-          const releaseNorm = (Math.exp(-3 * progress) - Math.exp(-3)) / (1 - Math.exp(-3));
-          currentLevel = releaseStartLevel * releaseNorm;
-
-          cursorX = releaseStartX + progress * (x4 - releaseStartX);
-          cursorY = getY(currentLevel);
-
-          if (progress >= 1) {
+          if (release <= 0) {
             cursorX = x4;
             cursorY = y0;
             currentLevel = 0;
@@ -228,13 +304,40 @@
               animFrameId = null;
             }
 
-            // Return cursor to start after a brief pause so completion is visible
             resetTimeoutId = window.setTimeout(() => {
               if (activePhase === "idle" && !gate) {
                 cursorX = x0;
                 cursorY = y0;
               }
             }, 350);
+          } else {
+            const elapsed = now - phaseStartTime;
+            const progress = Math.min(1, elapsed / release);
+
+            const releaseNorm = (Math.exp(-3 * progress) - Math.exp(-3)) / (1 - Math.exp(-3));
+            currentLevel = releaseStartLevel * releaseNorm;
+
+            cursorX = releaseStartX + progress * (x4 - releaseStartX);
+            cursorY = getY(currentLevel);
+
+            if (progress >= 1) {
+              cursorX = x4;
+              cursorY = y0;
+              currentLevel = 0;
+              activePhase = "idle";
+              if (animFrameId !== null) {
+                cancelAnimationFrame(animFrameId);
+                animFrameId = null;
+              }
+
+              // Return cursor to start after a brief pause so completion is visible
+              resetTimeoutId = window.setTimeout(() => {
+                if (activePhase === "idle" && !gate) {
+                  cursorX = x0;
+                  cursorY = y0;
+                }
+              }, 350);
+            }
           }
         }
       }
@@ -253,10 +356,14 @@
       resetTimeoutId = null;
     }
 
+    isCollapsingFromSustain = false;
+    collapseProgress = 0;
     phaseStartTime = performance.now();
 
     if (attack <= 0 && decay <= 0) {
       activePhase = "sustain";
+      sustainStartTime = performance.now();
+      sustainProgress = 0;
       currentLevel = sustain;
       cursorX = x2;
       cursorY = yS;
@@ -283,28 +390,40 @@
       resetTimeoutId = null;
     }
 
-    // Always jump to the release part of the graph (x3, yS) regardless of which phase gate was released in
+    const wasInSustain = activePhase === "sustain";
+
+    // Setup release coordinates
     releaseStartX = x3;
     cursorX = x3;
     releaseStartLevel = sustain > 0 ? sustain : currentLevel;
     cursorY = getY(releaseStartLevel);
 
-    if (release <= 0) {
-      cursorX = x4;
-      cursorY = y0;
-      currentLevel = 0;
-      activePhase = "idle";
-      resetTimeoutId = window.setTimeout(() => {
-        if (activePhase === "idle" && !gate) {
-          cursorX = x0;
-          cursorY = y0;
-        }
-      }, 350);
-      return;
-    }
-
     activePhase = "release";
     phaseStartTime = performance.now();
+
+    if (wasInSustain && SUSTAIN_COLLAPSE_DURATION_MS > 0) {
+      isCollapsingFromSustain = true;
+      collapseStartTime = performance.now();
+      collapseProgress = 0;
+    } else {
+      isCollapsingFromSustain = false;
+      collapseProgress = 1;
+      sustainProgress = 1;
+
+      if (release <= 0) {
+        cursorX = x4;
+        cursorY = y0;
+        currentLevel = 0;
+        activePhase = "idle";
+        resetTimeoutId = window.setTimeout(() => {
+          if (activePhase === "idle" && !gate) {
+            cursorX = x0;
+            cursorY = y0;
+          }
+        }, 350);
+        return;
+      }
+    }
 
     if (animFrameId === null) {
       startAnimation();
@@ -415,11 +534,11 @@
         <!-- Clip path for the sustain capsule -->
         <clipPath id="sustainClip">
           <rect
-            x={x2}
-            y={yS - 6}
-            width={sustainWidth}
-            height="12"
-            rx="6"
+            x={capsuleLeft}
+            y={capsuleY}
+            width={capsuleW}
+            height={capsuleH}
+            rx={capsuleRx}
           />
         </clipPath>
 
@@ -433,11 +552,11 @@
 
         <mask id="sustainMask">
           <rect
-            x={x2}
-            y={yS - 6}
-            width={sustainWidth}
-            height="12"
-            rx="6"
+            x={capsuleLeft}
+            y={capsuleY}
+            width={capsuleW}
+            height={capsuleH}
+            rx={capsuleRx}
             fill="url(#sustainEdgeFade)"
           />
         </mask>
@@ -486,30 +605,29 @@
       />
 
 
-      <!-- Playhead & Cursor (Dot for Attack/Decay/Release, Capsule for Sustain) -->
-      {#if activePhase === "sustain"}
-        <!-- Sustain Capsule -->
+      <!-- Playhead & Cursor (Dot for Attack/Decay/Release, Capsule for Sustain / Collapse) -->
+      {#if activePhase === "sustain" || isCollapsingFromSustain}
+        <!-- Sustain Capsule (stretches from cursor dot into full bar, collapses on release) -->
         <g>
-          <animate attributeName="opacity" from="0" to="1" dur="0.25s" fill="freeze" />
           <rect
-            x={x2}
-            y={yS - 6}
-            width={sustainWidth}
-            height="12"
-            rx="6"
+            x={capsuleLeft}
+            y={capsuleY}
+            width={capsuleW}
+            height={capsuleH}
+            rx={capsuleRx}
             fill="var(--color-secondary, #e87953)"
             stroke="var(--color-surface, #ffffff)"
             stroke-width="2"
           />
           <g clip-path="url(#sustainClip)" mask="url(#sustainMask)">
             <rect
-              x={x2}
-              y={yS - 6}
-              width={sustainWidth}
-              height="12"
+              x={capsuleLeft}
+              y={capsuleY}
+              width={capsuleW}
+              height={capsuleH}
               fill="url(#sustainStripes)"
               filter="url(#stripeBlur)"
-              opacity="0.7"
+              opacity={stripesOpacity}
             />
           </g>
         </g>

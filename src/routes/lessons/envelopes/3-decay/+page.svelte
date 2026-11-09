@@ -3,12 +3,11 @@
     import FilterDemo from "$lib/components/audio/FilterDemo.svelte";
     import { audioState } from "$lib/audio/framework/audioState.svelte";
     import RouterNode from "$lib/audio/framework/RouterNode";
-    import AudioOverlay from "$lib/components/ui/layout/AudioOverlay.svelte";
     import Frequency from "$lib/components/ui/viz/Frequency.svelte";
 
 </script>
 
-<AudioOverlay> <VSplitDiv {leftSide} {rightSide} /> </AudioOverlay>
+<VSplitDiv {leftSide} {rightSide} audioOverlay="right" />
 
 {#snippet leftSide()}
     <h1>Decay</h1>

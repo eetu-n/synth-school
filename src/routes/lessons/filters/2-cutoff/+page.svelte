@@ -4,7 +4,6 @@
     import Noise from "$lib/components/audio/Noise.svelte";
     import { audioState } from "$lib/audio/framework/audioState.svelte";
     import RouterNode from "$lib/audio/framework/RouterNode";
-    import AudioOverlay from "$lib/components/ui/layout/AudioOverlay.svelte";
     import Frequency from "$lib/components/ui/viz/Frequency.svelte";
     import type FaustNode from "$lib/audio/framework/FaustNode";
 
@@ -12,7 +11,7 @@
     let noiseNode = $state<FaustNode | null>(null);
 </script>
 
-<AudioOverlay><VSplitDiv {leftSide} {rightSide} /> </AudioOverlay>
+<VSplitDiv {leftSide} {rightSide} audioOverlay="right" />
 
 {#snippet leftSide()}
     <h1>Filter Cutoff Frequency</h1>

@@ -2,7 +2,6 @@
     import VSplitDiv from "$lib/components/ui/layout/VSplitDiv.svelte";
     import { audioState } from "$lib/audio/framework/audioState.svelte";
     import RouterNode from "$lib/audio/framework/RouterNode";
-    import AudioOverlay from "$lib/components/ui/layout/AudioOverlay.svelte";
     import Scope from "$lib/components/ui/viz/Scope.svelte";
     import ResponsiveText from "$lib/components/ui/text/ResponsiveText.svelte";
     import Frequency from "$lib/components/ui/viz/Frequency.svelte";

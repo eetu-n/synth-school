@@ -3,13 +3,12 @@
     import FilterDemo from "$lib/components/audio/FilterDemo.svelte";
     import { audioState } from "$lib/audio/framework/audioState.svelte";
     import RouterNode from "$lib/audio/framework/RouterNode";
-    import AudioOverlay from "$lib/components/ui/layout/AudioOverlay.svelte";
     import Frequency from "$lib/components/ui/viz/Frequency.svelte";
     import ResponsiveText from "$lib/components/ui/text/ResponsiveText.svelte";
 
 </script>
 
-<VSplitDiv {leftSide} {rightSide} />
+<VSplitDiv {leftSide} {rightSide} audioOverlay="right" />
 
 {#snippet leftSide()}
     <h1>Release</h1>
@@ -19,8 +18,6 @@
 {/snippet}
 
 {#snippet rightSide()}
-    <AudioOverlay>
-        <FilterDemo outputNode={audioState.preMasterNode as RouterNode} />
-        <Frequency inputNode={audioState.preMasterNode as RouterNode} />
-    </AudioOverlay>
+    <FilterDemo outputNode={audioState.preMasterNode as RouterNode} />
+    <Frequency inputNode={audioState.preMasterNode as RouterNode} />
 {/snippet}

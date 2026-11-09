@@ -1,27 +1,33 @@
 <script lang="ts">
-    import { audioState } from '$lib/audio/framework/audioState.svelte';
-    import RoutedAudioNode from '$lib/audio/framework/RoutedAudioNode';
+    import type RoutedAudioNode from '$lib/audio/framework/RoutedAudioNode';
+    import { useAudioAnalyser } from '$lib/audio/framework/useAudioAnalyser.svelte';
+    import { useDpr } from '$lib/utils/dpr.svelte';
 
-    let { inputNode }: { inputNode: RoutedAudioNode<any> } = $props();
+    interface Props {
+        inputNode: RoutedAudioNode<any>;
+        scale?: number;
+        scaleFactor?: number;
+    }
+
+    let { 
+        inputNode,
+        scale = 2,
+        scaleFactor,
+    }: Props = $props();
+
+    const effectiveScale = $derived(scaleFactor ?? scale);
 
     let canvas = $state<HTMLCanvasElement | null>(null);
     let container = $state<HTMLDivElement | null>(null);
 
     let w = $state(800);
     let h = $state(400);
-    let dpr = $state(1);
+    const dpr = useDpr();
 
-    $effect(() => {
-        if (typeof window !== 'undefined') {
-            dpr = window.devicePixelRatio || 1;
-        }
-    });
-    
-    let analyser: RoutedAudioNode<AnalyserNode> | null = null;
-    let dataArray: Uint8Array<any> | null = null;
+    const audio = useAudioAnalyser(() => inputNode, { name: "scope", fftSize: 2048 });
     let drawVisual: number;
 
-    function findTriggerPointWithAutocorellation(data: Uint8Array): number {
+    function findTriggerPointWithAutocorellation(data: Float32Array): number {
         // Find the mean to remove DC offset
         let sum = 0;
         for (let i = 0; i < data.length; i++) {
@@ -60,11 +66,15 @@
         }
 
         // Find min and max in the first period to determine the midpoint
-        let min = 255;
-        let max = 0;
+        let min = 1.0;
+        let max = -1.0;
         for (let i = 0; i < period; i++) {
             if (data[i] < min) min = data[i];
             if (data[i] > max) max = data[i];
+        }
+
+        if (max - min < 0.02) {
+            return 0;
         }
 
         const mid = (min + max) / 2;
@@ -88,18 +98,20 @@
     }
 
     function draw(){
-        if (!canvas || !analyser || !dataArray) return;
+        if (!canvas) return;
+        const dataArray = audio.getFloatTimeDomainData();
+        if (!dataArray) return;
+
         const context = canvas.getContext('2d');
         if (!context) return;
 
         drawVisual = requestAnimationFrame(draw);
-        analyser.audioNode?.getByteTimeDomainData(dataArray);
 
         const width = w;
         const height = h;
 
         context.save();
-        context.scale(dpr, dpr);
+        context.scale(dpr.current, dpr.current);
 
         // Get current colors from CSS variables
         const style = getComputedStyle(canvas);
@@ -135,7 +147,7 @@
         const triggerIndex = findTriggerPointWithAutocorellation(dataArray);
         const drawLength = dataArray.length / 2;
         const sliceWidth = width / drawLength;
-        
+
         context.lineWidth = 3;
         context.strokeStyle = signalColor;
         context.lineJoin = 'round';
@@ -151,8 +163,9 @@
             const sampleIndex = triggerIndex + i;
             if (sampleIndex >= dataArray.length) break;
 
-            const v = (dataArray[sampleIndex] - 128) / 128.0;
-            const y = (height / 2) - (v * (height * 0.45));
+            const rawV = dataArray[sampleIndex];
+            const scaledV = Math.max(-1.05, Math.min(1.05, rawV * effectiveScale));
+            const y = (height / 2) - (scaledV * (height * 0.45));
 
             if (i === 0) {
                 context.moveTo(x, y);
@@ -169,36 +182,22 @@
     }
 
     $effect(() => {
-        if (audioState.context && inputNode) {
-            analyser = new RoutedAudioNode<AnalyserNode>(
-                "scope",
-                audioState.context,
-                audioState.context.createAnalyser()
-            );
-            if (analyser.audioNode) {
-                analyser.audioNode.fftSize = 2048;
-                dataArray = new Uint8Array(analyser.audioNode.frequencyBinCount);
-                inputNode.connect(analyser);
-            };
-
+        if (audio.analyser) {
             draw();
         }
         
         return () => {
             cancelAnimationFrame(drawVisual);
-            if (analyser && inputNode) {
-                inputNode.disconnect(analyser);
-            }
         };
     });
 </script>
 
-<div bind:this={container} class="bg-surface dark:bg-dark-surface rounded-xl shadow-sm border border-border dark:border-dark-border p-6 my-4 w-full max-w-3xl mx-auto flex flex-col">
+<div bind:this={container} class="bg-surface rounded-xl shadow-sm border border-border p-6 my-4 w-full max-w-3xl mx-auto flex flex-col">
     <div class="w-full aspect-[2/1] relative" bind:clientWidth={w} bind:clientHeight={h}>
         <canvas
             bind:this={canvas}
-            width={Math.floor(w * dpr)}
-            height={Math.floor(h * dpr)}
+            width={Math.floor(w * dpr.current)}
+            height={Math.floor(h * dpr.current)}
             style="width: 100%; height: 100%;"
             class="block"
         ></canvas>

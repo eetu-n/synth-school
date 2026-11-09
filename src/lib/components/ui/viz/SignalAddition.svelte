@@ -77,7 +77,7 @@
     });
 </script>
 
-<div class="bg-surface dark:bg-dark-surface rounded-xl shadow-sm border border-border dark:border-dark-border p-6 my-4 w-full max-w-5xl mx-auto flex flex-col items-center">
+<div class="bg-surface rounded-xl shadow-sm border border-border p-6 my-4 w-full max-w-5xl mx-auto flex flex-col items-center">
     <div class="w-full relative">
         <div 
             class="absolute pointer-events-none flex justify-center" 

@@ -2,6 +2,7 @@
     import type { Snippet } from 'svelte';
     import { page } from '$app/stores';
     import LessonNavigation from '$lib/components/ui/layout/LessonNavigation.svelte';
+    import AudioOverlay from '$lib/components/ui/layout/AudioOverlay.svelte';
 
     let { 
         leftSide, 
@@ -10,7 +11,8 @@
         next, 
         leftTabTitle = 'Lesson', 
         rightTabTitle = 'Workspace',
-        nextClass = ''
+        nextClass = '',
+        audioOverlay = 'neither'
     }: { 
         leftSide: Snippet, 
         rightSide: Snippet,
@@ -18,8 +20,13 @@
         next?: string | null,
         leftTabTitle?: string,
         rightTabTitle?: string,
-        nextClass?: string
+        nextClass?: string,
+        audioOverlay?: 'neither' | 'left' | 'right' | 'both' | 'none' | boolean
     } = $props();
+
+    const wrapWhole = $derived(audioOverlay === 'both' || audioOverlay === true);
+    const wrapLeft = $derived(audioOverlay === 'left');
+    const wrapRight = $derived(audioOverlay === 'right');
 
     const lessonModules = import.meta.glob('/src/routes/lessons/**/+page.svelte');
     const lessonPaths = Object.keys(lessonModules)
@@ -73,77 +80,101 @@
 
 <svelte:window bind:innerWidth={innerWidth} onmousemove={onDrag} onmouseup={stopDragging} />
 
-{#if innerWidth >= breakpoint}
-    <div class="flex h-full w-full overflow-hidden" class:select-none={isDragging} class:cursor-col-resize={isDragging}>
-      <div class="overflow-y-auto bg-background flex flex-col" style="width: {leftWidth}%">
-          <div class="flex flex-col px-5 pt-5">
-            <div class="flex-grow">
-                {@render leftSide()}
-            </div>
-            <div class="h-5 flex-shrink-0 w-full"></div>
-            {#if computedPrev || computedNext}
-                <div class="mt-8">
-                    <LessonNavigation prev={computedPrev} next={computedNext} {nextClass} />
-                </div>
-            {/if}
-          </div>
-      </div>
-      
-      <!-- svelte-ignore a11y_no_noninteractive_element_interactions, a11y_no_noninteractive_tabindex -->
-      <div
-          class="w-2 bg-surface cursor-col-resize z-10 transition-colors duration-200 ease hover:bg-primary active:bg-primary"
-          onmousedown={startDragging}
-          onkeydown={handleKeydown} 
-          role="separator" 
-          tabindex="0"
-          aria-label="Resize panels"
-      ></div>
-      
-      <div class="overflow-y-auto bg-surface flex flex-col" style="width: {100 - leftWidth}%">
-          <div class="flex flex-col px-5 pt-5">
-            {@render rightSide()}
-            <div class="h-5 flex-shrink-0 w-full"></div>
-          </div>
-      </div>
-    </div>
-{:else}
-    <div class="flex flex-col h-full w-full overflow-hidden">
-        <div class="flex flex-shrink-0 border-b border-border/50 p-2 gap-2 bg-surface">
-            <button 
-                onclick={() => activeTab = 'left'} 
-                class="flex-1 py-3 px-4 rounded-md border-none border-b-2 text-sm font-bold transition-all duration-200 uppercase tracking-widest
-                       {activeTab === 'left' ? 'border-primary text-primary bg-background shadow-sm' : 'border-transparent text-text-secondary/60 bg-transparent'}"
-            >
-                {leftTabTitle}
-            </button>
-            <button 
-                onclick={() => activeTab = 'right'} 
-                class="flex-1 py-3 px-4 rounded-md border-none border-b-2 text-sm font-bold transition-all duration-200 uppercase tracking-widest
-                       {activeTab === 'right' ? 'border-primary text-primary bg-background shadow-sm' : 'border-transparent text-text-secondary/60 bg-transparent'}"
-            >
-                {rightTabTitle}
-            </button>
-        </div>
+{#snippet renderPanel(wrap: boolean, panel: Snippet)}
+    {#if wrap}
+        <AudioOverlay>
+            {@render panel()}
+        </AudioOverlay>
+    {:else}
+        {@render panel()}
+    {/if}
+{/snippet}
 
-        <div class="flex-grow flex flex-col overflow-hidden min-h-0">
-            <div class="flex-1 overflow-y-auto bg-background flex flex-col min-h-0" class:hidden={activeTab !== 'left'}>
-                <div class="flex flex-col px-5 pt-5">
-                    {@render leftSide()}
-                    <div class="h-5 flex-shrink-0 w-full"></div>
-                </div>
-            </div>
-            <div class="flex-1 overflow-y-auto bg-surface flex flex-col min-h-0" class:hidden={activeTab !== 'right'}>
-                <div class="flex flex-col px-5 pt-5">
-                    {@render rightSide()}
-                    <div class="h-5 flex-shrink-0 w-full"></div>
-                </div>
-            </div>
-        </div>
-
+{#snippet leftPanelDesktop()}
+    <div class="flex-1 overflow-y-auto bg-background p-5 flex flex-col min-h-0">
+        {@render leftSide()}
         {#if computedPrev || computedNext}
-            <div class="flex-shrink-0 bg-surface border-t border-border/50 px-5 pb-2">
+            <div class="mt-auto pt-8">
                 <LessonNavigation prev={computedPrev} next={computedNext} {nextClass} />
             </div>
         {/if}
     </div>
+{/snippet}
+
+{#snippet leftPanelMobile()}
+    <div class="flex-1 overflow-y-auto bg-background p-5 flex flex-col min-h-0">
+        {@render leftSide()}
+    </div>
+{/snippet}
+
+{#snippet rightPanel()}
+    <div class="flex-1 overflow-y-auto bg-surface p-5 flex flex-col min-h-0">
+        {@render rightSide()}
+    </div>
+{/snippet}
+
+{#snippet splitContent()}
+    {#if innerWidth >= breakpoint}
+        <div class="flex h-full w-full overflow-hidden" class:select-none={isDragging} class:cursor-col-resize={isDragging}>
+          <div class="h-full flex flex-col overflow-hidden isolate" style="width: {leftWidth}%">
+              {@render renderPanel(wrapLeft, leftPanelDesktop)}
+          </div>
+          
+          <!-- svelte-ignore a11y_no_noninteractive_element_interactions, a11y_no_noninteractive_tabindex -->
+          <div
+              class="relative z-10 w-2 flex-shrink-0 bg-surface cursor-col-resize transition-colors duration-200 ease hover:bg-primary active:bg-primary"
+              onmousedown={startDragging}
+              onkeydown={handleKeydown} 
+              role="separator" 
+              tabindex="0"
+              aria-label="Resize panels"
+          ></div>
+          
+          <div class="h-full flex flex-col overflow-hidden isolate" style="width: {100 - leftWidth}%">
+              {@render renderPanel(wrapRight, rightPanel)}
+          </div>
+        </div>
+    {:else}
+        <div class="flex flex-col h-full w-full overflow-hidden">
+            <div class="flex flex-shrink-0 border-b border-border/50 p-2 gap-2 bg-surface">
+                <button 
+                    onclick={() => activeTab = 'left'} 
+                    class="flex-1 py-3 px-4 rounded-md border-none border-b-2 text-sm font-bold transition-all duration-200 uppercase tracking-widest
+                           {activeTab === 'left' ? 'border-primary text-primary bg-background shadow-sm' : 'border-transparent text-text-secondary/60 bg-transparent'}"
+                >
+                    {leftTabTitle}
+                </button>
+                <button 
+                    onclick={() => activeTab = 'right'} 
+                    class="flex-1 py-3 px-4 rounded-md border-none border-b-2 text-sm font-bold transition-all duration-200 uppercase tracking-widest
+                           {activeTab === 'right' ? 'border-primary text-primary bg-background shadow-sm' : 'border-transparent text-text-secondary/60 bg-transparent'}"
+                >
+                    {rightTabTitle}
+                </button>
+            </div>
+
+            <div class="flex-grow flex flex-col overflow-hidden min-h-0">
+                <div class="flex-1 flex flex-col min-h-0" class:hidden={activeTab !== 'left'}>
+                    {@render renderPanel(wrapLeft, leftPanelMobile)}
+                </div>
+                <div class="flex-1 flex flex-col min-h-0" class:hidden={activeTab !== 'right'}>
+                    {@render renderPanel(wrapRight, rightPanel)}
+                </div>
+            </div>
+
+            {#if computedPrev || computedNext}
+                <div class="flex-shrink-0 bg-surface border-t border-border/50 px-5 pb-2">
+                    <LessonNavigation prev={computedPrev} next={computedNext} {nextClass} />
+                </div>
+            {/if}
+        </div>
+    {/if}
+{/snippet}
+
+{#if wrapWhole}
+    <AudioOverlay>
+        {@render splitContent()}
+    </AudioOverlay>
+{:else}
+    {@render splitContent()}
 {/if}

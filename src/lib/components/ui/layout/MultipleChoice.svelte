@@ -98,13 +98,13 @@
                     disabled={isSubmitted}
                     class="relative flex flex-col items-center justify-center p-6 rounded-2xl border-2 transition-all text-center group min-h-[160px] w-full
                         {isSubmitted ? 'cursor-default' : 'hover:border-primary/50 hover:bg-primary/5 hover:shadow-lg active:scale-[0.99]'}
-                        {isSelected && !isSubmitted ? 'border-primary bg-primary/5 shadow-inner' : 'bg-surface dark:bg-dark-surface border-border dark:border-dark-border'}
+                        {isSelected && !isSubmitted ? 'border-primary bg-primary/5 shadow-inner' : 'bg-surface border-border'}
                         {isCorrect ? 'border-green-500 bg-green-500/10 text-green-700 dark:text-green-400' : ''}
                         {isWrong ? 'border-red-500 bg-red-500/10 text-red-700 dark:text-red-400' : ''}"
                 >
                     <!-- Status Indicator -->
                     <div class="absolute top-4 right-4 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors
-                        {isSelected || isCorrect || isWrong ? 'border-transparent' : 'border-border dark:border-dark-border'}
+                        {isSelected || isCorrect || isWrong ? 'border-transparent' : 'border-border'}
                         {isSelected && !isSubmitted ? 'bg-primary' : ''}
                         {isCorrect ? 'bg-green-500' : ''}
                         {isWrong ? 'bg-red-500' : ''}">
@@ -125,12 +125,12 @@
         </div>
 
         <!-- Actions Section -->
-        <div class="flex items-center justify-end gap-4 md:gap-8 flex-shrink-0 pt-6 border-t border-border/30 dark:border-dark-border/30">
+        <div class="flex items-center justify-end gap-4 md:gap-8 flex-shrink-0 pt-6 border-t border-border/30">
             <div class="flex items-center gap-4">
                 {#if isSubmitted && !isCorrectAnswer}
                     <button 
                         onclick={reset}
-                        class="px-6 md:px-8 py-3 rounded-xl font-bold border-2 border-border dark:border-dark-border hover:bg-surface-variant transition-all hover:shadow-md active:scale-95 text-sm md:text-base whitespace-nowrap"
+                        class="btn border-2 border-border px-6 md:px-8 py-3 rounded-xl font-bold hover:bg-base-200 transition-all hover:shadow-md active:scale-95 text-sm md:text-base whitespace-nowrap"
                     >
                         Try Again
                     </button>

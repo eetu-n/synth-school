@@ -3,13 +3,12 @@
     import SynthExamples from "$lib/components/audio/SynthExamples.svelte";
     import { audioState } from "$lib/audio/framework/audioState.svelte";
     import RouterNode from "$lib/audio/framework/RouterNode";
-    import AudioOverlay from "$lib/components/ui/layout/AudioOverlay.svelte";
     import Scope from "$lib/components/ui/viz/Scope.svelte";
     import ResponsiveText from "$lib/components/ui/text/ResponsiveText.svelte";
 
 </script>
 
-<VSplitDiv {leftSide} {rightSide} />
+<VSplitDiv {leftSide} {rightSide} audioOverlay="right" />
 
 {#snippet leftSide()}
     <h1>Oscillators</h1>
@@ -22,8 +21,6 @@
 {/snippet}
 
 {#snippet rightSide()}
-    <AudioOverlay>
-        <SynthExamples outputNode={audioState.preMasterNode as RouterNode} />
-        <Scope inputNode={audioState.preMasterNode as RouterNode} />
-    </AudioOverlay>
+    <SynthExamples outputNode={audioState.preMasterNode as RouterNode} />
+    <Scope inputNode={audioState.preMasterNode as RouterNode} />
 {/snippet}
