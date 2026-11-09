@@ -1,3 +1,5 @@
+import { PLUG_SCALE } from './constants';
+
 export interface DroopOptions {
   slack?: number;
   dynamicOffset?: number;
@@ -254,8 +256,8 @@ export function calculateDragCablePath(
   const slack = options.slack ?? 1.0;
   const dynamicOffset = options.dynamicOffset ?? 0;
 
-  // Full plug length from boot entry to conductive tip: 37.5 * 2.5 = 93.75px
-  const fullPlugLength = 93.75;
+  // Full plug length from boot entry to conductive tip: 37.5 * PLUG_SCALE
+  const fullPlugLength = 37.5 * PLUG_SCALE;
   const plugLength = fullPlugLength * (1 - scrub);
 
   const dx = toX - fromX;

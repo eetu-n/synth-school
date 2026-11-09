@@ -1,6 +1,8 @@
 <script lang="ts">
+  import { JACK_SIZE } from '$lib/modular/constants';
+
   let {
-    size = 55,
+    size = JACK_SIZE,
     class: className = ''
   }: {
     size?: number;

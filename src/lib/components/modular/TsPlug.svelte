@@ -1,8 +1,10 @@
 <script lang="ts">
+  import { PLUG_SCALE } from '$lib/modular/constants';
+
   let {
     color = 'var(--color-primary)',
     inserted = false,
-    scale = 2.5,
+    scale = PLUG_SCALE,
     animate = true,
     angle = 0,
     progress = undefined,

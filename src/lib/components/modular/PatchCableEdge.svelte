@@ -2,6 +2,7 @@
   import { onDestroy } from 'svelte';
   import { calculateDroopPath, CableSpringAnimation } from '$lib/modular/cablePhysics';
   import type { CableEdgeData } from '$lib/modular/types';
+  import { PLUG_SCALE } from '$lib/modular/constants';
   import TsPlug from './TsPlug.svelte';
 
   let {
@@ -102,7 +103,7 @@
 
     <!-- TS plug inserted into target TS jack (behind the cable in Z axis) -->
     <g transform="translate({targetX}, {targetY})">
-      <TsPlug color={cableColor} inserted={true} scale={2.5} angle={curve.endAngleDeg} />
+      <TsPlug color={cableColor} inserted={true} scale={PLUG_SCALE} angle={curve.endAngleDeg} />
     </g>
 
     <!-- Main droopy cable -->

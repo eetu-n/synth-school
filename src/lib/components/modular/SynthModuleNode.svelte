@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { ModuleNode, HandlePositions } from '$lib/modular/types';
+  import { JACK_SIZE, PLUG_SCALE } from '$lib/modular/constants';
   import TsJack from './TsJack.svelte';
   import TsPlug from './TsPlug.svelte';
 
@@ -75,11 +76,12 @@
 >
   {#if isMobile}
     <!-- Input connector on bottom left -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       class="absolute left-[48px] bottom-0 -translate-x-1/2 translate-y-1/2 pointer-events-auto cursor-default z-10"
       onpointerdown={(e) => e.stopPropagation()}
     >
-      <TsJack size={55} />
+      <TsJack size={JACK_SIZE} />
     </div>
 
     <a href={node.data.href} class="text-xl font-bold hover:underline tracking-tight pl-8">
@@ -96,16 +98,17 @@
         tabindex="0"
         aria-label="Drag patch cable from {node.data.title}"
       >
-        <TsPlug color="var(--color-primary)" scale={2.5} />
+        <TsPlug color="var(--color-primary)" scale={PLUG_SCALE} />
       </div>
     {/if}
   {:else}
     <!-- Input connector on left -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       class="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-auto cursor-default z-10"
       onpointerdown={(e) => e.stopPropagation()}
     >
-      <TsJack size={55} />
+      <TsJack size={JACK_SIZE} />
     </div>
 
     <a href={node.data.href} class="text-2xl font-bold hover:underline tracking-tight">
@@ -121,7 +124,7 @@
         tabindex="0"
         aria-label="Drag patch cable from {node.data.title}"
       >
-        <TsPlug color="var(--color-primary)" scale={2.5} />
+        <TsPlug color="var(--color-primary)" scale={PLUG_SCALE} />
       </div>
     {/if}
   {/if}

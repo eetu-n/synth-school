@@ -3,13 +3,9 @@
   import SynthModuleNode from './SynthModuleNode.svelte';
   import PatchCableEdge from './PatchCableEdge.svelte';
   import PatchConnectionLine from './PatchConnectionLine.svelte';
-  import type {
-    ModuleNode,
-    CableEdge,
-    Connection,
-    HandlePositions,
-    XYPosition
-  } from '$lib/modular/types';
+  import type { ModuleNode, CableEdge, Connection } from '$lib/modular/types';
+  import { computeRackLayout } from '$lib/modular/rackLayout';
+  import { ModularRackState } from '$lib/modular/rackState.svelte';
 
   let {
     nodes = [],
@@ -25,25 +21,8 @@
   let containerWidth = $state(0);
   let containerHeight = $state(0);
 
-  let panX = $state(0);
-  let panY = $state(0);
-  let isPanning = $state(false);
-  let panStart = $state({ x: 0, y: 0, panX: 0, panY: 0 });
-
-  let handlePositions = $state<Record<string, HandlePositions>>({});
-
-  interface DragState {
-    type: 'new' | 'reconnect';
-    sourceId: string;
-    from: XYPosition;
-    to: XYPosition;
-    hoveredTargetId: string | null;
-    targetPos?: XYPosition | null;
-    edgeId?: string;
-    scrub?: number;
-  }
-
-  let activeDrag = $state<DragState | null>(null);
+  const rackState = new ModularRackState();
+  onDestroy(() => rackState.destroy());
 
   const isMobile = $derived(
     containerWidth > 0
@@ -51,414 +30,49 @@
       : (typeof window !== 'undefined' ? window.innerWidth < 768 : false)
   );
 
-  const layoutedNodes = $derived.by<ModuleNode[]>(() => {
-    const nodesByPhase = new Map<number, ModuleNode[]>();
-    for (const node of nodes) {
-      const p = node.phase ?? node.data?.phase ?? 1;
-      const list = nodesByPhase.get(p) ?? [];
-      list.push(node);
-      nodesByPhase.set(p, list);
-    }
+  const layout = $derived(computeRackLayout(nodes, containerWidth, containerHeight, isMobile));
+  const layoutedNodes = $derived(layout.layoutedNodes);
+  const rackWidth = $derived(layout.rackWidth);
+  const rackHeight = $derived(layout.rackHeight);
 
-    const sortedPhases = Array.from(nodesByPhase.keys()).sort((a, b) => a - b);
-    const numPhases = sortedPhases.length;
-    const height = containerHeight > 0 ? containerHeight : 500;
-    const centerY = height / 2 - 55;
-
-    return nodes.map((node) => {
-      if (node.position) {
-        return {
-          ...node,
-          data: {
-            ...node.data,
-            isMobile
-          }
-        };
-      }
-      const p = node.phase ?? node.data?.phase ?? 1;
-      const phaseIndex = sortedPhases.indexOf(p);
-      const siblings = nodesByPhase.get(p) ?? [node];
-      const nodeIndex = siblings.indexOf(node);
-      const count = siblings.length;
-
-      let x: number;
-      let y: number;
-
-      if (isMobile) {
-        // Bottom-up layout: Phase 1 at the bottom, higher phases stacked above
-        const invertedPhaseIndex = (numPhases - 1) - phaseIndex;
-        const baseX = Math.max(55, (containerWidth - 280) / 2);
-        x = baseX + (nodeIndex - (count - 1) / 2) * 280;
-        y = 70 + invertedPhaseIndex * 240;
-      } else {
-        // Desktop left-to-right layout
-        x = 125 + phaseIndex * 700;
-        y = centerY + (nodeIndex - (count - 1) / 2) * 275;
-      }
-
-      return {
-        ...node,
-        position: { x, y },
-        data: {
-          ...node.data,
-          isMobile
-        }
-      };
-    });
-  });
-
-  const rackWidth = $derived.by(() => {
-    if (isMobile) {
-      return containerWidth;
-    }
-    let maxX = 0;
-    for (const node of layoutedNodes) {
-      if (node.position && node.position.x > maxX) {
-        maxX = node.position.x;
-      }
-    }
-    return Math.max(containerWidth, maxX + 650);
-  });
-
-  const rackHeight = $derived.by(() => {
-    if (isMobile) {
-      let maxY = 0;
-      for (const node of layoutedNodes) {
-        if (node.position && node.position.y > maxY) {
-          maxY = node.position.y;
-        }
-      }
-      return Math.max(containerHeight, maxY + 240);
-    }
-    return Math.max(containerHeight, 500);
-  });
-
-  // Clamp pan offsets when dimensions change
   $effect(() => {
-    if (!isMobile) {
-      const maxScrollX = Math.max(0, rackWidth - containerWidth);
-      panX = Math.min(0, Math.max(-maxScrollX, panX));
-      panY = 0;
-    } else {
-      const maxScrollY = Math.max(0, rackHeight - containerHeight);
-      panY = Math.min(0, Math.max(-maxScrollY, panY));
-      panX = 0;
-    }
+    rackState.clampPan(isMobile, rackWidth, rackHeight, containerWidth, containerHeight);
   });
 
-  // Set initial vertical scroll position on mobile to show Phase 1 (bottom)
-  let initialMobileSet = $state(false);
   $effect(() => {
-    if (isMobile && containerHeight > 0 && !initialMobileSet) {
-      let maxY = 0;
-      for (const node of layoutedNodes) {
-        if (node.position && node.position.y > maxY) {
-          maxY = node.position.y;
-        }
-      }
-      panY = Math.min(0, -(maxY - containerHeight + 150));
-      initialMobileSet = true;
-    }
+    rackState.initMobileScroll(isMobile, containerHeight, layoutedNodes);
   });
 
-  function getSourceHandle(nodeId: string): XYPosition {
-    if (handlePositions[nodeId]?.source) {
-      return handlePositions[nodeId].source;
-    }
-    const node = layoutedNodes.find((n) => n.id === nodeId);
-    const posX = node?.position?.x ?? 0;
-    const posY = node?.position?.y ?? 0;
-    if (isMobile) {
-      return { x: posX + 48, y: posY };
-    }
-    return { x: posX + 325, y: posY + 55 };
-  }
-
-  function getTargetHandle(nodeId: string): XYPosition {
-    if (handlePositions[nodeId]?.target) {
-      return handlePositions[nodeId].target;
-    }
-    const node = layoutedNodes.find((n) => n.id === nodeId);
-    const posX = node?.position?.x ?? 0;
-    const posY = node?.position?.y ?? 0;
-    if (isMobile) {
-      return { x: posX + 48, y: posY + 110 };
-    }
-    return { x: posX, y: posY + 55 };
-  }
-
-  function handleUpdateHandles(id: string, handles: HandlePositions) {
-    handlePositions[id] = handles;
-  }
-
-  function validateConnection(sourceId: string, targetId: string): boolean {
-    if (customIsValidConnection) {
-      return customIsValidConnection({ source: sourceId, target: targetId });
-    }
-    if (!sourceId || !targetId) return false;
-    if (sourceId === targetId) return false;
-
-    const sourceNode = nodes.find((n) => n.id === sourceId);
-    const targetNode = nodes.find((n) => n.id === targetId);
-    if (!sourceNode || !targetNode) return false;
-
-    if (sourceNode.data?.allowedTargets !== undefined) {
-      return sourceNode.data.allowedTargets.includes(targetId);
-    }
-
-    const sourcePhase = sourceNode.phase ?? sourceNode.data?.phase ?? 1;
-    const targetPhase = targetNode.phase ?? targetNode.data?.phase ?? 1;
-
-    const sortedPhases = Array.from(
-      new Set(nodes.map((n) => n.phase ?? n.data?.phase ?? 1))
-    ).sort((a, b) => a - b);
-    const sourceIndex = sortedPhases.indexOf(sourcePhase);
-    const targetIndex = sortedPhases.indexOf(targetPhase);
-
-    return (
-      targetPhase === sourcePhase + 1 ||
-      (sourceIndex !== -1 && targetIndex === sourceIndex + 1)
+  function handleWindowPointerMove(event: PointerEvent) {
+    rackState.handlePointerMove(
+      event,
+      containerEl,
+      layoutedNodes,
+      isMobile,
+      rackWidth,
+      rackHeight,
+      containerWidth,
+      containerHeight,
+      nodes,
+      customIsValidConnection
     );
   }
 
-  let snapAnimId: number | null = null;
-  onDestroy(() => {
-    if (snapAnimId !== null) {
-      cancelAnimationFrame(snapAnimId);
-    }
-  });
-
-  function handleStartDrag(sourceId: string, event: PointerEvent) {
-    if (snapAnimId !== null) {
-      cancelAnimationFrame(snapAnimId);
-      snapAnimId = null;
-    }
-    event.stopPropagation();
-    event.preventDefault();
-
-    const from = getSourceHandle(sourceId);
-    if (!containerEl) return;
-    const rect = containerEl.getBoundingClientRect();
-    const to = {
-      x: event.clientX - rect.left - panX,
-      y: event.clientY - rect.top - panY
-    };
-
-    activeDrag = {
-      type: 'new',
-      sourceId,
-      from,
-      to,
-      hoveredTargetId: null,
-      targetPos: null,
-      scrub: 0
-    };
-  }
-
-  function handleStartReconnect(edgeId: string, event: PointerEvent) {
-    if (snapAnimId !== null) {
-      cancelAnimationFrame(snapAnimId);
-      snapAnimId = null;
-    }
-    event.stopPropagation();
-    event.preventDefault();
-
-    const edge = edges.find((e) => e.id === edgeId);
-    if (!edge || !containerEl) return;
-
-    const from = getSourceHandle(edge.source);
-    const rect = containerEl.getBoundingClientRect();
-    const to = {
-      x: event.clientX - rect.left - panX,
-      y: event.clientY - rect.top - panY
-    };
-
-    const targetPos = getTargetHandle(edge.target);
-    const connectionRadius = 55;
-    const dist = Math.hypot(to.x - targetPos.x, to.y - targetPos.y);
-    const scrub = Math.max(0, Math.min(1, 1 - dist / connectionRadius));
-
-    activeDrag = {
-      type: 'reconnect',
-      edgeId,
-      sourceId: edge.source,
-      from,
-      to,
-      hoveredTargetId: edge.target,
-      targetPos,
-      scrub
-    };
-  }
-
-  function handleWindowPointerMove(event: PointerEvent) {
-    if (!containerEl || snapAnimId !== null) return;
-
-    if (activeDrag) {
-      const rect = containerEl.getBoundingClientRect();
-      const worldX = event.clientX - rect.left - panX;
-      const worldY = event.clientY - rect.top - panY;
-
-      const connectionRadius = 55;
-      let matchedTargetId: string | null = null;
-      let targetPos: XYPosition | null = null;
-      let minDistance = Infinity;
-
-      for (const node of layoutedNodes) {
-        if (node.id === activeDrag.sourceId) continue;
-        const candidatePos = getTargetHandle(node.id);
-        const dist = Math.hypot(worldX - candidatePos.x, worldY - candidatePos.y);
-
-        if (dist <= connectionRadius && validateConnection(activeDrag.sourceId, node.id)) {
-          if (dist < minDistance) {
-            minDistance = dist;
-            matchedTargetId = node.id;
-            targetPos = candidatePos;
-          }
-        }
-      }
-
-      if (matchedTargetId && targetPos) {
-        const scrub = Math.max(0, Math.min(1, 1 - minDistance / connectionRadius));
-        activeDrag.to = {
-          x: worldX + (targetPos.x - worldX) * scrub,
-          y: worldY + (targetPos.y - worldY) * scrub
-        };
-        activeDrag.hoveredTargetId = matchedTargetId;
-        activeDrag.targetPos = targetPos;
-        activeDrag.scrub = scrub;
-      } else {
-        activeDrag.to = { x: worldX, y: worldY };
-        activeDrag.hoveredTargetId = null;
-        activeDrag.targetPos = null;
-        activeDrag.scrub = 0;
-      }
-    } else if (isPanning) {
-      if (!isMobile) {
-        const dx = event.clientX - panStart.x;
-        const maxScrollX = Math.max(0, rackWidth - containerWidth);
-        panX = Math.min(0, Math.max(-maxScrollX, panStart.panX + dx));
-      } else {
-        const dy = event.clientY - panStart.y;
-        const maxScrollY = Math.max(0, rackHeight - containerHeight);
-        panY = Math.min(0, Math.max(-maxScrollY, panStart.panY + dy));
-      }
-    }
-  }
-
   function handleWindowPointerUp() {
-    if (snapAnimId !== null) {
-      cancelAnimationFrame(snapAnimId);
-      snapAnimId = null;
-    }
-
-    if (activeDrag) {
-      const currentDrag = activeDrag;
-      const targetPos = currentDrag.targetPos;
-      const targetId = currentDrag.hoveredTargetId;
-      const sourceId = currentDrag.sourceId;
-      const edgeId = currentDrag.edgeId;
-      const dragType = currentDrag.type;
-      const startScrub = currentDrag.scrub ?? 0;
-      const startTo = { ...currentDrag.to };
-
-      const commitConnection = () => {
-        if (dragType === 'new' && targetId) {
-          const newEdge: CableEdge = {
-            id: `cable-${sourceId}-${targetId}-${Date.now()}`,
-            source: sourceId,
-            target: targetId
-          };
-          edges = [...edges.filter((e) => e.source !== sourceId), newEdge];
-        } else if (dragType === 'reconnect' && edgeId && targetId) {
-          edges = edges.map((e) => (e.id === edgeId ? { ...e, target: targetId } : e));
-        }
-        activeDrag = null;
-      };
-
-      if (targetId && targetPos) {
-        if (startScrub >= 0.98) {
-          // Already fully in, commit immediately with zero jump
-          commitConnection();
-        } else {
-          // Animate the remaining distance into the jack smoothly instead of jumping in 1 frame
-          const duration = Math.min(180, Math.max(90, (1 - startScrub) * 180));
-          const startTime = performance.now();
-
-          const animateSnap = () => {
-            const now = performance.now();
-            const elapsed = now - startTime;
-            const progress = Math.min(1, elapsed / duration);
-            const ease = 1 - Math.pow(1 - progress, 3);
-
-            if (activeDrag) {
-              activeDrag.scrub = startScrub + (1 - startScrub) * ease;
-              activeDrag.to = {
-                x: startTo.x + (targetPos.x - startTo.x) * ease,
-                y: startTo.y + (targetPos.y - startTo.y) * ease
-              };
-            }
-
-            if (progress < 1) {
-              snapAnimId = requestAnimationFrame(animateSnap);
-            } else {
-              commitConnection();
-              snapAnimId = null;
-            }
-          };
-
-          snapAnimId = requestAnimationFrame(animateSnap);
-        }
-      } else if (dragType === 'reconnect' && edgeId) {
-        // Disconnected / unplugged in empty space
-        edges = edges.filter((e) => e.id !== edgeId);
-        activeDrag = null;
-      } else {
-        activeDrag = null;
-      }
-    }
-
-    if (isPanning) {
-      isPanning = false;
-    }
-  }
-
-  function handleContainerPointerDown(event: PointerEvent) {
-    if (activeDrag) return;
-    // Only drag pan if clicking background/canvas directly
-    const target = event.target as HTMLElement | SVGElement | null;
-    if (
-      target &&
-      (target.classList.contains('modular-rack') ||
-        target.tagName === 'svg' ||
-        target.tagName === 'rect')
-    ) {
-      isPanning = true;
-      panStart = {
-        x: event.clientX,
-        y: event.clientY,
-        panX,
-        panY
-      };
-    }
+    rackState.handlePointerUp(edges, (nextEdges) => {
+      edges = nextEdges;
+    });
   }
 
   function handleWheel(event: WheelEvent) {
-    if (!isMobile) {
-      const delta =
-        event.deltaMode === 1
-          ? event.deltaY * 20
-          : Math.abs(event.deltaY) > Math.abs(event.deltaX)
-            ? event.deltaY
-            : event.deltaX;
-
-      const maxScrollX = Math.max(0, rackWidth - containerWidth);
-      panX = Math.min(0, Math.max(-maxScrollX, panX - delta));
-      event.preventDefault();
-    } else {
-      const delta = event.deltaMode === 1 ? event.deltaY * 20 : event.deltaY;
-      const maxScrollY = Math.max(0, rackHeight - containerHeight);
-      panY = Math.min(0, Math.max(-maxScrollY, panY - delta));
-    }
+    rackState.handleWheel(
+      event,
+      isMobile,
+      rackWidth,
+      rackHeight,
+      containerWidth,
+      containerHeight
+    );
   }
 </script>
 
@@ -473,16 +87,16 @@
   bind:clientWidth={containerWidth}
   bind:clientHeight={containerHeight}
   class="modular-rack relative w-full h-full min-h-[500px] flex-grow select-none overflow-hidden touch-none"
-  class:cursor-grab={!activeDrag && !isPanning}
-  class:cursor-grabbing={isPanning}
+  class:cursor-grab={!rackState.activeDrag && !rackState.isPanning}
+  class:cursor-grabbing={rackState.isPanning}
   onwheel={handleWheel}
-  onpointerdown={handleContainerPointerDown}
+  onpointerdown={(e) => rackState.handleContainerPointerDown(e)}
   role="region"
   aria-label="Modular Synthesizer Learning Rack"
 >
   <div
     class="world absolute left-0 top-0 will-change-transform"
-    style="width: {rackWidth}px; height: {rackHeight}px; transform: translate3d({panX}px, {panY}px, 0);"
+    style="width: {rackWidth}px; height: {rackHeight}px; transform: translate3d({rackState.panX}px, {rackState.panY}px, 0);"
   >
     <!-- Background dot grid layer (z-0) -->
     <svg
@@ -508,12 +122,13 @@
             <SynthModuleNode
               {node}
               isConnectedAsSource={edges.some(
-                (e) => e.source === node.id && e.id !== activeDrag?.edgeId
+                (e) => e.source === node.id && e.id !== rackState.activeDrag?.edgeId
               )}
-              isDraggingFromThis={activeDrag?.sourceId === node.id}
-              selected={activeDrag?.hoveredTargetId === node.id}
-              onUpdateHandles={handleUpdateHandles}
-              onStartDrag={handleStartDrag}
+              isDraggingFromThis={rackState.activeDrag?.sourceId === node.id}
+              selected={rackState.activeDrag?.hoveredTargetId === node.id}
+              onUpdateHandles={(id, h) => rackState.updateHandles(id, h)}
+              onStartDrag={(id, e) =>
+                rackState.startDrag(id, e, containerEl, layoutedNodes, isMobile)}
             />
           </div>
         {/if}
@@ -527,8 +142,8 @@
     >
       <!-- Render connected patch cables -->
       {#each edges as edge (edge.id)}
-        {@const sourcePos = getSourceHandle(edge.source)}
-        {@const targetPos = getTargetHandle(edge.target)}
+        {@const sourcePos = rackState.getSourceHandle(edge.source, layoutedNodes, isMobile)}
+        {@const targetPos = rackState.getTargetHandle(edge.target, layoutedNodes, isMobile)}
         {#if sourcePos && targetPos}
           <PatchCableEdge
             id={edge.id}
@@ -537,19 +152,20 @@
             targetX={targetPos.x}
             targetY={targetPos.y}
             data={edge.data}
-            reconnecting={activeDrag?.edgeId === edge.id}
-            onStartReconnect={handleStartReconnect}
+            reconnecting={rackState.activeDrag?.edgeId === edge.id}
+            onStartReconnect={(id, e) =>
+              rackState.startReconnect(id, edges, e, containerEl, layoutedNodes, isMobile)}
           />
         {/if}
       {/each}
 
       <!-- Render live dragging cable connection preview -->
-      {#if activeDrag}
+      {#if rackState.activeDrag}
         <PatchConnectionLine
-          from={activeDrag.from}
-          to={activeDrag.to}
-          targetPos={activeDrag.targetPos}
-          scrub={activeDrag.scrub ?? 0}
+          from={rackState.activeDrag.from}
+          to={rackState.activeDrag.to}
+          targetPos={rackState.activeDrag.targetPos}
+          scrub={rackState.activeDrag.scrub ?? 0}
         />
       {/if}
     </svg>

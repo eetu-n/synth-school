@@ -2,6 +2,7 @@
   import { onDestroy } from 'svelte';
   import { calculateDragCablePath, CableSpringAnimation } from '$lib/modular/cablePhysics';
   import type { XYPosition } from '$lib/modular/types';
+  import { PLUG_SCALE } from '$lib/modular/constants';
   import TsPlug from './TsPlug.svelte';
 
   let {
@@ -89,7 +90,7 @@
 
     <!-- TS plug rotating with the end of the bezier curve as user drags, with scrubbable insertion -->
     <g transform="translate({curve.tipX}, {curve.tipY})">
-      <TsPlug {color} scale={2.5} progress={scrub} angle={curve.plugAngleDeg} />
+      <TsPlug {color} scale={PLUG_SCALE} progress={scrub} angle={curve.plugAngleDeg} />
     </g>
   </g>
 {/if}
