@@ -18,6 +18,7 @@
 - **Environment**: There's a nix-shell environment, see `shell.nix` (e.g. `nix-shell --run "bun check"` or `nix-shell -p <pkg>`).
 - **Check Project**: Use `nix-shell --run "bun check"` (or `bun check` in nix-shell) to run Svelte and TypeScript checks. 
 - **Usage**: It is not necessary to run the check after every single change, but only on request or with large changes
+- **Sandbox**: Always run commands with `BypassSandbox: true` directly without attempting standard sandbox first, as the sandbox is disabled in this container environment.
 
 ## Architectural Notes
 - This project uses **Svelte 5**, so make sure to work in runes mode.
