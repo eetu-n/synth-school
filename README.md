@@ -5,43 +5,14 @@ An interactive web-based synthesizer education platform built with SvelteKit, Sv
 ## Architecture & Project Structure
 
 - **`src/lib/audio/`**: Core audio engine.
-  - `dsp/`: Faust DSP scripts (`.dsp` and `.lib` files compiled to WebAssembly via `vite-plugin-faust`).
+  - `dsp/`: Faust DSP source scripts compiled to WebAssembly.
   - `framework/`: Audio graph abstractions and lifecycle management (see [`src/lib/audio/framework/README.md`](src/lib/audio/framework/README.md)).
-  - `nodes/`: Custom audio nodes and analysis utilities (see [`src/lib/audio/nodes/README.md`](src/lib/audio/nodes/README.md)).
-- **`src/lib/components/audio/`**: High-level synthesizer and audio components:
-  - `SubtractiveSynth.svelte`: Full subtractive synthesizer UI (waveform selection, frequency, gain, filter cutoff/resonance, ADSR envelope, gate button).
-  - `AdsrDemo.svelte`: ADSR-focused envelope synthesizer UI based on SubtractiveSynth with built-in `AdsrVis` envelope graph visualization (toggleable via `showVisualization`, true by default).
-  - `StaticSubtractiveSynth.svelte`: Non-interactive/display preset synthesizer node with gate/hold trigger.
-  - `FilterDemo.svelte`: Interactive filter demonstration and frequency response visualization.
-  - `SinSynth.svelte`, `AdditiveSaw.svelte`, `AdditiveSquare.svelte`, `AdditiveTriangle.svelte`, `Noise.svelte`, `MockResample.svelte`: Targeted demonstration synths and oscillators.
-- **`src/lib/components/ui/`**: Reusable UI widgets:
-  - `inputs/`: Audio controls (`Knob.svelte`, `Radio.svelte`, `HSlider.svelte`, `GateButton.svelte`).
-  - `layout/`: Presentation containers (`VSplitDiv.svelte`, `AudioOverlay.svelte`, `QuizLayout.svelte`).
-  - `viz/`: Visualizers such as spectrum analyzer, oscilloscope, and envelope curves (see [`src/lib/components/ui/viz/README.md`](src/lib/components/ui/viz/README.md)).
-- **`src/routes/`**: Lesson paths and interactive tutorials:
-  - `lessons/`: Lesson modules
-
-## Theming & Color System
-
-Colors are defined in [`src/app.css`](src/app.css) using a single-tier CSS custom property system:
-
-- **Light-mode values** live in the Tailwind `@theme` block as `--color-*` tokens (e.g. `--color-primary`, `--color-surface`, `--color-grid`).
-- **Dark-mode overrides** are set via `:root.dark { --color-*: ... }`, toggled by adding/removing the `dark` class on `<html>` in [`+layout.svelte`](src/routes/+layout.svelte).
-- Tailwind utilities (`bg-primary`, `text-text-secondary`, etc.) reference these tokens automatically.
-- Canvas-based components (`Frequency.svelte`, `Scope.svelte`) read colors at draw time via `getComputedStyle(...).getPropertyValue('--color-*')`.
-- SVG components (`AdsrVis.svelte`, `SignalAddition.svelte`) use `var(--color-*)` directly in attributes.
-
-| Token | Usage |
-|---|---|
-| `--color-primary` | Main accent (teal) |
-| `--color-secondary` | Highlight accent (orange) |
-| `--color-surface` | Card/panel background |
-| `--color-background` | Page background |
-| `--color-border` | Borders and slider tracks |
-| `--color-grid` | Chart grid lines |
-| `--color-text-primary` / `--color-text-secondary` | Body text |
-| `--color-signal-actual` / `--color-signal-aliased` | Aliasing lesson signal colors |
-| `--color-passband` / `--color-stopband` / `--color-transitionband` | Filter band region colors |
+  - `nodes/`: Custom audio graph nodes and analysis utilities (see [`src/lib/audio/nodes/README.md`](src/lib/audio/nodes/README.md)).
+- **`src/lib/modular/`**: Modular learning path and patch cable system (see [`src/lib/modular/README.md`](src/lib/modular/README.md)).
+- **`src/lib/components/`**:
+  - `audio/`: Synthesizer demo components and instruments.
+  - `ui/`: Reusable controls, layout containers, and visualizers (see [`src/lib/components/ui/viz/README.md`](src/lib/components/ui/viz/README.md)).
+- **`src/routes/`**: Lesson routes and interactive tutorials.
 
 ## Development
 
