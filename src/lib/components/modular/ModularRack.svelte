@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onDestroy } from 'svelte';
   import SynthModuleNode from './SynthModuleNode.svelte';
   import PatchCableEdge from './PatchCableEdge.svelte';
   import PatchConnectionLine from './PatchConnectionLine.svelte';
@@ -37,7 +38,9 @@
     from: XYPosition;
     to: XYPosition;
     hoveredTargetId: string | null;
+    targetPos?: XYPosition | null;
     edgeId?: string;
+    scrub?: number;
   }
 
   let activeDrag = $state<DragState | null>(null);
@@ -218,7 +221,18 @@
     );
   }
 
+  let snapAnimId: number | null = null;
+  onDestroy(() => {
+    if (snapAnimId !== null) {
+      cancelAnimationFrame(snapAnimId);
+    }
+  });
+
   function handleStartDrag(sourceId: string, event: PointerEvent) {
+    if (snapAnimId !== null) {
+      cancelAnimationFrame(snapAnimId);
+      snapAnimId = null;
+    }
     event.stopPropagation();
     event.preventDefault();
 
@@ -235,11 +249,17 @@
       sourceId,
       from,
       to,
-      hoveredTargetId: null
+      hoveredTargetId: null,
+      targetPos: null,
+      scrub: 0
     };
   }
 
   function handleStartReconnect(edgeId: string, event: PointerEvent) {
+    if (snapAnimId !== null) {
+      cancelAnimationFrame(snapAnimId);
+      snapAnimId = null;
+    }
     event.stopPropagation();
     event.preventDefault();
 
@@ -253,27 +273,35 @@
       y: event.clientY - rect.top - panY
     };
 
+    const targetPos = getTargetHandle(edge.target);
+    const connectionRadius = 55;
+    const dist = Math.hypot(to.x - targetPos.x, to.y - targetPos.y);
+    const scrub = Math.max(0, Math.min(1, 1 - dist / connectionRadius));
+
     activeDrag = {
       type: 'reconnect',
       edgeId,
       sourceId: edge.source,
       from,
       to,
-      hoveredTargetId: edge.target
+      hoveredTargetId: edge.target,
+      targetPos,
+      scrub
     };
   }
 
   function handleWindowPointerMove(event: PointerEvent) {
-    if (!containerEl) return;
+    if (!containerEl || snapAnimId !== null) return;
 
     if (activeDrag) {
       const rect = containerEl.getBoundingClientRect();
       const worldX = event.clientX - rect.left - panX;
       const worldY = event.clientY - rect.top - panY;
 
-      const connectionRadius = 45;
+      const connectionRadius = 55;
       let matchedTargetId: string | null = null;
       let targetPos: XYPosition | null = null;
+      let minDistance = Infinity;
 
       for (const node of layoutedNodes) {
         if (node.id === activeDrag.sourceId) continue;
@@ -281,18 +309,28 @@
         const dist = Math.hypot(worldX - candidatePos.x, worldY - candidatePos.y);
 
         if (dist <= connectionRadius && validateConnection(activeDrag.sourceId, node.id)) {
-          matchedTargetId = node.id;
-          targetPos = candidatePos;
-          break;
+          if (dist < minDistance) {
+            minDistance = dist;
+            matchedTargetId = node.id;
+            targetPos = candidatePos;
+          }
         }
       }
 
       if (matchedTargetId && targetPos) {
-        activeDrag.to = { x: targetPos.x, y: targetPos.y };
+        const scrub = Math.max(0, Math.min(1, 1 - minDistance / connectionRadius));
+        activeDrag.to = {
+          x: worldX + (targetPos.x - worldX) * scrub,
+          y: worldY + (targetPos.y - worldY) * scrub
+        };
         activeDrag.hoveredTargetId = matchedTargetId;
+        activeDrag.targetPos = targetPos;
+        activeDrag.scrub = scrub;
       } else {
         activeDrag.to = { x: worldX, y: worldY };
         activeDrag.hoveredTargetId = null;
+        activeDrag.targetPos = null;
+        activeDrag.scrub = 0;
       }
     } else if (isPanning) {
       if (!isMobile) {
@@ -308,25 +346,75 @@
   }
 
   function handleWindowPointerUp() {
+    if (snapAnimId !== null) {
+      cancelAnimationFrame(snapAnimId);
+      snapAnimId = null;
+    }
+
     if (activeDrag) {
-      if (activeDrag.hoveredTargetId) {
-        if (activeDrag.type === 'new') {
+      const currentDrag = activeDrag;
+      const targetPos = currentDrag.targetPos;
+      const targetId = currentDrag.hoveredTargetId;
+      const sourceId = currentDrag.sourceId;
+      const edgeId = currentDrag.edgeId;
+      const dragType = currentDrag.type;
+      const startScrub = currentDrag.scrub ?? 0;
+      const startTo = { ...currentDrag.to };
+
+      const commitConnection = () => {
+        if (dragType === 'new' && targetId) {
           const newEdge: CableEdge = {
-            id: `cable-${activeDrag.sourceId}-${activeDrag.hoveredTargetId}-${Date.now()}`,
-            source: activeDrag.sourceId,
-            target: activeDrag.hoveredTargetId
+            id: `cable-${sourceId}-${targetId}-${Date.now()}`,
+            source: sourceId,
+            target: targetId
           };
-          edges = [...edges.filter((e) => e.source !== activeDrag.sourceId), newEdge];
-        } else if (activeDrag.type === 'reconnect' && activeDrag.edgeId) {
-          edges = edges.map((e) =>
-            e.id === activeDrag!.edgeId ? { ...e, target: activeDrag!.hoveredTargetId! } : e
-          );
+          edges = [...edges.filter((e) => e.source !== sourceId), newEdge];
+        } else if (dragType === 'reconnect' && edgeId && targetId) {
+          edges = edges.map((e) => (e.id === edgeId ? { ...e, target: targetId } : e));
         }
-      } else if (activeDrag.type === 'reconnect' && activeDrag.edgeId) {
+        activeDrag = null;
+      };
+
+      if (targetId && targetPos) {
+        if (startScrub >= 0.98) {
+          // Already fully in, commit immediately with zero jump
+          commitConnection();
+        } else {
+          // Animate the remaining distance into the jack smoothly instead of jumping in 1 frame
+          const duration = Math.min(180, Math.max(90, (1 - startScrub) * 180));
+          const startTime = performance.now();
+
+          const animateSnap = () => {
+            const now = performance.now();
+            const elapsed = now - startTime;
+            const progress = Math.min(1, elapsed / duration);
+            const ease = 1 - Math.pow(1 - progress, 3);
+
+            if (activeDrag) {
+              activeDrag.scrub = startScrub + (1 - startScrub) * ease;
+              activeDrag.to = {
+                x: startTo.x + (targetPos.x - startTo.x) * ease,
+                y: startTo.y + (targetPos.y - startTo.y) * ease
+              };
+            }
+
+            if (progress < 1) {
+              snapAnimId = requestAnimationFrame(animateSnap);
+            } else {
+              commitConnection();
+              snapAnimId = null;
+            }
+          };
+
+          snapAnimId = requestAnimationFrame(animateSnap);
+        }
+      } else if (dragType === 'reconnect' && edgeId) {
         // Disconnected / unplugged in empty space
-        edges = edges.filter((e) => e.id !== activeDrag!.edgeId);
+        edges = edges.filter((e) => e.id !== edgeId);
+        activeDrag = null;
+      } else {
+        activeDrag = null;
       }
-      activeDrag = null;
     }
 
     if (isPanning) {
@@ -460,6 +548,8 @@
         <PatchConnectionLine
           from={activeDrag.from}
           to={activeDrag.to}
+          targetPos={activeDrag.targetPos}
+          scrub={activeDrag.scrub ?? 0}
         />
       {/if}
     </svg>

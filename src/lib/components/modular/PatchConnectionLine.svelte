@@ -1,17 +1,21 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
-  import { calculateDroopPath, CableSpringAnimation } from '$lib/modular/cablePhysics';
+  import { calculateDragCablePath, CableSpringAnimation } from '$lib/modular/cablePhysics';
   import type { XYPosition } from '$lib/modular/types';
   import TsPlug from './TsPlug.svelte';
 
   let {
     from,
     to,
-    color = 'var(--color-primary)'
+    targetPos = null,
+    color = 'var(--color-primary)',
+    scrub = 0
   }: {
     from: XYPosition;
     to: XYPosition;
+    targetPos?: XYPosition | null;
     color?: string;
+    scrub?: number;
   } = $props();
 
   let dynamicOffset = $state(0);
@@ -37,48 +41,17 @@
     springAnim.destroy();
   });
 
-  const plugLength = 95; // 38 * 2.5
-
   const curve = $derived.by(() => {
     if (!from || !to) {
       return null;
     }
-
-    const fromX = from.x;
-    const fromY = from.y;
-    const toX = to.x;
-    const toY = to.y;
-
-    // Iteratively align boot position with the end tangent angle
-    let est = calculateDroopPath(fromX, fromY, toX, toY, {
+    return calculateDragCablePath(from.x, from.y, to.x, to.y, {
+      scrub,
+      dynamicOffset,
       slack: 1.0,
-      dynamicOffset
+      targetX: targetPos?.x,
+      targetY: targetPos?.y
     });
-
-    let bootX = toX - plugLength * Math.cos(est.endAngle);
-    let bootY = toY - plugLength * Math.sin(est.endAngle);
-
-    est = calculateDroopPath(fromX, fromY, bootX, bootY, {
-      slack: 1.0,
-      dynamicOffset
-    });
-
-    bootX = toX - plugLength * Math.cos(est.endAngle);
-    bootY = toY - plugLength * Math.sin(est.endAngle);
-
-    const finalPath = calculateDroopPath(fromX, fromY, bootX, bootY, {
-      slack: 1.0,
-      dynamicOffset
-    });
-
-    return {
-      ...finalPath,
-      from,
-      to,
-      bootX,
-      bootY,
-      angleDeg: finalPath.endAngleDeg
-    };
   });
 </script>
 
@@ -104,8 +77,8 @@
 
     <!-- Output connector on source module (rendered in front of cable) -->
     <rect
-      x={curve.from.x - 7.5}
-      y={curve.from.y - 11}
+      x={from.x - 7.5}
+      y={from.y - 11}
       width="15"
       height="22"
       rx="4"
@@ -114,9 +87,9 @@
       stroke-width="2"
     />
 
-    <!-- TS plug rotating with the end of the bezier curve as user drags -->
-    <g transform="translate({curve.bootX}, {curve.bootY}) rotate({curve.angleDeg}) translate(0, -20)">
-      <TsPlug {color} inserted={false} scale={2.5} />
+    <!-- TS plug rotating with the end of the bezier curve as user drags, with scrubbable insertion -->
+    <g transform="translate({curve.tipX}, {curve.tipY})">
+      <TsPlug {color} scale={2.5} progress={scrub} angle={curve.plugAngleDeg} />
     </g>
   </g>
 {/if}

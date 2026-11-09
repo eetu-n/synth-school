@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
+  import { onDestroy } from 'svelte';
   import { calculateDroopPath, CableSpringAnimation } from '$lib/modular/cablePhysics';
   import type { CableEdgeData } from '$lib/modular/types';
   import TsPlug from './TsPlug.svelte';
@@ -34,11 +34,6 @@
     dynamicOffset = d;
   });
 
-  // Settle animation when cable is created
-  onMount(() => {
-    springAnim.settle(8);
-  });
-
   // React subtly when the connected modules are moved
   let prevCoords: { sx: number; sy: number; tx: number; ty: number } | null = null;
   $effect(() => {
@@ -59,6 +54,32 @@
   onDestroy(() => {
     springAnim.destroy();
   });
+
+  let isHovered = $state(false);
+  let lastHoverTime = 0;
+
+  function handleCablePointerEnter(event: PointerEvent) {
+    isHovered = true;
+    const dy = event.movementY !== 0 ? event.movementY : (Math.random() > 0.5 ? 3 : -3);
+    const speed = Math.hypot(event.movementX, event.movementY);
+    springAnim.applyImpulse(dy, Math.max(6, speed));
+  }
+
+  function handleCablePointerMove(event: PointerEvent) {
+    const now = performance.now();
+    if (now - lastHoverTime < 40) return;
+    lastHoverTime = now;
+
+    const speed = Math.hypot(event.movementX, event.movementY);
+    if (speed > 1) {
+      const dy = event.movementY !== 0 ? event.movementY : 2;
+      springAnim.applyImpulse(dy, speed);
+    }
+  }
+
+  function handleCablePointerLeave() {
+    isHovered = false;
+  }
 
   const curve = $derived(
     calculateDroopPath(sourceX, sourceY, targetX, targetY, {
@@ -90,9 +111,22 @@
       d={curve.path}
       fill="none"
       stroke={cableColor}
-      stroke-width={selected ? '13' : '9'}
+      stroke-width={selected ? '13' : isHovered ? '11' : '9'}
       stroke-linecap="round"
-      class="transition-[stroke-width]"
+      class="transition-[stroke-width,filter] duration-150 {isHovered ? 'brightness-125' : ''}"
+    />
+
+    <!-- Transparent hit area for hover strumming interaction -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <path
+      d={curve.path}
+      fill="none"
+      stroke="transparent"
+      stroke-width="32"
+      class="pointer-events-auto cursor-pointer"
+      onpointerenter={handleCablePointerEnter}
+      onpointermove={handleCablePointerMove}
+      onpointerleave={handleCablePointerLeave}
     />
 
     <!-- Output connector on source module (rendered in front of cable) -->

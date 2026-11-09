@@ -170,8 +170,8 @@ export class CableSpringAnimation {
   }
 
   applyImpulse(dy: number, movement: number) {
-    if (movement > 2) {
-      const impulse = Math.min(1.2, movement * 0.04);
+    if (movement > 1) {
+      const impulse = Math.min(7, Math.max(2, movement * 0.25));
       this.state = {
         displacement: this.state.displacement,
         velocity: this.state.velocity + (dy < 0 ? -impulse : impulse)
@@ -202,4 +202,159 @@ export class CableSpringAnimation {
       this.animFrameId = null;
     }
   }
+}
+
+export interface DragCableOptions {
+  slack?: number;
+  dynamicOffset?: number;
+  scrub?: number;
+  targetX?: number;
+  targetY?: number;
+}
+
+export interface DragCableResult {
+  path: string;
+  shadowPath: string;
+  plugAngleDeg: number;
+  tipX: number;
+  tipY: number;
+  bootX: number;
+  bootY: number;
+}
+
+export function calculateDragCablePath(
+  fromX?: number,
+  fromY?: number,
+  toX?: number,
+  toY?: number,
+  options: DragCableOptions = {}
+): DragCableResult {
+  if (
+    typeof fromX !== 'number' ||
+    typeof fromY !== 'number' ||
+    typeof toX !== 'number' ||
+    typeof toY !== 'number' ||
+    isNaN(fromX) ||
+    isNaN(fromY) ||
+    isNaN(toX) ||
+    isNaN(toY)
+  ) {
+    return {
+      path: '',
+      shadowPath: '',
+      plugAngleDeg: 0,
+      tipX: 0,
+      tipY: 0,
+      bootX: 0,
+      bootY: 0
+    };
+  }
+
+  const scrub = Math.max(0, Math.min(1, options.scrub ?? 0));
+  const slack = options.slack ?? 1.0;
+  const dynamicOffset = options.dynamicOffset ?? 0;
+
+  // Full plug length from boot entry to conductive tip: 37.5 * 2.5 = 93.75px
+  const fullPlugLength = 93.75;
+  const plugLength = fullPlugLength * (1 - scrub);
+
+  const dx = toX - fromX;
+  const dy = toY - fromY;
+  const dist = Math.hypot(dx, dy);
+
+  // Natural drag angle from source to mouse
+  const directAngle = dist > 1 ? Math.atan2(dy, dx) : 0;
+
+  // Slight natural upward tilt from gravity sag when dragging to the right
+  const sagMagnitude = 75 * slack + Math.min(dist, 900) * 0.16 * slack + dynamicOffset;
+  const sagTilt = dx >= 0 ? Math.min(0.22, (sagMagnitude / Math.max(140, dist)) * 0.35) : 0;
+  const freeAngle = directAngle - sagTilt;
+  const freeAngleDeg = (freeAngle * 180) / Math.PI;
+
+  // If a target position is provided (or when scrub > 0), blend smoothly into the exact resting curve
+  const targetX = options.targetX ?? toX;
+  const targetY = options.targetY ?? toY;
+  const hasTarget = options.targetX !== undefined && options.targetY !== undefined;
+
+  let restCurve: CablePathResult | null = null;
+  if (hasTarget && scrub > 0) {
+    restCurve = calculateDroopPath(fromX, fromY, targetX, targetY, {
+      slack,
+      dynamicOffset
+    });
+  }
+
+  // Smooth blending weight towards resting curve
+  const w = scrub > 0 && restCurve ? Math.pow(scrub, 1.2) : 0;
+
+  let plugAngleDeg = freeAngleDeg;
+  if (restCurve && w > 0) {
+    let angleDiff = restCurve.endAngleDeg - freeAngleDeg;
+    while (angleDiff > 180) angleDiff -= 360;
+    while (angleDiff < -180) angleDiff += 360;
+    plugAngleDeg = freeAngleDeg + angleDiff * w;
+  }
+
+  const plugAngleRad = (plugAngleDeg * Math.PI) / 180;
+  const cosA = Math.cos(plugAngleRad);
+  const sinA = Math.sin(plugAngleRad);
+
+  // Exact boot coordinate (where cable attaches to the plug)
+  const bootX = toX - plugLength * cosA;
+  const bootY = toY - plugLength * sinA;
+
+  // Cable span between source and boot
+  const cableDx = bootX - fromX;
+  const cableDy = bootY - fromY;
+  const cableDist = Math.hypot(cableDx, cableDy);
+
+  // Dynamic drag control points
+  const cableSag = Math.max(
+    15,
+    70 * slack + Math.min(cableDist, 900) * 0.16 * slack + dynamicOffset
+  );
+  const lead1 = Math.min(200, Math.max(45, cableDist * 0.35));
+  const lead2 = Math.min(200, Math.max(45, cableDist * 0.35));
+
+  const dragP1x = fromX + lead1;
+  const dragP1y = fromY + cableSag * 0.7 + (cableDy > 0 ? cableDy * 0.2 : 0);
+  const dragP2x = bootX - lead2 * cosA;
+  const dragP2y = bootY - lead2 * sinA;
+
+  // Interpolate towards resting control points so at scrub = 1 it matches calculateDroopPath 100%
+  const p0x = fromX;
+  const p0y = fromY;
+  const p1x = restCurve ? (1 - w) * dragP1x + w * restCurve.cp1.x : dragP1x;
+  const p1y = restCurve ? (1 - w) * dragP1y + w * restCurve.cp1.y : dragP1y;
+  const p2x = restCurve ? (1 - w) * dragP2x + w * restCurve.cp2.x : dragP2x;
+  const p2y = restCurve ? (1 - w) * dragP2y + w * restCurve.cp2.y : dragP2y;
+  const p3x = bootX;
+  const p3y = bootY;
+
+  const path = `M ${p0x.toFixed(1)} ${p0y.toFixed(1)} C ${p1x.toFixed(1)} ${p1y.toFixed(1)}, ${p2x.toFixed(1)} ${p2y.toFixed(1)}, ${p3x.toFixed(1)} ${p3y.toFixed(1)}`;
+
+  const dragShadowOffsetY = Math.min(45, Math.max(20, cableSag * 0.14));
+  const restShadowOffsetY = restCurve
+    ? Math.min(
+        45,
+        Math.max(
+          20,
+          (90 * slack + Math.min(Math.abs(targetX - fromX), 1000) * 0.18 * slack + dynamicOffset) *
+            0.14
+        )
+      )
+    : dragShadowOffsetY;
+  const shadowOffsetY = (1 - w) * dragShadowOffsetY + w * restShadowOffsetY;
+
+  const shadowPath = `M ${p0x.toFixed(1)} ${(p0y + shadowOffsetY).toFixed(1)} C ${p1x.toFixed(1)} ${(p1y + shadowOffsetY).toFixed(1)}, ${p2x.toFixed(1)} ${(p2y + shadowOffsetY).toFixed(1)}, ${p3x.toFixed(1)} ${(p3y + shadowOffsetY).toFixed(1)}`;
+
+  return {
+    path,
+    shadowPath,
+    plugAngleDeg,
+    tipX: toX,
+    tipY: toY,
+    bootX,
+    bootY
+  };
 }
