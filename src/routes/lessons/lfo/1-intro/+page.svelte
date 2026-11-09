@@ -1,12 +1,11 @@
 <script lang="ts">
     import VSplitDiv from "$lib/components/ui/layout/VSplitDiv.svelte";
-    import AudioOverlay from "$lib/components/ui/layout/AudioOverlay.svelte";
     import type FaustNode from "$lib/audio/framework/FaustNode";
 
     let noiseNode = $state<FaustNode | null>(null);
 </script>
 
-<AudioOverlay> <VSplitDiv {leftSide} {rightSide} /> </AudioOverlay>
+<VSplitDiv {leftSide} {rightSide} audioOverlay="neither"/>
 
 {#snippet leftSide()}
     <h1>LFOs</h1>

@@ -8,7 +8,6 @@
     import RouterNode from '$lib/audio/framework/RouterNode';
     import RoutingGraph from '$lib/components/ui/viz/RoutingGraph.svelte';
     import Toggle from '$lib/components/ui/inputs/Toggle.svelte';
-    import AudioOverlay from '$lib/components/ui/layout/AudioOverlay.svelte';
 
     var rightIsAliasing = $state(Math.random() < 0.5);
 
@@ -26,7 +25,7 @@
 </script>
 
 
-<VSplitDiv leftSide={leftSide} rightSide={rightSide} prev="/lessons/aliasing/2" />
+<VSplitDiv leftSide={leftSide} rightSide={rightSide} audioOverlay="right" />
 
 {#snippet leftSide()}
     <h1>Aliasing</h1>
@@ -49,23 +48,21 @@
 {/snippet}
 
 {#snippet rightSide()}
-    <AudioOverlay>
-        <div class="flex justify-end py-4 px-8">
-            <label class="flex items-center gap-2 cursor-pointer text-sm text-text-secondary">
-                <span>Routing Graph</span>
-                <Toggle bind:checked={showRoutingGraph} />
-            </label>
-        </div>
-        <div class="mt-4 flex flex-col justify-center items-center gap-4">
-            {#if audioState.context != null && audioState.masterNode != null}
-                <FaustSawSelector outputNode={audioState.preMasterNode as RouterNode} isRightAliasing={rightIsAliasing} />
+    <div class="flex justify-end py-4 px-8">
+        <label class="flex items-center gap-2 cursor-pointer text-sm text-text-secondary">
+            <span>Routing Graph</span>
+            <Toggle bind:checked={showRoutingGraph} />
+        </label>
+    </div>
+    <div class="mt-4 flex flex-col justify-center items-center gap-4">
+        {#if audioState.context != null && audioState.masterNode != null}
+            <FaustSawSelector outputNode={audioState.preMasterNode as RouterNode} isRightAliasing={rightIsAliasing} />
 
-                <Scope inputNode={audioState.preMasterNode as RoutedAudioNode}/>
-                <Frequency inputNode={audioState.preMasterNode as RoutedAudioNode}/>
-            {/if}
-        </div>
-        {#if showRoutingGraph && audioState.context != null && audioState.masterNode != null}
-            <RoutingGraph startNode={audioState.preMasterNode} />
+            <Scope inputNode={audioState.preMasterNode as RoutedAudioNode}/>
+            <Frequency inputNode={audioState.preMasterNode as RoutedAudioNode}/>
         {/if}
-    </AudioOverlay>
+    </div>
+    {#if showRoutingGraph && audioState.context != null && audioState.masterNode != null}
+        <RoutingGraph startNode={audioState.preMasterNode} />
+    {/if}
 {/snippet}
