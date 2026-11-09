@@ -8,7 +8,8 @@
 - Do not write any user facing text, except for simple things such as aria labels or obvious button labels — write in a TODO instead when text is needed.
 - Maintain a README.md:
     - Before reading source files, check README.md for the general structure and what to expect.
-    - Whenever making or discovering changes, update README.md accordingly.
+    - Whenever making or discovering structural or architectural changes, update README.md accordingly.
+    - Do not include any cosmetic, implementation or other insignificant details in the readme.
     - Subfolders may have their own README.md
 
 ## Commands
