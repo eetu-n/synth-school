@@ -9,6 +9,7 @@ An interactive web-based synthesizer education platform built with SvelteKit, Sv
   - `framework/`: Audio graph abstractions and lifecycle management (see [`src/lib/audio/framework/README.md`](src/lib/audio/framework/README.md)).
   - `nodes/`: Custom audio graph nodes and analysis utilities (see [`src/lib/audio/nodes/README.md`](src/lib/audio/nodes/README.md)).
 - **`src/lib/modular/`**: Modular learning path and patch cable system (see [`src/lib/modular/README.md`](src/lib/modular/README.md)).
+- **`src/lib/curriculum/`**: Course manifests, module sequencing, and lesson metadata.
 - **`src/lib/components/`**:
   - `audio/`: Synthesizer demo components and instruments.
   - `ui/`: Reusable controls, layout containers, and visualizers (see [`src/lib/components/ui/viz/README.md`](src/lib/components/ui/viz/README.md)).
