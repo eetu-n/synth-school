@@ -24,7 +24,7 @@ export function computeRackLayout(
 ): RackLayoutResult {
   const nodesByPhase = new Map<number, ModuleNode[]>();
   for (const node of nodes) {
-    const p = node.phase ?? node.data?.phase ?? 1;
+    const p = node.phase ?? 1;
     const list = nodesByPhase.get(p) ?? [];
     list.push(node);
     nodesByPhase.set(p, list);
@@ -37,16 +37,10 @@ export function computeRackLayout(
 
   const layoutedNodes: ModuleNode[] = nodes.map((node) => {
     if (node.position) {
-      return {
-        ...node,
-        data: {
-          ...node.data,
-          isMobile
-        }
-      };
+      return node;
     }
 
-    const p = node.phase ?? node.data?.phase ?? 1;
+    const p = node.phase ?? 1;
     const phaseIndex = sortedPhases.indexOf(p);
     const siblings = nodesByPhase.get(p) ?? [node];
     const nodeIndex = siblings.indexOf(node);
@@ -68,11 +62,7 @@ export function computeRackLayout(
 
     return {
       ...node,
-      position: { x, y },
-      data: {
-        ...node.data,
-        isMobile
-      }
+      position: { x, y }
     };
   });
 

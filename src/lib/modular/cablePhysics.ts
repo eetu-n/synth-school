@@ -16,17 +16,13 @@ export interface CablePathResult {
 }
 
 export function calculateDroopPath(
-  x1?: number,
-  y1?: number,
-  x2?: number,
-  y2?: number,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
   options: DroopOptions = {}
 ): CablePathResult {
   if (
-    typeof x1 !== 'number' ||
-    typeof y1 !== 'number' ||
-    typeof x2 !== 'number' ||
-    typeof y2 !== 'number' ||
     isNaN(x1) ||
     isNaN(y1) ||
     isNaN(x2) ||
@@ -149,7 +145,7 @@ export function stepSpring(state: SpringState, stiffness = 0.08, damping = 0.35)
   const velocity = state.velocity + acceleration;
   const displacement = state.displacement + velocity;
 
-  if (Math.abs(displacement) < 0.1 && Math.abs(velocity) < 0.1) {
+  if (Math.abs(displacement) < 0.05 && Math.abs(velocity) < 0.05) {
     return { displacement: 0, velocity: 0 };
   }
 
@@ -225,17 +221,13 @@ export interface DragCableResult {
 }
 
 export function calculateDragCablePath(
-  fromX?: number,
-  fromY?: number,
-  toX?: number,
-  toY?: number,
+  fromX: number,
+  fromY: number,
+  toX: number,
+  toY: number,
   options: DragCableOptions = {}
 ): DragCableResult {
   if (
-    typeof fromX !== 'number' ||
-    typeof fromY !== 'number' ||
-    typeof toX !== 'number' ||
-    typeof toY !== 'number' ||
     isNaN(fromX) ||
     isNaN(fromY) ||
     isNaN(toX) ||

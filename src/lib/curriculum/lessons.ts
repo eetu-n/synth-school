@@ -48,7 +48,6 @@ export function getCurriculumModuleNodes(): ModuleNode[] {
     data: {
       title: m.title,
       href: m.href,
-      phase: m.phase,
       allowedTargets: m.allowedTargets
     }
   }));

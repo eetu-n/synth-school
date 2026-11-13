@@ -6,9 +6,7 @@ export interface XYPosition {
 export interface ModuleNodeData extends Record<string, unknown> {
   title: string;
   href: string;
-  phase?: number;
   allowedTargets?: string[];
-  isMobile?: boolean;
 }
 
 export interface CableEdgeData extends Record<string, unknown> {

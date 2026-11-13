@@ -1,11 +1,12 @@
 <script lang="ts">
   import type { ModuleNode, HandlePositions } from '$lib/modular/types';
-  import { JACK_SIZE, PLUG_SCALE } from '$lib/modular/constants';
+  import { JACK_SIZE, PLUG_SCALE, MOBILE_HANDLE_OFFSET_X } from '$lib/modular/constants';
   import TsJack from './TsJack.svelte';
   import TsPlug from './TsPlug.svelte';
 
   let {
     node,
+    isMobile = false,
     selected = false,
     isConnectedAsSource = false,
     isDraggingFromThis = false,
@@ -13,6 +14,7 @@
     onStartDrag
   }: {
     node: ModuleNode;
+    isMobile?: boolean;
     selected?: boolean;
     isConnectedAsSource?: boolean;
     isDraggingFromThis?: boolean;
@@ -22,7 +24,6 @@
 
   let nodeEl = $state<HTMLElement | null>(null);
 
-  const isMobile = $derived(Boolean(node.data?.isMobile));
   const hasPlugPokingOut = $derived(!isConnectedAsSource && !isDraggingFromThis);
 
   function updateHandles() {
@@ -34,8 +35,8 @@
 
     if (isMobile) {
       onUpdateHandles?.(node.id, {
-        source: { x: posX + 48, y: posY },
-        target: { x: posX + 48, y: posY + h }
+        source: { x: posX + MOBILE_HANDLE_OFFSET_X, y: posY },
+        target: { x: posX + MOBILE_HANDLE_OFFSET_X, y: posY + h }
       });
     } else {
       onUpdateHandles?.(node.id, {
@@ -78,7 +79,8 @@
     <!-- Input connector on bottom left -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
-      class="absolute left-[48px] bottom-0 -translate-x-1/2 translate-y-1/2 pointer-events-auto cursor-default z-10"
+      class="absolute bottom-0 -translate-x-1/2 translate-y-1/2 pointer-events-auto cursor-default z-10"
+      style="left: {MOBILE_HANDLE_OFFSET_X}px;"
       onpointerdown={(e) => e.stopPropagation()}
     >
       <TsJack size={JACK_SIZE} />
@@ -91,8 +93,8 @@
     <!-- Output plug on top left (pointing upwards) -->
     {#if hasPlugPokingOut}
       <div
-        class="absolute left-[48px] top-0 pointer-events-auto cursor-grab hover:brightness-110 active:cursor-grabbing transition-[filter] z-10"
-        style="transform: rotate(-90deg); transform-origin: 0px 20px;"
+        class="absolute top-0 pointer-events-auto cursor-grab hover:brightness-110 active:cursor-grabbing transition-[filter] z-10"
+        style="left: {MOBILE_HANDLE_OFFSET_X}px; transform: rotate(-90deg); transform-origin: 0px 20px;"
         onpointerdown={(e) => onStartDrag?.(node.id, e)}
         role="button"
         tabindex="0"

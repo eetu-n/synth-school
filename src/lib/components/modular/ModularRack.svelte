@@ -36,48 +36,28 @@
   const rackHeight = $derived(layout.rackHeight);
 
   $effect(() => {
-    rackState.clampPan(isMobile, rackWidth, rackHeight, containerWidth, containerHeight);
-  });
-
-  $effect(() => {
-    rackState.initMobileScroll(isMobile, containerHeight, layoutedNodes);
-  });
-
-  function handleWindowPointerMove(event: PointerEvent) {
-    rackState.handlePointerMove(
-      event,
+    rackState.setContext({
       containerEl,
-      layoutedNodes,
-      isMobile,
-      rackWidth,
-      rackHeight,
       containerWidth,
       containerHeight,
+      rackWidth,
+      rackHeight,
+      isMobile,
       nodes,
-      customIsValidConnection
-    );
-  }
+      layoutedNodes,
+      isValidConnection: customIsValidConnection
+    });
+  });
 
   function handleWindowPointerUp() {
     rackState.handlePointerUp(edges, (nextEdges) => {
       edges = nextEdges;
     });
   }
-
-  function handleWheel(event: WheelEvent) {
-    rackState.handleWheel(
-      event,
-      isMobile,
-      rackWidth,
-      rackHeight,
-      containerWidth,
-      containerHeight
-    );
-  }
 </script>
 
 <svelte:window
-  onpointermove={handleWindowPointerMove}
+  onpointermove={(e) => rackState.handlePointerMove(e)}
   onpointerup={handleWindowPointerUp}
   onpointercancel={handleWindowPointerUp}
 />
@@ -86,10 +66,11 @@
   bind:this={containerEl}
   bind:clientWidth={containerWidth}
   bind:clientHeight={containerHeight}
+  data-pan-target
   class="modular-rack relative w-full h-full min-h-[500px] flex-grow select-none overflow-hidden touch-none"
   class:cursor-grab={!rackState.activeDrag && !rackState.isPanning}
   class:cursor-grabbing={rackState.isPanning}
-  onwheel={handleWheel}
+  onwheel={(e) => rackState.handleWheel(e)}
   onpointerdown={(e) => rackState.handleContainerPointerDown(e)}
   role="region"
   aria-label="Modular Synthesizer Learning Rack"
@@ -108,7 +89,7 @@
           <circle cx="30" cy="30" r="1.5" fill="var(--color-grid)" />
         </pattern>
       </defs>
-      <rect width="100%" height="100%" fill="url(#rack-dots)" class="pointer-events-auto" />
+      <rect width="100%" height="100%" fill="url(#rack-dots)" data-pan-target class="pointer-events-auto" />
     </svg>
 
     <!-- HTML Nodes Layer (z-10) -->
@@ -121,14 +102,14 @@
           >
             <SynthModuleNode
               {node}
+              {isMobile}
               isConnectedAsSource={edges.some(
                 (e) => e.source === node.id && e.id !== rackState.activeDrag?.edgeId
               )}
               isDraggingFromThis={rackState.activeDrag?.sourceId === node.id}
               selected={rackState.activeDrag?.hoveredTargetId === node.id}
               onUpdateHandles={(id, h) => rackState.updateHandles(id, h)}
-              onStartDrag={(id, e) =>
-                rackState.startDrag(id, e, containerEl, layoutedNodes, isMobile)}
+              onStartDrag={(id, e) => rackState.startDrag(id, e)}
             />
           </div>
         {/if}
@@ -142,8 +123,8 @@
     >
       <!-- Render connected patch cables -->
       {#each edges as edge (edge.id)}
-        {@const sourcePos = rackState.getSourceHandle(edge.source, layoutedNodes, isMobile)}
-        {@const targetPos = rackState.getTargetHandle(edge.target, layoutedNodes, isMobile)}
+        {@const sourcePos = rackState.getSourceHandle(edge.source)}
+        {@const targetPos = rackState.getTargetHandle(edge.target)}
         {#if sourcePos && targetPos}
           <PatchCableEdge
             id={edge.id}
@@ -153,8 +134,7 @@
             targetY={targetPos.y}
             data={edge.data}
             reconnecting={rackState.activeDrag?.edgeId === edge.id}
-            onStartReconnect={(id, e) =>
-              rackState.startReconnect(id, edges, e, containerEl, layoutedNodes, isMobile)}
+            onStartReconnect={(id, e) => rackState.startReconnect(id, edges, e)}
           />
         {/if}
       {/each}
