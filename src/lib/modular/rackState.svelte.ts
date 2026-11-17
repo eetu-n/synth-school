@@ -7,7 +7,12 @@ import type {
   XYPosition
 } from './types';
 import { CONNECTION_SNAP_RADIUS } from './constants';
-import { getFallbackSourceHandle, getFallbackTargetHandle } from './rackLayout';
+import {
+  computeRackLayout,
+  getFallbackSourceHandle,
+  getFallbackTargetHandle,
+  type RackLayoutResult
+} from './rackLayout';
 
 export interface DragState {
   type: 'new' | 'reconnect';
@@ -20,24 +25,30 @@ export interface DragState {
   scrub?: number;
 }
 
-export interface RackContext {
-  containerEl: HTMLElement | null;
-  containerWidth: number;
-  containerHeight: number;
-  rackWidth: number;
-  rackHeight: number;
-  isMobile: boolean;
-  nodes: ModuleNode[];
-  layoutedNodes: ModuleNode[];
-  isValidConnection?: (connection: Connection) => boolean;
+export interface RackStateConfig {
+  getNodes: () => ModuleNode[];
+  getEdges: () => CableEdge[];
+  getIsValidConnection?: () => ((connection: Connection) => boolean) | undefined;
+  onEdgesChange: (edges: CableEdge[]) => void;
 }
 
 export class ModularRackState {
+  containerEl = $state<HTMLElement | null>(null);
+  containerWidth = $state(0);
+  containerHeight = $state(0);
+
   panX = $state(0);
   panY = $state(0);
   isPanning = $state(false);
   activeDrag = $state<DragState | null>(null);
 
+  layoutedNodes: ModuleNode[];
+  rackWidth: number;
+  rackHeight: number;
+
+  private config: RackStateConfig;
+  private layout: RackLayoutResult;
+  private sortedPhases: number[];
   private panStart = { x: 0, y: 0, panX: 0, panY: 0 };
   private handlePositions = $state<Record<string, HandlePositions>>({});
   private snapAnimId: number | null = null;
@@ -46,14 +57,41 @@ export class ModularRackState {
    * preventing subsequent container resizes from resetting user scroll position.
    */
   private initialMobileSet = false;
-  private context: RackContext | null = null;
-  private sortedPhases: number[] = [];
 
-  setContext(context: RackContext) {
-    this.context = context;
-    this.sortedPhases = Array.from(
-      new Set(context.nodes.map((n) => n.phase ?? 1))
-    ).sort((a, b) => a - b);
+  isMobile = $derived(
+    this.containerWidth > 0
+      ? this.containerWidth < 768
+      : typeof window !== 'undefined'
+        ? window.innerWidth < 768
+        : false
+  );
+
+  constructor(config: RackStateConfig) {
+    this.config = config;
+    this.layout = $derived(
+      computeRackLayout(
+        this.config.getNodes(),
+        this.containerWidth,
+        this.containerHeight,
+        this.isMobile
+      )
+    );
+    this.layoutedNodes = $derived(this.layout.layoutedNodes);
+    this.rackWidth = $derived(this.layout.rackWidth);
+    this.rackHeight = $derived(this.layout.rackHeight);
+    this.sortedPhases = $derived(
+      Array.from(new Set(this.config.getNodes().map((n) => n.phase ?? 1))).sort((a, b) => a - b)
+    );
+  }
+
+  syncViewport() {
+    this.isMobile;
+    this.rackWidth;
+    this.rackHeight;
+    this.containerWidth;
+    this.containerHeight;
+    this.layoutedNodes;
+
     untrack(() => {
       this.clampPan();
       this.initMobileScroll();
@@ -71,64 +109,71 @@ export class ModularRackState {
     this.handlePositions[id] = handles;
   }
 
-  getSourceHandle(nodeId: string, layoutedNodes?: ModuleNode[], isMobile?: boolean): XYPosition {
+  getSourceHandle(nodeId: string): XYPosition {
     if (this.handlePositions[nodeId]?.source) {
       return this.handlePositions[nodeId].source;
     }
-    const nodes = layoutedNodes ?? this.context?.layoutedNodes;
-    const mobile = isMobile ?? this.context?.isMobile ?? false;
-    const node = nodes?.find((n) => n.id === nodeId);
-    return getFallbackSourceHandle(node, mobile);
+    const node = this.layoutedNodes.find((n) => n.id === nodeId);
+    return getFallbackSourceHandle(node, this.isMobile);
   }
 
-  getTargetHandle(nodeId: string, layoutedNodes?: ModuleNode[], isMobile?: boolean): XYPosition {
+  getTargetHandle(nodeId: string): XYPosition {
     if (this.handlePositions[nodeId]?.target) {
       return this.handlePositions[nodeId].target;
     }
-    const nodes = layoutedNodes ?? this.context?.layoutedNodes;
-    const mobile = isMobile ?? this.context?.isMobile ?? false;
-    const node = nodes?.find((n) => n.id === nodeId);
-    return getFallbackTargetHandle(node, mobile);
+    const node = this.layoutedNodes.find((n) => n.id === nodeId);
+    return getFallbackTargetHandle(node, this.isMobile);
   }
 
-  clampPan() {
-    if (!this.context) return;
-    const { isMobile, rackWidth, rackHeight, containerWidth, containerHeight } = this.context;
-    if (!isMobile) {
-      const maxScrollX = Math.max(0, rackWidth - containerWidth);
-      const currentX = untrack(() => this.panX);
-      const clampedX = Math.min(0, Math.max(-maxScrollX, currentX));
-      if (currentX !== clampedX) {
+  private clientToWorld(event: PointerEvent): XYPosition | null {
+    if (!this.containerEl) return null;
+    const rect = this.containerEl.getBoundingClientRect();
+    return {
+      x: event.clientX - rect.left - this.panX,
+      y: event.clientY - rect.top - this.panY
+    };
+  }
+
+  private computeScrub(dist: number): number {
+    return Math.max(0, Math.min(1, 1 - dist / CONNECTION_SNAP_RADIUS));
+  }
+
+  private setClampedPan(x: number, y: number) {
+    if (!this.isMobile) {
+      const maxScrollX = Math.max(0, this.rackWidth - this.containerWidth);
+      const clampedX = Math.min(0, Math.max(-maxScrollX, x));
+      if (this.panX !== clampedX) {
         this.panX = clampedX;
       }
-      if (untrack(() => this.panY) !== 0) {
+      if (this.panY !== 0) {
         this.panY = 0;
       }
     } else {
-      const maxScrollY = Math.max(0, rackHeight - containerHeight);
-      const currentY = untrack(() => this.panY);
-      const clampedY = Math.min(0, Math.max(-maxScrollY, currentY));
-      if (currentY !== clampedY) {
+      const maxScrollY = Math.max(0, this.rackHeight - this.containerHeight);
+      const clampedY = Math.min(0, Math.max(-maxScrollY, y));
+      if (this.panY !== clampedY) {
         this.panY = clampedY;
       }
-      if (untrack(() => this.panX) !== 0) {
+      if (this.panX !== 0) {
         this.panX = 0;
       }
     }
   }
 
+  clampPan() {
+    this.setClampedPan(this.panX, this.panY);
+  }
+
   initMobileScroll() {
-    if (!this.context) return;
-    const { isMobile, containerHeight, layoutedNodes } = this.context;
-    if (isMobile && containerHeight > 0 && !this.initialMobileSet) {
+    if (this.isMobile && this.containerHeight > 0 && !this.initialMobileSet) {
       let maxY = 0;
-      for (const node of layoutedNodes) {
+      for (const node of this.layoutedNodes) {
         if (node.position && node.position.y > maxY) {
           maxY = node.position.y;
         }
       }
-      const targetY = Math.min(0, -(maxY - containerHeight + 150));
-      if (untrack(() => this.panY) !== targetY) {
+      const targetY = Math.min(0, -(maxY - this.containerHeight + 150));
+      if (this.panY !== targetY) {
         this.panY = targetY;
       }
       this.initialMobileSet = true;
@@ -136,14 +181,13 @@ export class ModularRackState {
   }
 
   validateConnection(sourceId: string, targetId: string): boolean {
-    if (!this.context) return false;
-    const { nodes, isValidConnection: customIsValidConnection } = this.context;
-
+    const customIsValidConnection = this.config.getIsValidConnection?.();
     if (customIsValidConnection) {
       return customIsValidConnection({ source: sourceId, target: targetId });
     }
     if (!sourceId || !targetId || sourceId === targetId) return false;
 
+    const nodes = this.config.getNodes();
     const sourceNode = nodes.find((n) => n.id === sourceId);
     const targetNode = nodes.find((n) => n.id === targetId);
     if (!sourceNode || !targetNode) return false;
@@ -169,19 +213,13 @@ export class ModularRackState {
     event.stopPropagation();
     event.preventDefault();
 
-    const from = this.getSourceHandle(sourceId);
-    const containerEl = this.context?.containerEl;
-    if (!containerEl) return;
-    const rect = containerEl.getBoundingClientRect();
-    const to = {
-      x: event.clientX - rect.left - this.panX,
-      y: event.clientY - rect.top - this.panY
-    };
+    const to = this.clientToWorld(event);
+    if (!to) return;
 
     this.activeDrag = {
       type: 'new',
       sourceId,
-      from,
+      from: this.getSourceHandle(sourceId),
       to,
       hoveredTargetId: null,
       targetPos: null,
@@ -189,11 +227,7 @@ export class ModularRackState {
     };
   }
 
-  startReconnect(
-    edgeId: string,
-    edges: CableEdge[],
-    event: PointerEvent
-  ) {
+  startReconnect(edgeId: string, event: PointerEvent) {
     if (this.snapAnimId !== null) {
       cancelAnimationFrame(this.snapAnimId);
       this.snapAnimId = null;
@@ -201,47 +235,38 @@ export class ModularRackState {
     event.stopPropagation();
     event.preventDefault();
 
-    const edge = edges.find((e) => e.id === edgeId);
-    const containerEl = this.context?.containerEl;
-    if (!edge || !containerEl) return;
-
-    const from = this.getSourceHandle(edge.source);
-    const rect = containerEl.getBoundingClientRect();
-    const to = {
-      x: event.clientX - rect.left - this.panX,
-      y: event.clientY - rect.top - this.panY
-    };
+    const edge = this.config.getEdges().find((e) => e.id === edgeId);
+    const to = this.clientToWorld(event);
+    if (!edge || !to) return;
 
     const targetPos = this.getTargetHandle(edge.target);
     const dist = Math.hypot(to.x - targetPos.x, to.y - targetPos.y);
-    const scrub = Math.max(0, Math.min(1, 1 - dist / CONNECTION_SNAP_RADIUS));
 
     this.activeDrag = {
       type: 'reconnect',
       edgeId,
       sourceId: edge.source,
-      from,
+      from: this.getSourceHandle(edge.source),
       to,
       hoveredTargetId: edge.target,
       targetPos,
-      scrub
+      scrub: this.computeScrub(dist)
     };
   }
 
   handlePointerMove(event: PointerEvent) {
-    const containerEl = this.context?.containerEl;
-    if (!containerEl || this.snapAnimId !== null || !this.context) return;
+    if (!this.containerEl || this.snapAnimId !== null) return;
 
     if (this.activeDrag) {
-      const rect = containerEl.getBoundingClientRect();
-      const worldX = event.clientX - rect.left - this.panX;
-      const worldY = event.clientY - rect.top - this.panY;
+      const world = this.clientToWorld(event);
+      if (!world) return;
+      const { x: worldX, y: worldY } = world;
 
       let matchedTargetId: string | null = null;
       let targetPos: XYPosition | null = null;
       let minDistance = Infinity;
 
-      for (const node of this.context.layoutedNodes) {
+      for (const node of this.layoutedNodes) {
         if (node.id === this.activeDrag.sourceId) continue;
         const candidatePos = this.getTargetHandle(node.id);
         const dist = Math.hypot(worldX - candidatePos.x, worldY - candidatePos.y);
@@ -259,7 +284,7 @@ export class ModularRackState {
       }
 
       if (matchedTargetId && targetPos) {
-        const scrub = Math.max(0, Math.min(1, 1 - minDistance / CONNECTION_SNAP_RADIUS));
+        const scrub = this.computeScrub(minDistance);
         this.activeDrag.to = {
           x: worldX + (targetPos.x - worldX) * scrub,
           y: worldY + (targetPos.y - worldY) * scrub
@@ -274,23 +299,17 @@ export class ModularRackState {
         this.activeDrag.scrub = 0;
       }
     } else if (this.isPanning) {
-      const { isMobile, rackWidth, rackHeight, containerWidth, containerHeight } = this.context;
-      if (!isMobile) {
+      if (!this.isMobile) {
         const dx = event.clientX - this.panStart.x;
-        const maxScrollX = Math.max(0, rackWidth - containerWidth);
-        this.panX = Math.min(0, Math.max(-maxScrollX, this.panStart.panX + dx));
+        this.setClampedPan(this.panStart.panX + dx, this.panY);
       } else {
         const dy = event.clientY - this.panStart.y;
-        const maxScrollY = Math.max(0, rackHeight - containerHeight);
-        this.panY = Math.min(0, Math.max(-maxScrollY, this.panStart.panY + dy));
+        this.setClampedPan(this.panX, this.panStart.panY + dy);
       }
     }
   }
 
-  handlePointerUp(
-    edges: CableEdge[],
-    onEdgesChange: (edges: CableEdge[]) => void
-  ) {
+  handlePointerUp() {
     if (this.snapAnimId !== null) {
       cancelAnimationFrame(this.snapAnimId);
       this.snapAnimId = null;
@@ -307,15 +326,16 @@ export class ModularRackState {
       const startTo = { ...currentDrag.to };
 
       const commitConnection = () => {
+        const edges = this.config.getEdges();
         if (dragType === 'new' && targetId) {
           const newEdge: CableEdge = {
             id: `cable-${sourceId}-${targetId}-${Date.now()}`,
             source: sourceId,
             target: targetId
           };
-          onEdgesChange([...edges.filter((e) => e.source !== sourceId), newEdge]);
+          this.config.onEdgesChange([...edges.filter((e) => e.source !== sourceId), newEdge]);
         } else if (dragType === 'reconnect' && edgeId && targetId) {
-          onEdgesChange(
+          this.config.onEdgesChange(
             edges.map((e) => (e.id === edgeId ? { ...e, target: targetId } : e))
           );
         }
@@ -354,7 +374,7 @@ export class ModularRackState {
           this.snapAnimId = requestAnimationFrame(animateSnap);
         }
       } else if (dragType === 'reconnect' && edgeId) {
-        onEdgesChange(edges.filter((e) => e.id !== edgeId));
+        this.config.onEdgesChange(this.config.getEdges().filter((e) => e.id !== edgeId));
         this.activeDrag = null;
       } else {
         this.activeDrag = null;
@@ -381,10 +401,7 @@ export class ModularRackState {
   }
 
   handleWheel(event: WheelEvent) {
-    if (!this.context) return;
-    const { isMobile, rackWidth, rackHeight, containerWidth, containerHeight } = this.context;
-
-    if (!isMobile) {
+    if (!this.isMobile) {
       const delta =
         event.deltaMode === 1
           ? event.deltaY * 20
@@ -392,13 +409,11 @@ export class ModularRackState {
             ? event.deltaY
             : event.deltaX;
 
-      const maxScrollX = Math.max(0, rackWidth - containerWidth);
-      this.panX = Math.min(0, Math.max(-maxScrollX, this.panX - delta));
+      this.setClampedPan(this.panX - delta, this.panY);
       event.preventDefault();
     } else {
       const delta = event.deltaMode === 1 ? event.deltaY * 20 : event.deltaY;
-      const maxScrollY = Math.max(0, rackHeight - containerHeight);
-      this.panY = Math.min(0, Math.max(-maxScrollY, this.panY - delta));
+      this.setClampedPan(this.panX, this.panY - delta);
       event.preventDefault();
     }
   }

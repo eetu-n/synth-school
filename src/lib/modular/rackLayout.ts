@@ -111,7 +111,7 @@ export function getFallbackTargetHandle(
   const posX = node?.position?.x ?? 0;
   const posY = node?.position?.y ?? 0;
   if (isMobile) {
-    return { x: posX + MOBILE_HANDLE_OFFSET_X, y: posY + 110 };
+    return { x: posX + MOBILE_HANDLE_OFFSET_X, y: posY + CARD_CENTER_Y_OFFSET * 2 };
   }
   return { x: posX, y: posY + CARD_CENTER_Y_OFFSET };
 }

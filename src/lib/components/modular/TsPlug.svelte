@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { PLUG_SCALE } from '$lib/modular/constants';
+  import { PLUG_LENGTH, PLUG_SCALE } from '$lib/modular/constants';
 
   let {
     color = 'var(--color-primary)',
@@ -19,7 +19,7 @@
     class?: string;
   } = $props();
 
-  const uid = Math.random().toString(36).slice(2, 9);
+  const uid = $props.id();
   const clipId = `plug-clip-${uid}`;
 
   let animKey = $state(0);
@@ -87,68 +87,71 @@
   overflow="visible"
   onclick={replay}
 >
-  {#if !isDynamic}
-    <!-- Rubber strain relief boot (cable entry) -->
-    <rect
-      x="0"
-      y="5.5"
-      width="2.5"
-      height="5"
-      rx="0.8"
-      class="fill-slate-700 stroke-slate-900 dark:fill-slate-800 dark:stroke-slate-950"
-      stroke-width="0.6"
-    />
-    <rect
-      x="2.5"
-      y="4.5"
-      width="2.5"
-      height="7"
-      rx="0.8"
-      class="fill-slate-700 stroke-slate-900 dark:fill-slate-800 dark:stroke-slate-950"
-      stroke-width="0.6"
-    />
+  {#snippet sideProfile(barrelScale: number)}
+    <!-- Barrel & strain relief boot (foreshortens towards collar front at x = -16) -->
+    <g transform="translate(-16, 0) scale({barrelScale}, 1) translate(16, 0)">
+      <!-- Rubber strain relief boot (cable entry) -->
+      <rect
+        x="-37.5"
+        y="-2.5"
+        width="2.5"
+        height="5"
+        rx="0.8"
+        class="fill-slate-700 stroke-slate-900 dark:fill-slate-800 dark:stroke-slate-950"
+        stroke-width="0.6"
+      />
+      <rect
+        x="-35"
+        y="-3.5"
+        width="2.5"
+        height="7"
+        rx="0.8"
+        class="fill-slate-700 stroke-slate-900 dark:fill-slate-800 dark:stroke-slate-950"
+        stroke-width="0.6"
+      />
 
-    <!-- Plug barrel / handle body -->
-    <rect
-      x="5"
-      y="3"
-      width="15"
-      height="10"
-      rx="1.5"
-      fill={color}
-      stroke="#1e293b"
-      stroke-width="0.8"
-    />
+      <!-- Plug barrel / handle body -->
+      <rect
+        x="-32.5"
+        y="-5"
+        width="15"
+        height="10"
+        rx="1.5"
+        fill={color}
+        stroke="#1e293b"
+        stroke-width="0.8"
+      />
 
-    <!-- Top highlight line on barrel -->
-    <path
-      d="M 6.5 4.5 L 18.5 4.5"
-      stroke="rgba(255, 255, 255, 0.45)"
-      stroke-width="0.8"
-      stroke-linecap="round"
-    />
+      <!-- Barrel top highlight -->
+      <path
+        d="M -31 -3.5 L -19 -3.5"
+        stroke="rgba(255, 255, 255, 0.45)"
+        stroke-width="0.8"
+        stroke-linecap="round"
+      />
 
-    <!-- Barrel grip ribs -->
-    <line x1="10" y1="5" x2="10" y2="11" stroke="rgba(0, 0, 0, 0.25)" stroke-width="1" stroke-linecap="round" />
-    <line x1="14" y1="5" x2="14" y2="11" stroke="rgba(0, 0, 0, 0.25)" stroke-width="1" stroke-linecap="round" />
-    <line x1="10.8" y1="5" x2="10.8" y2="11" stroke="rgba(255, 255, 255, 0.25)" stroke-width="0.6" stroke-linecap="round" />
-    <line x1="14.8" y1="5" x2="14.8" y2="11" stroke="rgba(255, 255, 255, 0.25)" stroke-width="0.6" stroke-linecap="round" />
+      <!-- Barrel grip ribs -->
+      <line x1="-27.5" y1="-3" x2="-27.5" y2="3" stroke="rgba(0, 0, 0, 0.25)" stroke-width="1" stroke-linecap="round" />
+      <line x1="-23.5" y1="-3" x2="-23.5" y2="3" stroke="rgba(0, 0, 0, 0.25)" stroke-width="1" stroke-linecap="round" />
+      <line x1="-26.7" y1="-3" x2="-26.7" y2="3" stroke="rgba(255, 255, 255, 0.25)" stroke-width="0.6" stroke-linecap="round" />
+      <line x1="-22.7" y1="-3" x2="-22.7" y2="3" stroke="rgba(255, 255, 255, 0.25)" stroke-width="0.6" stroke-linecap="round" />
 
-    <!-- Front metallic collar ring of barrel -->
-    <rect
-      x="19.5"
-      y="4"
-      width="2"
-      height="8"
-      rx="0.5"
-      class="fill-slate-300 stroke-slate-500 dark:fill-slate-400 dark:stroke-slate-600"
-      stroke-width="0.6"
-    />
+      <!-- Front metallic collar ring of barrel -->
+      <rect
+        x="-18"
+        y="-4"
+        width="2"
+        height="8"
+        rx="0.5"
+        class="fill-slate-300 stroke-slate-500 dark:fill-slate-400 dark:stroke-slate-600"
+        stroke-width="0.6"
+      />
+    </g>
 
     <!-- Metal sleeve (shaft) -->
     <rect
-      x="21.5"
-      y="5.2"
+      x="-16"
+      y="-2.8"
       width="8"
       height="5.6"
       rx="0.3"
@@ -157,10 +160,10 @@
     />
     <!-- Specular highlight on sleeve -->
     <line
-      x1="22"
-      y1="6.3"
-      x2="29"
-      y2="6.3"
+      x1="-15.5"
+      y1="-1.7"
+      x2="-8.5"
+      y2="-1.7"
       stroke="#ffffff"
       stroke-width="0.7"
       opacity="0.9"
@@ -168,8 +171,8 @@
 
     <!-- Insulator ring (black spacer) -->
     <rect
-      x="29.5"
-      y="5.2"
+      x="-8"
+      y="-2.8"
       width="1.8"
       height="5.6"
       fill="#090d16"
@@ -177,20 +180,26 @@
 
     <!-- Metal conductive tip with neck groove -->
     <path
-      d="M 31.3 5.3 C 32.2 6.1 32.8 6.2 33.6 5.8 C 35.2 5 37 6.8 37.5 8 C 37 9.2 35.2 11 33.6 10.2 C 32.8 9.8 32.2 9.9 31.3 10.7 Z"
+      d="M -6.2 -2.7 C -5.3 -1.9 -4.7 -1.8 -3.9 -2.2 C -2.3 -3 -0.5 -1.2 0 0 C -0.5 1.2 -2.3 3 -3.9 2.2 C -4.7 1.8 -5.3 1.9 -6.2 2.7 Z"
       class="fill-slate-200 stroke-slate-400 dark:fill-slate-300 dark:stroke-slate-500"
       stroke-width="0.6"
       stroke-linejoin="round"
     />
     <!-- Specular highlight on tip -->
     <path
-      d="M 33.5 6.4 C 34.8 5.8 36.2 7 36.6 8"
+      d="M -4 -1.6 C -2.7 -2.2 -1.3 -1 -0.9 0"
       stroke="#ffffff"
       stroke-width="0.6"
       fill="none"
       opacity="0.9"
       stroke-linecap="round"
     />
+  {/snippet}
+
+  {#if !isDynamic}
+    <g transform="translate({PLUG_LENGTH}, 8)">
+      {@render sideProfile(1)}
+    </g>
   {:else}
     <defs>
       <!-- Clip shaft at x=0 so it recedes into the jack socket -->
@@ -207,112 +216,7 @@
           style="opacity: {sideOpacity};"
           clip-path="url(#{clipId})"
         >
-          <!-- Barrel & strain relief boot (foreshortens towards collar front at x = -16) -->
-          <g transform="translate(-16, 0) scale({barrelScaleX}, 1) translate(16, 0)">
-            <!-- Rubber strain relief boot (cable entry) -->
-            <rect
-              x="-37.5"
-              y="-2.5"
-              width="2.5"
-              height="5"
-              rx="0.8"
-              class="fill-slate-700 stroke-slate-900 dark:fill-slate-800 dark:stroke-slate-950"
-              stroke-width="0.6"
-            />
-            <rect
-              x="-35"
-              y="-3.5"
-              width="2.5"
-              height="7"
-              rx="0.8"
-              class="fill-slate-700 stroke-slate-900 dark:fill-slate-800 dark:stroke-slate-950"
-              stroke-width="0.6"
-            />
-
-            <!-- Plug barrel / handle body -->
-            <rect
-              x="-32.5"
-              y="-5"
-              width="15"
-              height="10"
-              rx="1.5"
-              fill={color}
-              stroke="#1e293b"
-              stroke-width="0.8"
-            />
-
-            <!-- Barrel top highlight -->
-            <path
-              d="M -31 -3.5 L -19 -3.5"
-              stroke="rgba(255, 255, 255, 0.45)"
-              stroke-width="0.8"
-              stroke-linecap="round"
-            />
-
-            <!-- Barrel grip ribs -->
-            <line x1="-27.5" y1="-3" x2="-27.5" y2="3" stroke="rgba(0, 0, 0, 0.25)" stroke-width="1" stroke-linecap="round" />
-            <line x1="-23.5" y1="-3" x2="-23.5" y2="3" stroke="rgba(0, 0, 0, 0.25)" stroke-width="1" stroke-linecap="round" />
-            <line x1="-26.7" y1="-3" x2="-26.7" y2="3" stroke="rgba(255, 255, 255, 0.25)" stroke-width="0.6" stroke-linecap="round" />
-            <line x1="-22.7" y1="-3" x2="-22.7" y2="3" stroke="rgba(255, 255, 255, 0.25)" stroke-width="0.6" stroke-linecap="round" />
-
-            <!-- Front metallic collar ring of barrel -->
-            <rect
-              x="-18"
-              y="-4"
-              width="2"
-              height="8"
-              rx="0.5"
-              class="fill-slate-300 stroke-slate-500 dark:fill-slate-400 dark:stroke-slate-600"
-              stroke-width="0.6"
-            />
-          </g>
-
-          <!-- Metal sleeve (shaft) sliding straight into socket -->
-          <rect
-            x="-16"
-            y="-2.8"
-            width="8"
-            height="5.6"
-            rx="0.3"
-            class="fill-slate-200 stroke-slate-400 dark:fill-slate-300 dark:stroke-slate-500"
-            stroke-width="0.6"
-          />
-          <!-- Specular highlight on sleeve -->
-          <line
-            x1="-15.5"
-            y1="-1.7"
-            x2="-8.5"
-            y2="-1.7"
-            stroke="#ffffff"
-            stroke-width="0.7"
-            opacity="0.9"
-          />
-
-          <!-- Insulator ring (black spacer) -->
-          <rect
-            x="-8"
-            y="-2.8"
-            width="1.8"
-            height="5.6"
-            fill="#090d16"
-          />
-
-          <!-- Metal conductive tip with neck groove -->
-          <path
-            d="M -6.2 -2.7 C -5.3 -1.9 -4.7 -1.8 -3.9 -2.2 C -2.3 -3 -0.5 -1.2 0 0 C -0.5 1.2 -2.3 3 -3.9 2.2 C -4.7 1.8 -5.3 1.9 -6.2 2.7 Z"
-            class="fill-slate-200 stroke-slate-400 dark:fill-slate-300 dark:stroke-slate-500"
-            stroke-width="0.6"
-            stroke-linejoin="round"
-          />
-          <!-- Specular highlight on tip -->
-          <path
-            d="M -4 -1.6 C -2.7 -2.2 -1.3 -1 -0.9 0"
-            stroke="#ffffff"
-            stroke-width="0.6"
-            fill="none"
-            opacity="0.9"
-            stroke-linecap="round"
-          />
+          {@render sideProfile(barrelScaleX)}
         </g>
       {/if}
 

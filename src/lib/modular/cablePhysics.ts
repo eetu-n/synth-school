@@ -1,4 +1,4 @@
-import { PLUG_SCALE } from './constants';
+import { PLUG_LENGTH, PLUG_SCALE } from './constants';
 
 export interface DroopOptions {
   slack?: number;
@@ -9,10 +9,25 @@ export interface DroopOptions {
 export interface CablePathResult {
   path: string;
   shadowPath: string;
-  endAngle: number;
-  endAngleDeg: number;
+  plugAngleDeg: number;
+  shadowOffsetY: number;
   cp1: { x: number; y: number };
   cp2: { x: number; y: number };
+}
+
+function formatBezierPath(
+  x1: number,
+  y1: number,
+  cp1x: number,
+  cp1y: number,
+  cp2x: number,
+  cp2y: number,
+  x2: number,
+  y2: number,
+  offsetX = 0,
+  offsetY = 0
+): string {
+  return `M ${(x1 + offsetX).toFixed(1)} ${(y1 + offsetY).toFixed(1)} C ${(cp1x + offsetX).toFixed(1)} ${(cp1y + offsetY).toFixed(1)}, ${(cp2x + offsetX).toFixed(1)} ${(cp2y + offsetY).toFixed(1)}, ${(x2 + offsetX).toFixed(1)} ${(y2 + offsetY).toFixed(1)}`;
 }
 
 export function calculateDroopPath(
@@ -31,8 +46,8 @@ export function calculateDroopPath(
     return {
       path: '',
       shadowPath: '',
-      endAngle: 0,
-      endAngleDeg: 0,
+      plugAngleDeg: 0,
+      shadowOffsetY: 0,
       cp1: { x: 0, y: 0 },
       cp2: { x: 0, y: 0 }
     };
@@ -68,21 +83,15 @@ export function calculateDroopPath(
       cp2y = y2 - verticalSpread;
     }
 
-    const endDx = x2 - cp2x;
-    const endDy = y2 - cp2y;
-    const endAngle = Math.atan2(endDy, endDx);
-    const endAngleDeg = (endAngle * 180) / Math.PI;
-
-    const path = `M ${x1.toFixed(1)} ${y1.toFixed(1)} C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${x2.toFixed(1)} ${y2.toFixed(1)}`;
+    const plugAngleDeg = (Math.atan2(y2 - cp2y, x2 - cp2x) * 180) / Math.PI;
     const shadowOffsetX = 12;
     const shadowOffsetY = 15;
-    const shadowPath = `M ${(x1 + shadowOffsetX).toFixed(1)} ${(y1 + shadowOffsetY).toFixed(1)} C ${(cp1x + shadowOffsetX).toFixed(1)} ${(cp1y + shadowOffsetY).toFixed(1)}, ${(cp2x + shadowOffsetX).toFixed(1)} ${(cp2y + shadowOffsetY).toFixed(1)}, ${(x2 + shadowOffsetX).toFixed(1)} ${(y2 + shadowOffsetY).toFixed(1)}`;
 
     return {
-      path,
-      shadowPath,
-      endAngle,
-      endAngleDeg,
+      path: formatBezierPath(x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2),
+      shadowPath: formatBezierPath(x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2, shadowOffsetX, shadowOffsetY),
+      plugAngleDeg,
+      shadowOffsetY,
       cp1: { x: cp1x, y: cp1y },
       cp2: { x: cp2x, y: cp2y }
     };
@@ -116,20 +125,14 @@ export function calculateDroopPath(
     cp2y = y2 + sag * Math.max(0.1, 1 - verticalRatio) + rise;
   }
 
-  const endDx = x2 - cp2x;
-  const endDy = y2 - cp2y;
-  const endAngle = Math.atan2(endDy, endDx);
-  const endAngleDeg = (endAngle * 180) / Math.PI;
-
-  const path = `M ${x1.toFixed(1)} ${y1.toFixed(1)} C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${x2.toFixed(1)} ${y2.toFixed(1)}`;
+  const plugAngleDeg = (Math.atan2(y2 - cp2y, x2 - cp2x) * 180) / Math.PI;
   const shadowOffsetY = Math.min(45, Math.max(20, sag * 0.14));
-  const shadowPath = `M ${x1.toFixed(1)} ${(y1 + shadowOffsetY).toFixed(1)} C ${cp1x.toFixed(1)} ${(cp1y + shadowOffsetY).toFixed(1)}, ${cp2x.toFixed(1)} ${(cp2y + shadowOffsetY).toFixed(1)}, ${x2.toFixed(1)} ${(y2 + shadowOffsetY).toFixed(1)}`;
 
   return {
-    path,
-    shadowPath,
-    endAngle,
-    endAngleDeg,
+    path: formatBezierPath(x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2),
+    shadowPath: formatBezierPath(x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2, 0, shadowOffsetY),
+    plugAngleDeg,
+    shadowOffsetY,
     cp1: { x: cp1x, y: cp1y },
     cp2: { x: cp2x, y: cp2y }
   };
@@ -156,9 +159,20 @@ export class CableSpringAnimation {
   private state: SpringState = { displacement: 0, velocity: 0 };
   private animFrameId: number | null = null;
   private onChange: (displacement: number) => void;
+  private prevCoords: { x1: number; y1: number; x2: number; y2: number } | null = null;
 
   constructor(onChange: (displacement: number) => void) {
     this.onChange = onChange;
+  }
+
+  trackEndpoints(x1: number, y1: number, x2: number, y2: number) {
+    if (this.prevCoords !== null) {
+      const dx = (x1 - this.prevCoords.x1) + (x2 - this.prevCoords.x2);
+      const dy = (y1 - this.prevCoords.y1) + (y2 - this.prevCoords.y2);
+      const movement = Math.hypot(dx, dy);
+      this.applyImpulse(dy, movement);
+    }
+    this.prevCoords = { x1, y1, x2, y2 };
   }
 
   settle(displacement = 3) {
@@ -248,8 +262,7 @@ export function calculateDragCablePath(
   const slack = options.slack ?? 1.0;
   const dynamicOffset = options.dynamicOffset ?? 0;
 
-  // Full plug length from boot entry to conductive tip: 37.5 * PLUG_SCALE
-  const fullPlugLength = 37.5 * PLUG_SCALE;
+  const fullPlugLength = PLUG_LENGTH * PLUG_SCALE;
   const plugLength = fullPlugLength * (1 - scrub);
 
   const dx = toX - fromX;
@@ -283,7 +296,7 @@ export function calculateDragCablePath(
 
   let plugAngleDeg = freeAngleDeg;
   if (restCurve && w > 0) {
-    let angleDiff = restCurve.endAngleDeg - freeAngleDeg;
+    let angleDiff = restCurve.plugAngleDeg - freeAngleDeg;
     while (angleDiff > 180) angleDiff -= 360;
     while (angleDiff < -180) angleDiff += 360;
     plugAngleDeg = freeAngleDeg + angleDiff * w;
@@ -325,22 +338,13 @@ export function calculateDragCablePath(
   const p3x = bootX;
   const p3y = bootY;
 
-  const path = `M ${p0x.toFixed(1)} ${p0y.toFixed(1)} C ${p1x.toFixed(1)} ${p1y.toFixed(1)}, ${p2x.toFixed(1)} ${p2y.toFixed(1)}, ${p3x.toFixed(1)} ${p3y.toFixed(1)}`;
+  const path = formatBezierPath(p0x, p0y, p1x, p1y, p2x, p2y, p3x, p3y);
 
   const dragShadowOffsetY = Math.min(45, Math.max(20, cableSag * 0.14));
-  const restShadowOffsetY = restCurve
-    ? Math.min(
-        45,
-        Math.max(
-          20,
-          (90 * slack + Math.min(Math.abs(targetX - fromX), 1000) * 0.18 * slack + dynamicOffset) *
-            0.14
-        )
-      )
-    : dragShadowOffsetY;
+  const restShadowOffsetY = restCurve ? restCurve.shadowOffsetY : dragShadowOffsetY;
   const shadowOffsetY = (1 - w) * dragShadowOffsetY + w * restShadowOffsetY;
 
-  const shadowPath = `M ${p0x.toFixed(1)} ${(p0y + shadowOffsetY).toFixed(1)} C ${p1x.toFixed(1)} ${(p1y + shadowOffsetY).toFixed(1)}, ${p2x.toFixed(1)} ${(p2y + shadowOffsetY).toFixed(1)}, ${p3x.toFixed(1)} ${(p3y + shadowOffsetY).toFixed(1)}`;
+  const shadowPath = formatBezierPath(p0x, p0y, p1x, p1y, p2x, p2y, p3x, p3y, 0, shadowOffsetY);
 
   return {
     path,

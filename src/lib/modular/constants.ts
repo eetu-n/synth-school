@@ -1,5 +1,6 @@
 export const JACK_SIZE = 55;
 export const PLUG_SCALE = 2.5;
+export const PLUG_LENGTH = 37.5;
 export const CONNECTION_SNAP_RADIUS = 55;
 
 export const DESKTOP_PHASE_SPACING = 700;

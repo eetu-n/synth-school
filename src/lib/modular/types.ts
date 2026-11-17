@@ -3,13 +3,13 @@ export interface XYPosition {
   y: number;
 }
 
-export interface ModuleNodeData extends Record<string, unknown> {
+export interface ModuleNodeData {
   title: string;
   href: string;
   allowedTargets?: string[];
 }
 
-export interface CableEdgeData extends Record<string, unknown> {
+export interface CableEdgeData {
   color?: string;
   slack?: number;
 }
@@ -25,16 +25,12 @@ export interface CableEdge {
   id: string;
   source: string;
   target: string;
-  sourceHandle?: string | null;
-  targetHandle?: string | null;
   data?: CableEdgeData;
 }
 
 export interface Connection {
   source: string;
   target: string;
-  sourceHandle?: string | null;
-  targetHandle?: string | null;
 }
 
 export interface HandlePositions {

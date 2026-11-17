@@ -1,7 +1,13 @@
 <script lang="ts">
   import { untrack } from 'svelte';
   import type { ModuleNode, HandlePositions } from '$lib/modular/types';
-  import { JACK_SIZE, PLUG_SCALE, MOBILE_HANDLE_OFFSET_X } from '$lib/modular/constants';
+  import {
+    JACK_SIZE,
+    PLUG_SCALE,
+    MOBILE_HANDLE_OFFSET_X,
+    DESKTOP_CARD_MIN_WIDTH,
+    MOBILE_CARD_MIN_WIDTH
+  } from '$lib/modular/constants';
   import TsJack from './TsJack.svelte';
   import TsPlug from './TsPlug.svelte';
 
@@ -71,12 +77,11 @@
   class="rounded-3xl border-2 border-border bg-surface text-text-primary shadow-md select-none relative flex items-center justify-between gap-8"
   class:px-12={!isMobile}
   class:py-7={!isMobile}
-  class:min-w-[325px]={!isMobile}
   class:px-8={isMobile}
   class:py-6={isMobile}
-  class:min-w-[260px]={isMobile}
   class:ring-4={selected}
   class:ring-primary={selected}
+  style:min-width="{isMobile ? MOBILE_CARD_MIN_WIDTH : DESKTOP_CARD_MIN_WIDTH}px"
 >
   {#if isMobile}
     <!-- Input connector on bottom left -->

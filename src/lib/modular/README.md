@@ -8,4 +8,4 @@ Interactive module graph and droopy patch cable system with drag-and-drop patchi
 - `rackState.svelte.ts`: Reactive state management rune for panning, dragging, snap targets, and connection validation.
 - `cablePhysics.ts`: Catenary droop Bézier curve calculations and spring-damper physics animation.
 
-UI components live in `src/lib/components/modular/` (`ModularRack.svelte`, `SynthModuleNode.svelte`, `PatchCableEdge.svelte`, `PatchConnectionLine.svelte`, `TsJack.svelte`, `TsPlug.svelte`).
+UI components live in `src/lib/components/modular/` (`ModularRack.svelte`, `SynthModuleNode.svelte`, `PatchCable.svelte`, `TsJack.svelte`, `TsPlug.svelte`).
