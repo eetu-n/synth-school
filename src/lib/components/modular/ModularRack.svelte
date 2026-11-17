@@ -123,8 +123,8 @@
     >
       <!-- Render connected patch cables -->
       {#each edges as edge (edge.id)}
-        {@const sourcePos = rackState.getSourceHandle(edge.source)}
-        {@const targetPos = rackState.getTargetHandle(edge.target)}
+        {@const sourcePos = rackState.getSourceHandle(edge.source, layoutedNodes, isMobile)}
+        {@const targetPos = rackState.getTargetHandle(edge.target, layoutedNodes, isMobile)}
         {#if sourcePos && targetPos}
           <PatchCableEdge
             id={edge.id}

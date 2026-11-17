@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import type { ModuleNode, HandlePositions } from '$lib/modular/types';
   import { JACK_SIZE, PLUG_SCALE, MOBILE_HANDLE_OFFSET_X } from '$lib/modular/constants';
   import TsJack from './TsJack.svelte';
@@ -52,7 +53,9 @@
     node.position?.y;
     isMobile;
 
-    updateHandles();
+    untrack(() => {
+      updateHandles();
+    });
 
     if (!nodeEl) return;
     const observer = new ResizeObserver(() => {

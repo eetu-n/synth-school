@@ -1,3 +1,4 @@
+import { untrack } from 'svelte';
 import type {
   ModuleNode,
   CableEdge,
@@ -53,8 +54,10 @@ export class ModularRackState {
     this.sortedPhases = Array.from(
       new Set(context.nodes.map((n) => n.phase ?? 1))
     ).sort((a, b) => a - b);
-    this.clampPan();
-    this.initMobileScroll();
+    untrack(() => {
+      this.clampPan();
+      this.initMobileScroll();
+    });
   }
 
   destroy() {
@@ -65,23 +68,27 @@ export class ModularRackState {
   }
 
   updateHandles(id: string, handles: HandlePositions) {
-    this.handlePositions = { ...this.handlePositions, [id]: handles };
+    this.handlePositions[id] = handles;
   }
 
-  getSourceHandle(nodeId: string): XYPosition {
+  getSourceHandle(nodeId: string, layoutedNodes?: ModuleNode[], isMobile?: boolean): XYPosition {
     if (this.handlePositions[nodeId]?.source) {
       return this.handlePositions[nodeId].source;
     }
-    const node = this.context?.layoutedNodes.find((n) => n.id === nodeId);
-    return getFallbackSourceHandle(node, this.context?.isMobile ?? false);
+    const nodes = layoutedNodes ?? this.context?.layoutedNodes;
+    const mobile = isMobile ?? this.context?.isMobile ?? false;
+    const node = nodes?.find((n) => n.id === nodeId);
+    return getFallbackSourceHandle(node, mobile);
   }
 
-  getTargetHandle(nodeId: string): XYPosition {
+  getTargetHandle(nodeId: string, layoutedNodes?: ModuleNode[], isMobile?: boolean): XYPosition {
     if (this.handlePositions[nodeId]?.target) {
       return this.handlePositions[nodeId].target;
     }
-    const node = this.context?.layoutedNodes.find((n) => n.id === nodeId);
-    return getFallbackTargetHandle(node, this.context?.isMobile ?? false);
+    const nodes = layoutedNodes ?? this.context?.layoutedNodes;
+    const mobile = isMobile ?? this.context?.isMobile ?? false;
+    const node = nodes?.find((n) => n.id === nodeId);
+    return getFallbackTargetHandle(node, mobile);
   }
 
   clampPan() {
@@ -89,12 +96,24 @@ export class ModularRackState {
     const { isMobile, rackWidth, rackHeight, containerWidth, containerHeight } = this.context;
     if (!isMobile) {
       const maxScrollX = Math.max(0, rackWidth - containerWidth);
-      this.panX = Math.min(0, Math.max(-maxScrollX, this.panX));
-      this.panY = 0;
+      const currentX = untrack(() => this.panX);
+      const clampedX = Math.min(0, Math.max(-maxScrollX, currentX));
+      if (currentX !== clampedX) {
+        this.panX = clampedX;
+      }
+      if (untrack(() => this.panY) !== 0) {
+        this.panY = 0;
+      }
     } else {
       const maxScrollY = Math.max(0, rackHeight - containerHeight);
-      this.panY = Math.min(0, Math.max(-maxScrollY, this.panY));
-      this.panX = 0;
+      const currentY = untrack(() => this.panY);
+      const clampedY = Math.min(0, Math.max(-maxScrollY, currentY));
+      if (currentY !== clampedY) {
+        this.panY = clampedY;
+      }
+      if (untrack(() => this.panX) !== 0) {
+        this.panX = 0;
+      }
     }
   }
 
@@ -108,7 +127,10 @@ export class ModularRackState {
           maxY = node.position.y;
         }
       }
-      this.panY = Math.min(0, -(maxY - containerHeight + 150));
+      const targetY = Math.min(0, -(maxY - containerHeight + 150));
+      if (untrack(() => this.panY) !== targetY) {
+        this.panY = targetY;
+      }
       this.initialMobileSet = true;
     }
   }
