@@ -27,6 +27,7 @@ export interface DragState {
   targetPos: XYPosition | null;
   edgeId?: string;
   scrub?: number;
+  insertUnlocked?: boolean;
 }
 
 export interface RackStateConfig {
@@ -58,6 +59,8 @@ export class ModularRackState {
   private panStart = { x: 0, y: 0, panX: 0, panY: 0 };
   private handlePositions = $state<Record<string, HandlePositions>>({});
   private snapAnimId: number | null = null;
+  private rearBlockedTargets = new Set<string>();
+  private lastWorldPos: XYPosition | null = null;
   /**
    * Tracks whether the initial mobile scroll offset has been established,
    * preventing subsequent container resizes from resetting user scroll position.
@@ -234,47 +237,89 @@ export class ModularRackState {
   }
 
   private computeSnap(
+    nodeId: string,
     worldX: number,
     worldY: number,
-    targetPos: XYPosition
-  ): { dist: number; scrub: number; to: XYPosition } | null {
+    targetPos: XYPosition,
+    dx: number,
+    dy: number,
+    allowImmediateInsert = false
+  ): { dist: number; scrub: number; to: XYPosition; insertUnlocked: boolean } | null {
     const insertDist = PLUG_SHAFT_LENGTH;
     const jackWidth = JACK_LENGTH;
+    const alignHoldRadius = 14;
+
+    const isEngaged = allowImmediateInsert || this.activeDrag?.hoveredTargetId === nodeId;
+    const wasInsertUnlocked =
+      allowImmediateInsert || (isEngaged && Boolean(this.activeDrag?.insertUnlocked));
 
     let dSeg: number;
+    let dEntry: number;
+    let inFrontHalf: boolean;
+    let inwardMove: boolean;
     let rawInsert: number;
 
     if (this.isMobile) {
-      const segY = Math.max(targetPos.y - jackWidth, Math.min(targetPos.y + insertDist, worldY));
+      const entryY = targetPos.y + insertDist;
+      const segY = Math.max(targetPos.y - jackWidth, Math.min(entryY, worldY));
       dSeg = Math.hypot(worldX - targetPos.x, worldY - segY);
+      dEntry = Math.hypot(worldX - targetPos.x, worldY - entryY);
+      inFrontHalf = worldY >= entryY;
+      inwardMove = dy < -0.5;
       rawInsert = Math.max(0, Math.min(1, 1 - (worldY - targetPos.y) / insertDist));
     } else {
-      const segX = Math.max(targetPos.x - insertDist, Math.min(targetPos.x + jackWidth, worldX));
+      const entryX = targetPos.x - insertDist;
+      const segX = Math.max(entryX, Math.min(targetPos.x + jackWidth, worldX));
       dSeg = Math.hypot(worldX - segX, worldY - targetPos.y);
+      dEntry = Math.hypot(worldX - entryX, worldY - targetPos.y);
+      inFrontHalf = worldX <= entryX;
+      inwardMove = dx > 0.5;
       rawInsert = Math.max(0, Math.min(1, 1 - (targetPos.x - worldX) / insertDist));
     }
 
-    if (dSeg > CONNECTION_SNAP_RADIUS) return null;
+    if (dSeg > CONNECTION_SNAP_RADIUS) {
+      this.rearBlockedTargets.delete(nodeId);
+      return null;
+    }
 
-    const alignHoldRadius = 24;
+    if (!inFrontHalf) {
+      if (!wasInsertUnlocked) {
+        if (!isEngaged) this.rearBlockedTargets.add(nodeId);
+        return null;
+      }
+    } else {
+      if (this.rearBlockedTargets.has(nodeId)) {
+        if (inwardMove) {
+          this.rearBlockedTargets.delete(nodeId);
+        } else {
+          return null;
+        }
+      }
+      if (dEntry > CONNECTION_SNAP_RADIUS) return null;
+    }
+
+    const effectiveDist = inFrontHalf ? dEntry : dSeg;
     const t = Math.max(
       0,
-      Math.min(1, (CONNECTION_SNAP_RADIUS - dSeg) / (CONNECTION_SNAP_RADIUS - alignHoldRadius))
+      Math.min(1, (CONNECTION_SNAP_RADIUS - effectiveDist) / (CONNECTION_SNAP_RADIUS - alignHoldRadius))
     );
     const align = t * t * (3 - 2 * t);
-    const detentInsert = this.applyJackDetent(rawInsert);
+    const insertUnlocked = wasInsertUnlocked || effectiveDist <= alignHoldRadius;
+    const effectiveRawInsert = inFrontHalf || !insertUnlocked ? 0 : rawInsert;
+    const detentInsert = this.applyJackDetent(effectiveRawInsert);
 
-    // Phase 1 (0..0.5): horizontal alignment at jack mouth; Phase 2 (0.5..1): horizontal insertion
+    // Phase 1 (0..0.5): alignment at jack mouth; Phase 2 (0.5..1): directional insertion
     const scrub = 0.5 * align + 0.5 * detentInsert * Math.pow(align, 2);
     const alignProgress = Math.min(1, scrub * 2);
 
     return {
-      dist: dSeg,
+      dist: effectiveDist,
       scrub,
       to: {
         x: worldX + (targetPos.x - worldX) * alignProgress,
         y: worldY + (targetPos.y - worldY) * alignProgress
-      }
+      },
+      insertUnlocked
     };
   }
 
@@ -357,6 +402,9 @@ export class ModularRackState {
     const to = this.clientToWorld(event);
     if (!to) return;
 
+    this.rearBlockedTargets.clear();
+    this.lastWorldPos = to;
+
     this.activeDrag = {
       type: 'new',
       sourceId,
@@ -364,7 +412,8 @@ export class ModularRackState {
       to,
       hoveredTargetId: null,
       targetPos: null,
-      scrub: 0
+      scrub: 0,
+      insertUnlocked: false
     };
   }
 
@@ -380,8 +429,11 @@ export class ModularRackState {
     const world = this.clientToWorld(event);
     if (!edge || !world) return;
 
+    this.rearBlockedTargets.clear();
+    this.lastWorldPos = world;
+
     const targetPos = this.getTargetHandle(edge.target);
-    const snap = this.computeSnap(world.x, world.y, targetPos);
+    const snap = this.computeSnap(edge.target, world.x, world.y, targetPos, 0, 0, true);
 
     this.activeDrag = {
       type: 'reconnect',
@@ -391,7 +443,8 @@ export class ModularRackState {
       to: snap ? snap.to : world,
       hoveredTargetId: snap ? edge.target : null,
       targetPos: snap ? targetPos : null,
-      scrub: snap ? snap.scrub : 0
+      scrub: snap ? snap.scrub : 0,
+      insertUnlocked: snap ? snap.insertUnlocked : false
     };
   }
 
@@ -403,9 +456,18 @@ export class ModularRackState {
       if (!world) return;
       const { x: worldX, y: worldY } = world;
 
+      const dx = this.lastWorldPos ? worldX - this.lastWorldPos.x : 0;
+      const dy = this.lastWorldPos ? worldY - this.lastWorldPos.y : 0;
+      this.lastWorldPos = { x: worldX, y: worldY };
+
       let matchedTargetId: string | null = null;
       let targetPos: XYPosition | null = null;
-      let matchedSnap: { dist: number; scrub: number; to: XYPosition } | null = null;
+      let matchedSnap: {
+        dist: number;
+        scrub: number;
+        to: XYPosition;
+        insertUnlocked: boolean;
+      } | null = null;
       let minDistance = Infinity;
 
       for (const node of this.layoutedNodes) {
@@ -413,7 +475,7 @@ export class ModularRackState {
         if (!this.validateConnection(this.activeDrag.sourceId, node.id)) continue;
 
         const candidatePos = this.getTargetHandle(node.id);
-        const snap = this.computeSnap(worldX, worldY, candidatePos);
+        const snap = this.computeSnap(node.id, worldX, worldY, candidatePos, dx, dy);
 
         if (snap && snap.dist < minDistance) {
           minDistance = snap.dist;
@@ -428,11 +490,13 @@ export class ModularRackState {
         this.activeDrag.hoveredTargetId = matchedTargetId;
         this.activeDrag.targetPos = targetPos;
         this.activeDrag.scrub = matchedSnap.scrub;
+        this.activeDrag.insertUnlocked = matchedSnap.insertUnlocked;
       } else {
         this.activeDrag.to = { x: worldX, y: worldY };
         this.activeDrag.hoveredTargetId = null;
         this.activeDrag.targetPos = null;
         this.activeDrag.scrub = 0;
+        this.activeDrag.insertUnlocked = false;
       }
     } else if (this.isPanning) {
       if (!this.isMobile) {
@@ -461,6 +525,12 @@ export class ModularRackState {
       const startScrub = currentDrag.scrub ?? 0;
       const startTo = { ...currentDrag.to };
 
+      const clearDragState = () => {
+        this.activeDrag = null;
+        this.rearBlockedTargets.clear();
+        this.lastWorldPos = null;
+      };
+
       const commitConnection = () => {
         const edges = this.config.getEdges();
         if (dragType === 'new' && targetId) {
@@ -475,7 +545,7 @@ export class ModularRackState {
             edges.map((e) => (e.id === edgeId ? { ...e, target: targetId } : e))
           );
         }
-        this.activeDrag = null;
+        clearDragState();
       };
 
       if (targetId && targetPos) {
@@ -517,9 +587,9 @@ export class ModularRackState {
         }
       } else if (dragType === 'reconnect' && edgeId) {
         this.config.onEdgesChange(this.config.getEdges().filter((e) => e.id !== edgeId));
-        this.activeDrag = null;
+        clearDragState();
       } else {
-        this.activeDrag = null;
+        clearDragState();
       }
     }
 

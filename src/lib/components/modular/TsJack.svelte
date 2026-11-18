@@ -61,7 +61,7 @@
     </defs>
 
     <g transform="translate(1.5, 0)" mask="url(#{maskId})" class="pointer-events-none">
-      <circle r="32" fill="#fbbf24" opacity="0.16" />
+      <circle r="32" fill="#E3A857" opacity="0.16" />
       <g class="jack-halo-rays">
         {#each Array.from({ length: 24 }, (_, i) => i) as i (i)}
           {@const isLong = i % 2 === 0}
@@ -69,7 +69,7 @@
             d={isLong
               ? 'M 1.2 -0.35 L 41 -3.4 Q 43.2 0 41 3.4 L 1.2 0.35 Z'
               : 'M 1.2 -0.25 L 31 -2.3 Q 33 0 31 2.3 L 1.2 0.25 Z'}
-            fill="#fbbf24"
+            fill="#E3A857"
             opacity={isLong ? 0.55 : 0.35}
             transform="rotate({i * 15})"
           />

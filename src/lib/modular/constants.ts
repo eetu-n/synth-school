@@ -1,7 +1,7 @@
 export const PLUG_LENGTH = 94;
 export const PLUG_SHAFT_LENGTH = 40;
 export const JACK_LENGTH = 25;
-export const CONNECTION_SNAP_RADIUS = 85;
+export const CONNECTION_SNAP_RADIUS = 45;
 
 export const DESKTOP_PHASE_SPACING = 700;
 export const DESKTOP_SIBLING_SPACING = 275;
