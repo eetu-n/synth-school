@@ -1,4 +1,4 @@
-import { PLUG_LENGTH, PLUG_SCALE } from './constants';
+import { PLUG_LENGTH, PLUG_SCALE, PLUG_SHAFT_LENGTH } from './constants';
 
 export interface DroopOptions {
   slack?: number;
@@ -55,18 +55,22 @@ export function calculateDroopPath(
 
   const slack = options.slack ?? 1.0;
   const dynamicOffset = options.dynamicOffset ?? 0;
+  const isVertical = options.vertical ?? (Math.abs(y2 - y1) > Math.abs(x2 - x1) * 1.25);
 
-  const dx = x2 - x1;
-  const dy = y2 - y1;
+  // Terminate cable at the back of the inserted plug's strain relief boot
+  const insertedPlugLength = (PLUG_LENGTH - PLUG_SHAFT_LENGTH) * PLUG_SCALE;
+  const endX = isVertical ? x2 : x2 - insertedPlugLength;
+  const endY = isVertical ? y2 + insertedPlugLength : y2;
+
+  const dx = endX - x1;
+  const dy = endY - y1;
   const dist = Math.sqrt(dx * dx + dy * dy);
-
-  const isVertical = options.vertical ?? (Math.abs(dy) > Math.abs(dx) * 1.25);
 
   if (isVertical) {
     const h = Math.abs(dy);
     const verticalSpread = Math.min(250, Math.max(50, h * 0.35));
     const sag = 60 * slack + dynamicOffset;
-    const minX = Math.min(x1, x2);
+    const minX = Math.min(x1, endX);
     const cp1x = minX - sag;
     const cp2x = minX - sag;
 
@@ -76,21 +80,20 @@ export function calculateDroopPath(
     if (dy <= 0) {
       // Bottom-up (source below target)
       cp1y = y1 - verticalSpread;
-      cp2y = y2 + verticalSpread;
+      cp2y = endY + verticalSpread;
     } else {
       // Top-down
       cp1y = y1 + verticalSpread;
-      cp2y = y2 - verticalSpread;
+      cp2y = endY - verticalSpread;
     }
 
-    const plugAngleDeg = (Math.atan2(y2 - cp2y, x2 - cp2x) * 180) / Math.PI;
     const shadowOffsetX = 12;
     const shadowOffsetY = 15;
 
     return {
-      path: formatBezierPath(x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2),
-      shadowPath: formatBezierPath(x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2, shadowOffsetX, shadowOffsetY),
-      plugAngleDeg,
+      path: formatBezierPath(x1, y1, cp1x, cp1y, cp2x, cp2y, endX, endY),
+      shadowPath: formatBezierPath(x1, y1, cp1x, cp1y, cp2x, cp2y, endX, endY, shadowOffsetX, shadowOffsetY),
+      plugAngleDeg: -90,
       shadowOffsetY,
       cp1: { x: cp1x, y: cp1y },
       cp2: { x: cp2x, y: cp2y }
@@ -99,7 +102,7 @@ export function calculateDroopPath(
 
   const horizontalSpread = Math.min(550, Math.max(90, Math.abs(dx) * 0.4));
   const cp1x = x1 + horizontalSpread;
-  const cp2x = x2 - horizontalSpread;
+  const cp2x = endX - horizontalSpread;
 
   // Natural gravity droop
   const sag = 90 * slack + Math.min(Math.abs(dx), 1000) * 0.18 * slack + dynamicOffset;
@@ -117,21 +120,20 @@ export function calculateDroopPath(
     // Cable only dips below target if vertical offset is small compared to horizontal
     const dip = sag * Math.max(0, 1 - verticalRatio * 1.25);
     const lift = Math.min(dy * 0.25, 200) * verticalRatio;
-    cp2y = y2 + dip - lift;
+    cp2y = endY + dip - lift;
   } else {
     // Target above source
     cp1y = y1 + sag * Math.max(0.3, 1 - verticalRatio * 0.5);
     const rise = Math.min(Math.abs(dy) * 0.25, 200) * verticalRatio;
-    cp2y = y2 + sag * Math.max(0.1, 1 - verticalRatio) + rise;
+    cp2y = endY + sag * Math.max(0.1, 1 - verticalRatio) + rise;
   }
 
-  const plugAngleDeg = (Math.atan2(y2 - cp2y, x2 - cp2x) * 180) / Math.PI;
   const shadowOffsetY = Math.min(45, Math.max(20, sag * 0.14));
 
   return {
-    path: formatBezierPath(x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2),
-    shadowPath: formatBezierPath(x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2, 0, shadowOffsetY),
-    plugAngleDeg,
+    path: formatBezierPath(x1, y1, cp1x, cp1y, cp2x, cp2y, endX, endY),
+    shadowPath: formatBezierPath(x1, y1, cp1x, cp1y, cp2x, cp2y, endX, endY, 0, shadowOffsetY),
+    plugAngleDeg: 0,
     shadowOffsetY,
     cp1: { x: cp1x, y: cp1y },
     cp2: { x: cp2x, y: cp2y }
@@ -222,6 +224,7 @@ export interface DragCableOptions {
   scrub?: number;
   targetX?: number;
   targetY?: number;
+  vertical?: boolean;
 }
 
 export interface DragCableResult {
@@ -262,8 +265,9 @@ export function calculateDragCablePath(
   const slack = options.slack ?? 1.0;
   const dynamicOffset = options.dynamicOffset ?? 0;
 
-  const fullPlugLength = PLUG_LENGTH * PLUG_SCALE;
-  const plugLength = fullPlugLength * (1 - scrub);
+  const alignProgress = Math.min(1, scrub * 2);
+  const insertProgress = Math.max(0, (scrub - 0.5) * 2);
+  const plugLength = (PLUG_LENGTH - PLUG_SHAFT_LENGTH * insertProgress) * PLUG_SCALE;
 
   const dx = toX - fromX;
   const dy = toY - fromY;
@@ -287,19 +291,21 @@ export function calculateDragCablePath(
   if (hasTarget && scrub > 0) {
     restCurve = calculateDroopPath(fromX, fromY, targetX, targetY, {
       slack,
-      dynamicOffset
+      dynamicOffset,
+      vertical: options.vertical
     });
   }
 
-  // Smooth blending weight towards resting curve
+  // Smooth blending weight towards resting curve and horizontal alignment
   const w = scrub > 0 && restCurve ? Math.pow(scrub, 1.2) : 0;
+  const wAlign = Math.pow(alignProgress, 1.2);
 
   let plugAngleDeg = freeAngleDeg;
-  if (restCurve && w > 0) {
+  if (restCurve && wAlign > 0) {
     let angleDiff = restCurve.plugAngleDeg - freeAngleDeg;
     while (angleDiff > 180) angleDiff -= 360;
     while (angleDiff < -180) angleDiff += 360;
-    plugAngleDeg = freeAngleDeg + angleDiff * w;
+    plugAngleDeg = freeAngleDeg + angleDiff * wAlign;
   }
 
   const plugAngleRad = (plugAngleDeg * Math.PI) / 180;
@@ -323,8 +329,10 @@ export function calculateDragCablePath(
   const lead1 = Math.min(200, Math.max(45, cableDist * 0.35));
   const lead2 = Math.min(200, Math.max(45, cableDist * 0.35));
 
-  const dragP1x = fromX + lead1;
-  const dragP1y = fromY + cableSag * 0.7 + (cableDy > 0 ? cableDy * 0.2 : 0);
+  const dragP1x = options.vertical ? fromX - cableSag * 0.7 : fromX + lead1;
+  const dragP1y = options.vertical
+    ? fromY - lead1
+    : fromY + cableSag * 0.7 + (cableDy > 0 ? cableDy * 0.2 : 0);
   const dragP2x = bootX - lead2 * cosA;
   const dragP2y = bootY - lead2 * sinA;
 

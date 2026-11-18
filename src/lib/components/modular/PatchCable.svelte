@@ -16,6 +16,7 @@
     targetPos = null,
     data,
     color,
+    isMobile = false,
     selected = false,
     dragging = false,
     scrub = 1,
@@ -27,6 +28,7 @@
     targetPos?: XYPosition | null;
     data?: CableEdgeData;
     color?: string;
+    isMobile?: boolean;
     selected?: boolean;
     dragging?: boolean;
     scrub?: number;
@@ -84,11 +86,13 @@
           dynamicOffset,
           slack,
           targetX: targetPos?.x,
-          targetY: targetPos?.y
+          targetY: targetPos?.y,
+          vertical: isMobile
         })
       : calculateDroopPath(from.x, from.y, to.x, to.y, {
           slack,
-          dynamicOffset
+          dynamicOffset,
+          vertical: isMobile
         })
   );
 </script>
@@ -103,13 +107,6 @@
       stroke-width="12"
       stroke-linecap="round"
     />
-
-    <!-- TS plug inserted into target TS jack (behind the cable in Z axis when connected) -->
-    {#if !dragging}
-      <g transform="translate({to.x}, {to.y})">
-        <TsPlug color={cableColor} inserted={true} scale={PLUG_SCALE} angle={curve.plugAngleDeg} />
-      </g>
-    {/if}
 
     <!-- Main droopy cable -->
     <path
@@ -141,30 +138,34 @@
 
     <!-- Output connector on source module (rendered in front of cable) -->
     <rect
-      x={from.x - 7.5}
-      y={from.y - 11}
-      width="15"
-      height="22"
+      x={isMobile ? from.x - 11 : from.x - 7.5}
+      y={isMobile ? from.y - 7.5 : from.y - 11}
+      width={isMobile ? 22 : 15}
+      height={isMobile ? 15 : 22}
       rx="4"
       fill="#334155"
       stroke="#1e293b"
       stroke-width="2"
     />
 
-    <!-- TS plug rotating with the end of the bezier curve while dragging -->
-    {#if dragging}
-      <g transform="translate({to.x}, {to.y})">
-        <TsPlug color={cableColor} scale={PLUG_SCALE} progress={scrub} angle={curve.plugAngleDeg} />
-      </g>
-    {/if}
+    <!-- TS plug at target end (rendered after cable so cable end tucks into rubber boot) -->
+    <g transform="translate({to.x}, {to.y})">
+      <TsPlug
+        color={cableColor}
+        inserted={!dragging}
+        scale={PLUG_SCALE}
+        progress={dragging ? Math.max(0, (scrub - 0.5) * 2) : undefined}
+        angle={curve.plugAngleDeg}
+      />
+    </g>
   </g>
 
   <!-- Interactive anchor at target jack allowing disconnection or reconnection -->
   {#if !dragging && id}
     <circle
-      cx={to.x}
-      cy={to.y}
-      r="35"
+      cx={isMobile ? to.x : to.x - 20}
+      cy={isMobile ? to.y + 20 : to.y}
+      r="40"
       fill="transparent"
       class="pointer-events-auto cursor-grab active:cursor-grabbing"
       onpointerdown={(e) => onStartReconnect?.(id, e)}

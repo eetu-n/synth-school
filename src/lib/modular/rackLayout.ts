@@ -7,7 +7,9 @@ import {
   MOBILE_SIBLING_SPACING,
   CARD_CENTER_Y_OFFSET,
   MOBILE_HANDLE_OFFSET_X,
-  DESKTOP_CARD_MIN_WIDTH
+  DESKTOP_CARD_MIN_WIDTH,
+  JACK_LENGTH,
+  PLUG_SCALE
 } from './constants';
 
 export interface RackLayoutResult {
@@ -111,7 +113,10 @@ export function getFallbackTargetHandle(
   const posX = node?.position?.x ?? 0;
   const posY = node?.position?.y ?? 0;
   if (isMobile) {
-    return { x: posX + MOBILE_HANDLE_OFFSET_X, y: posY + CARD_CENTER_Y_OFFSET * 2 };
+    return {
+      x: posX + MOBILE_HANDLE_OFFSET_X,
+      y: posY + CARD_CENTER_Y_OFFSET * 2 + JACK_LENGTH * PLUG_SCALE
+    };
   }
-  return { x: posX, y: posY + CARD_CENTER_Y_OFFSET };
+  return { x: posX - JACK_LENGTH * PLUG_SCALE, y: posY + CARD_CENTER_Y_OFFSET };
 }

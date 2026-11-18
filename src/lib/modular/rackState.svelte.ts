@@ -6,7 +6,12 @@ import type {
   HandlePositions,
   XYPosition
 } from './types';
-import { CONNECTION_SNAP_RADIUS } from './constants';
+import {
+  CONNECTION_SNAP_RADIUS,
+  JACK_LENGTH,
+  PLUG_SCALE,
+  PLUG_SHAFT_LENGTH
+} from './constants';
 import {
   computeRackLayout,
   getFallbackSourceHandle,
@@ -49,6 +54,7 @@ export class ModularRackState {
   private config: RackStateConfig;
   private layout: RackLayoutResult;
   private sortedPhases: number[];
+  private unlockedNodeIds: Set<string>;
   private panStart = { x: 0, y: 0, panX: 0, panY: 0 };
   private handlePositions = $state<Record<string, HandlePositions>>({});
   private snapAnimId: number | null = null;
@@ -82,6 +88,38 @@ export class ModularRackState {
     this.sortedPhases = $derived(
       Array.from(new Set(this.config.getNodes().map((n) => n.phase ?? 1))).sort((a, b) => a - b)
     );
+    this.unlockedNodeIds = $derived.by(() => {
+      const firstPhase = this.sortedPhases[0] ?? 1;
+      const unlocked = new Set<string>();
+      const queue: string[] = [];
+
+      for (const node of this.config.getNodes()) {
+        if ((node.phase ?? 1) === firstPhase) {
+          unlocked.add(node.id);
+          queue.push(node.id);
+        }
+      }
+
+      const activeEdges = this.config
+        .getEdges()
+        .filter((e) => e.id !== this.activeDrag?.edgeId);
+
+      while (queue.length > 0) {
+        const currentId = queue.shift()!;
+        for (const edge of activeEdges) {
+          if (edge.source === currentId && !unlocked.has(edge.target)) {
+            unlocked.add(edge.target);
+            queue.push(edge.target);
+          }
+        }
+      }
+
+      return unlocked;
+    });
+  }
+
+  isNodeUnlocked(nodeId: string): boolean {
+    return this.unlockedNodeIds.has(nodeId);
   }
 
   syncViewport() {
@@ -134,8 +172,74 @@ export class ModularRackState {
     };
   }
 
-  private computeScrub(dist: number): number {
-    return Math.max(0, Math.min(1, 1 - dist / CONNECTION_SNAP_RADIUS));
+  private applyJackDetent(u: number): number {
+    if (u <= 0) return 0;
+    if (u >= 1) return 1;
+
+    // C1 piecewise cubic Hermite curve: bore entry -> retention spring resistance -> neck-groove snap-in
+    const [u0, u1, y0, y1, m0, m1] =
+      u <= 0.35
+        ? [0, 0.35, 0, 0.32, 1.1, 0.25]
+        : u <= 0.72
+          ? [0.35, 0.72, 0.32, 0.42, 0.25, 0.35]
+          : [0.72, 1, 0.42, 1, 0.35, 1.2];
+
+    const h = u1 - u0;
+    const s = (u - u0) / h;
+    const s2 = s * s;
+    const s3 = s2 * s;
+
+    return (
+      (2 * s3 - 3 * s2 + 1) * y0 +
+      (s3 - 2 * s2 + s) * h * m0 +
+      (-2 * s3 + 3 * s2) * y1 +
+      (s3 - s2) * h * m1
+    );
+  }
+
+  private computeSnap(
+    worldX: number,
+    worldY: number,
+    targetPos: XYPosition
+  ): { dist: number; scrub: number; to: XYPosition } | null {
+    const insertDist = PLUG_SHAFT_LENGTH * PLUG_SCALE;
+    const jackWidth = JACK_LENGTH * PLUG_SCALE;
+
+    let dSeg: number;
+    let rawInsert: number;
+
+    if (this.isMobile) {
+      const segY = Math.max(targetPos.y - jackWidth, Math.min(targetPos.y + insertDist, worldY));
+      dSeg = Math.hypot(worldX - targetPos.x, worldY - segY);
+      rawInsert = Math.max(0, Math.min(1, 1 - (worldY - targetPos.y) / insertDist));
+    } else {
+      const segX = Math.max(targetPos.x - insertDist, Math.min(targetPos.x + jackWidth, worldX));
+      dSeg = Math.hypot(worldX - segX, worldY - targetPos.y);
+      rawInsert = Math.max(0, Math.min(1, 1 - (targetPos.x - worldX) / insertDist));
+    }
+
+    if (dSeg > CONNECTION_SNAP_RADIUS) return null;
+
+    const alignHoldRadius = 24;
+    const t = Math.max(
+      0,
+      Math.min(1, (CONNECTION_SNAP_RADIUS - dSeg) / (CONNECTION_SNAP_RADIUS - alignHoldRadius))
+    );
+    const align = t * t * (3 - 2 * t);
+    const detentInsert = this.applyJackDetent(rawInsert);
+
+    // Phase 1 (0..0.5): horizontal alignment at jack mouth; Phase 2 (0.5..1): horizontal insertion
+    const scrub = 0.5 * align + 0.5 * detentInsert * Math.pow(align, 2);
+    const alignProgress = Math.min(1, scrub * 2);
+
+    return {
+      dist: dSeg,
+      scrub,
+      to: {
+        x: worldX + (targetPos.x - worldX) * alignProgress,
+        y: worldY + (targetPos.y - worldY) * alignProgress
+      }
+    };
   }
 
   private setClampedPan(x: number, y: number) {
@@ -206,6 +310,7 @@ export class ModularRackState {
   }
 
   startDrag(sourceId: string, event: PointerEvent) {
+    if (!this.isNodeUnlocked(sourceId)) return;
     if (this.snapAnimId !== null) {
       cancelAnimationFrame(this.snapAnimId);
       this.snapAnimId = null;
@@ -236,21 +341,21 @@ export class ModularRackState {
     event.preventDefault();
 
     const edge = this.config.getEdges().find((e) => e.id === edgeId);
-    const to = this.clientToWorld(event);
-    if (!edge || !to) return;
+    const world = this.clientToWorld(event);
+    if (!edge || !world) return;
 
     const targetPos = this.getTargetHandle(edge.target);
-    const dist = Math.hypot(to.x - targetPos.x, to.y - targetPos.y);
+    const snap = this.computeSnap(world.x, world.y, targetPos);
 
     this.activeDrag = {
       type: 'reconnect',
       edgeId,
       sourceId: edge.source,
       from: this.getSourceHandle(edge.source),
-      to,
-      hoveredTargetId: edge.target,
-      targetPos,
-      scrub: this.computeScrub(dist)
+      to: snap ? snap.to : world,
+      hoveredTargetId: snap ? edge.target : null,
+      targetPos: snap ? targetPos : null,
+      scrub: snap ? snap.scrub : 0
     };
   }
 
@@ -264,34 +369,29 @@ export class ModularRackState {
 
       let matchedTargetId: string | null = null;
       let targetPos: XYPosition | null = null;
+      let matchedSnap: { dist: number; scrub: number; to: XYPosition } | null = null;
       let minDistance = Infinity;
 
       for (const node of this.layoutedNodes) {
         if (node.id === this.activeDrag.sourceId) continue;
-        const candidatePos = this.getTargetHandle(node.id);
-        const dist = Math.hypot(worldX - candidatePos.x, worldY - candidatePos.y);
+        if (!this.validateConnection(this.activeDrag.sourceId, node.id)) continue;
 
-        if (
-          dist <= CONNECTION_SNAP_RADIUS &&
-          this.validateConnection(this.activeDrag.sourceId, node.id)
-        ) {
-          if (dist < minDistance) {
-            minDistance = dist;
-            matchedTargetId = node.id;
-            targetPos = candidatePos;
-          }
+        const candidatePos = this.getTargetHandle(node.id);
+        const snap = this.computeSnap(worldX, worldY, candidatePos);
+
+        if (snap && snap.dist < minDistance) {
+          minDistance = snap.dist;
+          matchedTargetId = node.id;
+          targetPos = candidatePos;
+          matchedSnap = snap;
         }
       }
 
-      if (matchedTargetId && targetPos) {
-        const scrub = this.computeScrub(minDistance);
-        this.activeDrag.to = {
-          x: worldX + (targetPos.x - worldX) * scrub,
-          y: worldY + (targetPos.y - worldY) * scrub
-        };
+      if (matchedTargetId && targetPos && matchedSnap) {
+        this.activeDrag.to = matchedSnap.to;
         this.activeDrag.hoveredTargetId = matchedTargetId;
         this.activeDrag.targetPos = targetPos;
-        this.activeDrag.scrub = scrub;
+        this.activeDrag.scrub = matchedSnap.scrub;
       } else {
         this.activeDrag.to = { x: worldX, y: worldY };
         this.activeDrag.hoveredTargetId = null;
@@ -356,10 +456,16 @@ export class ModularRackState {
             const ease = 1 - Math.pow(1 - progress, 3);
 
             if (this.activeDrag) {
-              this.activeDrag.scrub = startScrub + (1 - startScrub) * ease;
+              const nextScrub = startScrub + (1 - startScrub) * ease;
+              const alignT =
+                startScrub >= 0.5
+                  ? 1
+                  : Math.min(1, (nextScrub - startScrub) / (0.5 - startScrub));
+
+              this.activeDrag.scrub = nextScrub;
               this.activeDrag.to = {
-                x: startTo.x + (targetPos.x - startTo.x) * ease,
-                y: startTo.y + (targetPos.y - startTo.y) * ease
+                x: startTo.x + (targetPos.x - startTo.x) * alignT,
+                y: startTo.y + (targetPos.y - startTo.y) * alignT
               };
             }
 

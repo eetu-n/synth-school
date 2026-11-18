@@ -81,6 +81,7 @@
             <SynthModuleNode
               {node}
               isMobile={rackState.isMobile}
+              unlocked={rackState.isNodeUnlocked(node.id)}
               isConnectedAsSource={edges.some(
                 (e) => e.source === node.id && e.id !== rackState.activeDrag?.edgeId
               )}
@@ -108,6 +109,7 @@
           to={drag ? drag.to : rackState.getTargetHandle(edge.target)}
           targetPos={drag?.targetPos ?? null}
           data={edge.data}
+          isMobile={rackState.isMobile}
           dragging={isReconnecting}
           scrub={drag?.scrub ?? 1}
           onStartReconnect={(id, e) => rackState.startReconnect(id, e)}
@@ -119,6 +121,7 @@
           from={rackState.activeDrag.from}
           to={rackState.activeDrag.to}
           targetPos={rackState.activeDrag.targetPos}
+          isMobile={rackState.isMobile}
           dragging={true}
           scrub={rackState.activeDrag.scrub ?? 0}
         />
