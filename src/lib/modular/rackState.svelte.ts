@@ -9,7 +9,6 @@ import type {
 import {
   CONNECTION_SNAP_RADIUS,
   JACK_LENGTH,
-  PLUG_SCALE,
   PLUG_SHAFT_LENGTH
 } from './constants';
 import {
@@ -202,8 +201,8 @@ export class ModularRackState {
     worldY: number,
     targetPos: XYPosition
   ): { dist: number; scrub: number; to: XYPosition } | null {
-    const insertDist = PLUG_SHAFT_LENGTH * PLUG_SCALE;
-    const jackWidth = JACK_LENGTH * PLUG_SCALE;
+    const insertDist = PLUG_SHAFT_LENGTH;
+    const jackWidth = JACK_LENGTH;
 
     let dSeg: number;
     let rawInsert: number;

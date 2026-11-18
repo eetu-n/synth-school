@@ -1,7 +1,6 @@
-export const PLUG_SCALE = 2.5;
-export const PLUG_LENGTH = 37.5;
-export const PLUG_SHAFT_LENGTH = 16;
-export const JACK_LENGTH = 10;
+export const PLUG_LENGTH = 94;
+export const PLUG_SHAFT_LENGTH = 40;
+export const JACK_LENGTH = 25;
 export const CONNECTION_SNAP_RADIUS = 85;
 
 export const DESKTOP_PHASE_SPACING = 700;

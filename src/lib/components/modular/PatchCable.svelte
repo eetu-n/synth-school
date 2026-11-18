@@ -6,7 +6,6 @@
     CableSpringAnimation
   } from '$lib/modular/cablePhysics';
   import type { CableEdgeData, XYPosition } from '$lib/modular/types';
-  import { PLUG_SCALE } from '$lib/modular/constants';
   import TsPlug from './TsPlug.svelte';
 
   let {
@@ -153,7 +152,6 @@
       <TsPlug
         color={cableColor}
         inserted={!dragging}
-        scale={PLUG_SCALE}
         progress={dragging ? Math.max(0, (scrub - 0.5) * 2) : undefined}
         angle={curve.plugAngleDeg}
       />

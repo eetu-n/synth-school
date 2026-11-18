@@ -8,8 +8,7 @@ import {
   CARD_CENTER_Y_OFFSET,
   MOBILE_HANDLE_OFFSET_X,
   DESKTOP_CARD_MIN_WIDTH,
-  JACK_LENGTH,
-  PLUG_SCALE
+  JACK_LENGTH
 } from './constants';
 
 export interface RackLayoutResult {
@@ -115,8 +114,8 @@ export function getFallbackTargetHandle(
   if (isMobile) {
     return {
       x: posX + MOBILE_HANDLE_OFFSET_X,
-      y: posY + CARD_CENTER_Y_OFFSET * 2 + JACK_LENGTH * PLUG_SCALE
+      y: posY + CARD_CENTER_Y_OFFSET * 2 + JACK_LENGTH
     };
   }
-  return { x: posX - JACK_LENGTH * PLUG_SCALE, y: posY + CARD_CENTER_Y_OFFSET };
+  return { x: posX - JACK_LENGTH, y: posY + CARD_CENTER_Y_OFFSET };
 }

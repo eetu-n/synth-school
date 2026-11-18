@@ -1,4 +1,4 @@
-import { PLUG_LENGTH, PLUG_SCALE, PLUG_SHAFT_LENGTH } from './constants';
+import { PLUG_LENGTH, PLUG_SHAFT_LENGTH } from './constants';
 
 export interface DroopOptions {
   slack?: number;
@@ -58,7 +58,7 @@ export function calculateDroopPath(
   const isVertical = options.vertical ?? (Math.abs(y2 - y1) > Math.abs(x2 - x1) * 1.25);
 
   // Terminate cable at the back of the inserted plug's strain relief boot
-  const insertedPlugLength = (PLUG_LENGTH - PLUG_SHAFT_LENGTH) * PLUG_SCALE;
+  const insertedPlugLength = PLUG_LENGTH - PLUG_SHAFT_LENGTH;
   const endX = isVertical ? x2 : x2 - insertedPlugLength;
   const endY = isVertical ? y2 + insertedPlugLength : y2;
 
@@ -267,7 +267,7 @@ export function calculateDragCablePath(
 
   const alignProgress = Math.min(1, scrub * 2);
   const insertProgress = Math.max(0, (scrub - 0.5) * 2);
-  const plugLength = (PLUG_LENGTH - PLUG_SHAFT_LENGTH * insertProgress) * PLUG_SCALE;
+  const plugLength = PLUG_LENGTH - PLUG_SHAFT_LENGTH * insertProgress;
 
   const dx = toX - fromX;
   const dy = toY - fromY;

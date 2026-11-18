@@ -3,7 +3,6 @@
   import type { ModuleNode, HandlePositions } from '$lib/modular/types';
   import {
     JACK_LENGTH,
-    PLUG_SCALE,
     MOBILE_HANDLE_OFFSET_X,
     DESKTOP_CARD_MIN_WIDTH,
     MOBILE_CARD_MIN_WIDTH
@@ -45,12 +44,12 @@
     if (isMobile) {
       onUpdateHandles?.(node.id, {
         source: { x: posX + MOBILE_HANDLE_OFFSET_X, y: posY },
-        target: { x: posX + MOBILE_HANDLE_OFFSET_X, y: posY + h + JACK_LENGTH * PLUG_SCALE }
+        target: { x: posX + MOBILE_HANDLE_OFFSET_X, y: posY + h + JACK_LENGTH }
       });
     } else {
       onUpdateHandles?.(node.id, {
         source: { x: posX + w, y: posY + h / 2 },
-        target: { x: posX - JACK_LENGTH * PLUG_SCALE, y: posY + h / 2 }
+        target: { x: posX - JACK_LENGTH, y: posY + h / 2 }
       });
     }
   }
@@ -93,7 +92,7 @@
       style="left: {MOBILE_HANDLE_OFFSET_X - 2}px; bottom: -2px; transform: translate(-100%, 50%) rotate(-90deg); transform-origin: 100% 50%;"
       onpointerdown={(e) => e.stopPropagation()}
     >
-      <TsJack scale={PLUG_SCALE} />
+      <TsJack />
     </div>
 
     {#if unlocked}
@@ -119,7 +118,7 @@
         tabindex="0"
         aria-label="Drag patch cable from {node.data.title}"
       >
-        <TsPlug color="var(--color-primary)" scale={PLUG_SCALE} />
+        <TsPlug color="var(--color-primary)" />
       </div>
     {/if}
   {:else}
@@ -129,7 +128,7 @@
       class="absolute left-0 top-1/2 -translate-x-full -translate-y-1/2 pointer-events-auto cursor-default z-10"
       onpointerdown={(e) => e.stopPropagation()}
     >
-      <TsJack scale={PLUG_SCALE} />
+      <TsJack />
     </div>
 
     {#if unlocked}
@@ -154,7 +153,7 @@
         tabindex="0"
         aria-label="Drag patch cable from {node.data.title}"
       >
-        <TsPlug color="var(--color-primary)" scale={PLUG_SCALE} />
+        <TsPlug color="var(--color-primary)" />
       </div>
     {/if}
   {/if}

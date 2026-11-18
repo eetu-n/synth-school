@@ -1,10 +1,9 @@
 <script lang="ts">
-  import { PLUG_LENGTH, PLUG_SCALE, PLUG_SHAFT_LENGTH } from '$lib/modular/constants';
+  import { PLUG_LENGTH, PLUG_SHAFT_LENGTH } from '$lib/modular/constants';
 
   let {
     color = 'var(--color-primary)',
     inserted = false,
-    scale = PLUG_SCALE,
     animate = true,
     angle = 0,
     progress = undefined,
@@ -12,7 +11,6 @@
   }: {
     color?: string;
     inserted?: boolean;
-    scale?: number;
     animate?: boolean;
     angle?: number;
     progress?: number;
@@ -48,11 +46,11 @@
     wasInserted = fullyIn;
   });
 
-  const width = $derived((!isDynamic ? 38 : 62) * scale);
-  const height = $derived((!isDynamic ? 16 : 40) * scale);
-  const svgX = $derived(!isDynamic ? 0 : -42 * scale);
-  const svgY = $derived(!isDynamic ? 0 : -20 * scale);
-  const viewBox = $derived(!isDynamic ? '0 0 38 16' : '-42 -20 62 40');
+  const width = $derived(!isDynamic ? 95 : 155);
+  const height = $derived(!isDynamic ? 40 : 100);
+  const svgX = $derived(!isDynamic ? 0 : -105);
+  const svgY = $derived(!isDynamic ? 0 : -50);
+  const viewBox = $derived(!isDynamic ? '0 0 95 40' : '-105 -50 155 100');
 
   const slideX = $derived(PLUG_SHAFT_LENGTH * p);
   const isFullyInserted = $derived(p >= 0.98);
@@ -75,103 +73,103 @@
   {#snippet sideProfile()}
     <!-- Rubber strain relief boot (cable entry) -->
     <rect
-      x="-37.5"
-      y="-2.5"
-      width="2.5"
-      height="5"
-      rx="0.8"
+      x="-94"
+      y="-6"
+      width="6"
+      height="12"
+      rx="2"
       class="fill-slate-700 stroke-slate-900 dark:fill-slate-800 dark:stroke-slate-950"
-      stroke-width="0.6"
+      stroke-width="1.5"
     />
     <rect
-      x="-35"
-      y="-3.5"
-      width="2.5"
-      height="7"
-      rx="0.8"
+      x="-88"
+      y="-9"
+      width="6"
+      height="18"
+      rx="2"
       class="fill-slate-700 stroke-slate-900 dark:fill-slate-800 dark:stroke-slate-950"
-      stroke-width="0.6"
+      stroke-width="1.5"
     />
 
     <!-- Plug barrel / handle body -->
     <rect
-      x="-32.5"
-      y="-5"
-      width="15"
-      height="10"
-      rx="1.5"
+      x="-82"
+      y="-12.5"
+      width="38"
+      height="25"
+      rx="4"
       fill={color}
       stroke="#1e293b"
-      stroke-width="0.8"
+      stroke-width="2"
     />
 
     <!-- Barrel top highlight -->
     <path
-      d="M -31 -3.5 L -19 -3.5"
+      d="M -78 -9 L -48 -9"
       stroke="rgba(255, 255, 255, 0.45)"
-      stroke-width="0.8"
+      stroke-width="2"
       stroke-linecap="round"
     />
 
     <!-- Barrel grip ribs -->
-    <line x1="-27.5" y1="-3" x2="-27.5" y2="3" stroke="rgba(0, 0, 0, 0.25)" stroke-width="1" stroke-linecap="round" />
-    <line x1="-23.5" y1="-3" x2="-23.5" y2="3" stroke="rgba(0, 0, 0, 0.25)" stroke-width="1" stroke-linecap="round" />
-    <line x1="-26.7" y1="-3" x2="-26.7" y2="3" stroke="rgba(255, 255, 255, 0.25)" stroke-width="0.6" stroke-linecap="round" />
-    <line x1="-22.7" y1="-3" x2="-22.7" y2="3" stroke="rgba(255, 255, 255, 0.25)" stroke-width="0.6" stroke-linecap="round" />
+    <line x1="-69" y1="-7.5" x2="-69" y2="7.5" stroke="rgba(0, 0, 0, 0.25)" stroke-width="2.5" stroke-linecap="round" />
+    <line x1="-59" y1="-7.5" x2="-59" y2="7.5" stroke="rgba(0, 0, 0, 0.25)" stroke-width="2.5" stroke-linecap="round" />
+    <line x1="-67" y1="-7.5" x2="-67" y2="7.5" stroke="rgba(255, 255, 255, 0.25)" stroke-width="1.5" stroke-linecap="round" />
+    <line x1="-57" y1="-7.5" x2="-57" y2="7.5" stroke="rgba(255, 255, 255, 0.25)" stroke-width="1.5" stroke-linecap="round" />
 
     <!-- Front metallic collar ring of barrel -->
     <rect
-      x="-18"
-      y="-4"
-      width="2"
-      height="8"
-      rx="0.5"
+      x="-45"
+      y="-10"
+      width="5"
+      height="20"
+      rx="1.25"
       class="fill-slate-300 stroke-slate-500 dark:fill-slate-400 dark:stroke-slate-600"
-      stroke-width="0.6"
+      stroke-width="1.5"
     />
 
     <!-- Metal sleeve (shaft) -->
     <rect
-      x="-16"
-      y="-2.8"
-      width="8"
-      height="5.6"
-      rx="0.3"
+      x="-40"
+      y="-7"
+      width="20"
+      height="14"
+      rx="0.75"
       class="fill-slate-200 stroke-slate-400 dark:fill-slate-300 dark:stroke-slate-500"
-      stroke-width="0.6"
+      stroke-width="1.5"
     />
     <!-- Specular highlight on sleeve -->
     <line
-      x1="-15.5"
-      y1="-1.7"
-      x2="-8.5"
-      y2="-1.7"
+      x1="-39"
+      y1="-4.25"
+      x2="-21"
+      y2="-4.25"
       stroke="#ffffff"
-      stroke-width="0.7"
+      stroke-width="1.75"
       opacity="0.9"
     />
 
     <!-- Insulator ring (black spacer) -->
     <rect
-      x="-8"
-      y="-2.8"
-      width="1.8"
-      height="5.6"
+      x="-20"
+      y="-7"
+      width="4.5"
+      height="14"
       fill="#090d16"
     />
 
     <!-- Metal conductive tip with neck groove -->
     <path
-      d="M -6.2 -2.7 C -5.3 -1.9 -4.7 -1.8 -3.9 -2.2 C -2.3 -3 -0.5 -1.2 0 0 C -0.5 1.2 -2.3 3 -3.9 2.2 C -4.7 1.8 -5.3 1.9 -6.2 2.7 Z"
+      d="M -15.5 -6.75 C -13.25 -4.75 -11.75 -4.5 -9.75 -5.5 C -5.75 -7.5 -1.25 -3 0 0 C -1.25 3 -5.75 7.5 -9.75 5.5 C -11.75 4.5 -13.25 4.75 -15.5 6.75 Z"
       class="fill-slate-200 stroke-slate-400 dark:fill-slate-300 dark:stroke-slate-500"
-      stroke-width="0.6"
+      stroke-width="1.5"
       stroke-linejoin="round"
     />
     <!-- Specular highlight on tip -->
     <path
-      d="M -4 -1.6 C -2.7 -2.2 -1.3 -1 -0.9 0"
+      d="M -10 -4 C -6.75 -5.5 -3.25 -2.5 -2.25 0"
       stroke="#ffffff"
-      stroke-width="0.6"
+      stroke-width="1.5"
       fill="none"
       opacity="0.9"
       stroke-linecap="round"
@@ -179,14 +177,14 @@
   {/snippet}
 
   {#if !isDynamic}
-    <g transform="translate({PLUG_LENGTH}, 8)">
+    <g transform="translate({PLUG_LENGTH}, 20)">
       {@render sideProfile()}
     </g>
   {:else}
     <defs>
-      <!-- Clip shaft at x=0.5 so it slides inside the jack's bore aperture -->
+      <!-- Clip shaft at x=1 so it slides inside the jack's bore aperture -->
       <clipPath id={clipId}>
-        <rect x="-100" y="-50" width="100.5" height="100" />
+        <rect x="-250" y="-125" width="251" height="250" />
       </clipPath>
     </defs>
 
@@ -204,10 +202,10 @@
         <circle
           cx="0"
           cy="0"
-          r="5"
+          r="12.5"
           fill="none"
           stroke={color}
-          stroke-width="1.2"
+          stroke-width="3"
           class="plug-contact-pulse pointer-events-none"
         />
       {/if}
