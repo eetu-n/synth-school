@@ -54,6 +54,7 @@ export class ModularRackState {
   private layout: RackLayoutResult;
   private sortedPhases: number[];
   private unlockedNodeIds: Set<string>;
+  private nextTargetNodeIds: Set<string>;
   private panStart = { x: 0, y: 0, panX: 0, panY: 0 };
   private handlePositions = $state<Record<string, HandlePositions>>({});
   private snapAnimId: number | null = null;
@@ -115,10 +116,46 @@ export class ModularRackState {
 
       return unlocked;
     });
+    this.nextTargetNodeIds = $derived.by(() => {
+      const nodes = this.config.getNodes();
+      const activeEdges = this.config
+        .getEdges()
+        .filter((e) => e.id !== this.activeDrag?.edgeId);
+      const occupiedTargets = new Set(activeEdges.map((e) => e.target));
+      const targets = new Set<string>();
+
+      if (this.activeDrag) {
+        const sourceId = this.activeDrag.sourceId;
+        for (const node of nodes) {
+          if (!occupiedTargets.has(node.id) && this.validateConnection(sourceId, node.id)) {
+            targets.add(node.id);
+          }
+        }
+        return targets;
+      }
+
+      const occupiedSources = new Set(activeEdges.map((e) => e.source));
+      const availableSources = nodes.filter(
+        (n) => this.unlockedNodeIds.has(n.id) && !occupiedSources.has(n.id)
+      );
+
+      for (const node of nodes) {
+        if (this.unlockedNodeIds.has(node.id) || occupiedTargets.has(node.id)) continue;
+        if (availableSources.some((source) => this.validateConnection(source.id, node.id))) {
+          targets.add(node.id);
+        }
+      }
+
+      return targets;
+    });
   }
 
   isNodeUnlocked(nodeId: string): boolean {
     return this.unlockedNodeIds.has(nodeId);
+  }
+
+  isNextTarget(nodeId: string): boolean {
+    return this.nextTargetNodeIds.has(nodeId);
   }
 
   syncViewport() {

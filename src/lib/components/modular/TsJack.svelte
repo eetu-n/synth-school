@@ -2,13 +2,39 @@
   import { JACK_LENGTH } from '$lib/modular/constants';
 
   let {
+    showHalo = false,
     class: className = ''
   }: {
+    showHalo?: boolean;
     class?: string;
   } = $props();
 
   const width = JACK_LENGTH;
   const height = 45;
+
+  const uid = $props.id();
+  const radialGradId = `jack-halo-grad-${uid}`;
+  const maskId = `jack-halo-mask-${uid}`;
+
+  const HALO_MASK_RADIUS = 50;
+  const HALO_MASK_STEPS = 12;
+  const haloMaskSectors = Array.from({ length: HALO_MASK_STEPS }, (_, step) => {
+    const k = step + 1;
+    const t = k / HALO_MASK_STEPS;
+    const prevT = step / HALO_MASK_STEPS;
+    const targetAlpha = t * t * (3 - 2 * t);
+    const prevAlpha = prevT * prevT * (3 - 2 * prevT);
+    const opacity = (targetAlpha - prevAlpha) / (1 - prevAlpha);
+
+    const halfAngleRad = ((36 - step * 2) * Math.PI) / 180;
+    const endX = -HALO_MASK_RADIUS * Math.cos(halfAngleRad);
+    const endY = HALO_MASK_RADIUS * Math.sin(halfAngleRad);
+
+    return {
+      d: `M 0 0 L ${endX} ${-endY} A ${HALO_MASK_RADIUS} ${HALO_MASK_RADIUS} 0 0 0 ${endX} ${endY} Z`,
+      opacity
+    };
+  });
 </script>
 
 <svg
@@ -20,6 +46,38 @@
   overflow="visible"
   class="block select-none {className}"
 >
+  {#if showHalo}
+    <defs>
+      <radialGradient id={radialGradId} cx="0" cy="0" r="46" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#ffffff" stop-opacity="1" />
+        <stop offset="55%" stop-color="#ffffff" stop-opacity="1" />
+        <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+      </radialGradient>
+      <mask id={maskId} maskUnits="userSpaceOnUse" x="-60" y="-60" width="120" height="120">
+        {#each haloMaskSectors as sector, idx (idx)}
+          <path d={sector.d} fill="url(#{radialGradId})" opacity={sector.opacity} />
+        {/each}
+      </mask>
+    </defs>
+
+    <g transform="translate(1.5, 0)" mask="url(#{maskId})" class="pointer-events-none">
+      <circle r="32" fill="#fbbf24" opacity="0.16" />
+      <g class="jack-halo-rays">
+        {#each Array.from({ length: 24 }, (_, i) => i) as i (i)}
+          {@const isLong = i % 2 === 0}
+          <path
+            d={isLong
+              ? 'M 1.2 -0.35 L 41 -3.4 Q 43.2 0 41 3.4 L 1.2 0.35 Z'
+              : 'M 1.2 -0.25 L 31 -2.3 Q 33 0 31 2.3 L 1.2 0.25 Z'}
+            fill="#fbbf24"
+            opacity={isLong ? 0.55 : 0.35}
+            transform="rotate({i * 15})"
+          />
+        {/each}
+      </g>
+    </g>
+  {/if}
+
   <!-- Panel washer / flange flush against module edge (x = 25) -->
   <rect
     x="21"
@@ -113,3 +171,19 @@
     class="fill-slate-950"
   />
 </svg>
+
+<style>
+  .jack-halo-rays {
+    animation: jack-halo-spin 12s linear infinite;
+    transform-origin: 0px 0px;
+  }
+
+  @keyframes jack-halo-spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+</style>

@@ -82,6 +82,7 @@
               {node}
               isMobile={rackState.isMobile}
               unlocked={rackState.isNodeUnlocked(node.id)}
+              highlightInput={rackState.isNextTarget(node.id)}
               isConnectedAsSource={edges.some(
                 (e) => e.source === node.id && e.id !== rackState.activeDrag?.edgeId
               )}

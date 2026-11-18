@@ -15,6 +15,7 @@
     isMobile = false,
     selected = false,
     unlocked = true,
+    highlightInput = false,
     isConnectedAsSource = false,
     isDraggingFromThis = false,
     onUpdateHandles,
@@ -24,6 +25,7 @@
     isMobile?: boolean;
     selected?: boolean;
     unlocked?: boolean;
+    highlightInput?: boolean;
     isConnectedAsSource?: boolean;
     isDraggingFromThis?: boolean;
     onUpdateHandles?: (id: string, handles: HandlePositions) => void;
@@ -92,7 +94,7 @@
       style="left: {MOBILE_HANDLE_OFFSET_X - 2}px; bottom: -2px; transform: translate(-100%, 50%) rotate(-90deg); transform-origin: 100% 50%;"
       onpointerdown={(e) => e.stopPropagation()}
     >
-      <TsJack />
+      <TsJack showHalo={highlightInput} />
     </div>
 
     {#if unlocked}
@@ -128,7 +130,7 @@
       class="absolute left-0 top-1/2 -translate-x-full -translate-y-1/2 pointer-events-auto cursor-default z-10"
       onpointerdown={(e) => e.stopPropagation()}
     >
-      <TsJack />
+      <TsJack showHalo={highlightInput} />
     </div>
 
     {#if unlocked}
