@@ -5,6 +5,7 @@ export interface XYPosition {
 
 export interface ModuleNodeData {
   title: string;
+  description?: string;
   href: string;
   allowedTargets?: string[];
 }

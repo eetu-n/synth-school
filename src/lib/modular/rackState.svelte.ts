@@ -105,7 +105,12 @@ export class ModularRackState {
 
       const activeEdges = this.config
         .getEdges()
-        .filter((e) => e.id !== this.activeDrag?.edgeId);
+        .filter(
+          (e) =>
+            e.id !== this.activeDrag?.edgeId ||
+            (this.activeDrag?.hoveredTargetId === e.target &&
+              (this.activeDrag?.scrub ?? 0) > 0.5)
+        );
 
       while (queue.length > 0) {
         const currentId = queue.shift()!;
