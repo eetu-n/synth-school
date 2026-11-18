@@ -37,7 +37,7 @@
   const cableColor = $derived(color ?? data?.color ?? 'var(--color-primary)');
   const slack = $derived(data?.slack ?? 1.0);
 
-  let dynamicOffset = $state(0);
+  let dynamicOffset = $state({ x: 0, y: 0 });
   const springAnim = new CableSpringAnimation((d) => {
     dynamicOffset = d;
   });
@@ -53,23 +53,49 @@
   let isHovered = $state(false);
   let lastHoverTime = 0;
 
+  function strumCable(event: PointerEvent, minSpeed = 1) {
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const dist = Math.hypot(dx, dy) || 1;
+    const nx = -dy / dist;
+    const ny = dx / dist;
+
+    const mx = event.movementX;
+    const my = event.movementY;
+    const speed = Math.hypot(mx, my);
+
+    if (speed < minSpeed && minSpeed <= 1.5) return;
+
+    let rawIx: number;
+    let rawIy: number;
+
+    if (speed < minSpeed && minSpeed > 1.5) {
+      const proj = mx * nx + my * ny;
+      const sign = proj !== 0 ? Math.sign(proj) : Math.random() > 0.5 ? 1 : -1;
+      rawIx = nx * sign * minSpeed;
+      rawIy = ny * sign * minSpeed;
+    } else {
+      const proj = mx * nx + my * ny;
+      rawIx = nx * proj + mx * 0.3;
+      rawIy = ny * proj + my * 0.3;
+    }
+
+    const mag = Math.hypot(rawIx, rawIy);
+    if (mag < 0.01) return;
+    const clamped = Math.min(9, Math.max(2.5, mag * 0.5));
+    springAnim.applyImpulse2D((rawIx / mag) * clamped, (rawIy / mag) * clamped);
+  }
+
   function handleCablePointerEnter(event: PointerEvent) {
     isHovered = true;
-    const dy = event.movementY !== 0 ? event.movementY : Math.random() > 0.5 ? 3 : -3;
-    const speed = Math.hypot(event.movementX, event.movementY);
-    springAnim.applyImpulse(dy, Math.max(6, speed));
+    strumCable(event, 6);
   }
 
   function handleCablePointerMove(event: PointerEvent) {
     const now = performance.now();
     if (now - lastHoverTime < 40) return;
     lastHoverTime = now;
-
-    const speed = Math.hypot(event.movementX, event.movementY);
-    if (speed > 1) {
-      const dy = event.movementY !== 0 ? event.movementY : 2;
-      springAnim.applyImpulse(dy, speed);
-    }
+    strumCable(event, 1.5);
   }
 
   function handleCablePointerLeave() {
@@ -77,6 +103,8 @@
   }
 
   const hovered = $derived(!dragging && isHovered);
+  const coreWidth = $derived(!dragging && selected ? 12.5 : hovered ? 10.5 : 8.5);
+  const outlineWidth = $derived(coreWidth + 3.5);
 
   const curve = $derived(
     dragging
@@ -98,26 +126,45 @@
 
 {#if curve.path}
   <g class="patch-cable select-none pointer-events-none" role="group">
-    <!-- Droop shadow -->
+    <!-- Pin-anchored perspective shadow -->
     <path
       d={curve.shadowPath}
       fill="none"
-      stroke="rgba(0, 0, 0, 0.1)"
+      stroke="rgba(0, 0, 0, 0.13)"
       stroke-width="12"
       stroke-linecap="round"
     />
 
-    <!-- Main droopy cable -->
+    <!-- Outer dark casing outline -->
+    <path
+      d={curve.path}
+      fill="none"
+      stroke="#1e293b"
+      stroke-width={outlineWidth}
+      stroke-linecap="round"
+      class={!dragging ? 'transition-[stroke-width] duration-150' : undefined}
+    />
+
+    <!-- Main colored cable core -->
     <path
       {id}
       d={curve.path}
       fill="none"
       stroke={cableColor}
-      stroke-width={!dragging && selected ? '13' : hovered ? '11' : '9'}
+      stroke-width={coreWidth}
       stroke-linecap="round"
       class={!dragging
         ? `transition-[stroke-width,filter] duration-150 ${hovered ? 'brightness-125' : ''}`
         : undefined}
+    />
+
+    <!-- Cylindrical specular highlight -->
+    <path
+      d={curve.highlightPath}
+      fill="none"
+      stroke="rgba(255, 255, 255, 0.32)"
+      stroke-width="2"
+      stroke-linecap="round"
     />
 
     <!-- Transparent hit area for hover strumming interaction -->
